@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+API/.env
+API/almacen/
+API/pruebas/temporal/
+*.log
+.DS_Store
