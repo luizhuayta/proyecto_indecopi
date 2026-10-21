@@ -1,0 +1,22 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: plantilla_mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: rootlocal
+      MARIADB_DATABASE: plantilla_cms
+      MARIADB_USER: plantilla
+      MARIADB_PASSWORD: plantilla_local
+    ports:
+      - '3307:3306'
+    volumes:
+      - mariadb_datos:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mariadb_datos:
