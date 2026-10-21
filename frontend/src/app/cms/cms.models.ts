@@ -107,3 +107,75 @@ export function buscarMarcadores(contenido: unknown): string[] {
   walk(contenido, '');
   return out;
 }
+
+// ---- Tipos del contrato HTTP (v1, solo español) ----
+
+const apiOverride =
+  typeof globalThis !== 'undefined'
+    ? (globalThis as Record<string, unknown>)['__API_URL__']
+    : undefined;
+
+/**
+ * Base del API. Por defecto '/api'; se puede sobreescribir en runtime
+ * asignando globalThis.__API_URL__ (útil para producción, p. ej. '/api.php').
+ */
+export const API_BASE: string =
+  typeof apiOverride === 'string' && apiOverride ? apiOverride : '/api';
+
+/** Locale fijo de la v1: solo se entrega contenido en español. */
+export const LOCALE = 'es';
+
+export interface CmsPageSummary {
+  slug: string;
+  titulo: string;
+  actualizado_en?: string | null;
+  version?: number;
+  ruta?: string | null;
+  mostrar_en_menu?: boolean;
+  orden_menu?: number;
+  protegida?: boolean;
+}
+
+export interface CmsMenuItem {
+  slug: string;
+  titulo: string;
+  ruta: string;
+  orden_menu?: number;
+}
+
+export interface CmsDocResponse {
+  contenido: JsonMap;
+  version: number;
+  actualizado_en?: string | null;
+  schemaVersion?: number;
+  slug?: string;
+  titulo?: string;
+  ruta?: string;
+  mostrar_en_menu?: boolean;
+  orden_menu?: number;
+  tiene_borrador?: boolean;
+}
+
+export interface CmsRevision {
+  id: number;
+  autor: string;
+  creado_en: string;
+  instantanea: JsonMap;
+}
+
+export interface CmsMediaItem {
+  id: number;
+  nombre_original: string;
+  url: string;
+  mime: string;
+  tamano: number;
+  ancho?: number | null;
+  alto?: number | null;
+  variantes?: Array<{ ancho: number; url: string }>;
+}
+
+/** Dimensiones de una imagen, clave interna del editor. */
+export interface ImageMeta {
+  width: number;
+  height: number;
+}
