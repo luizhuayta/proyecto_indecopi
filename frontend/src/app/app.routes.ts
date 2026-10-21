@@ -1,9 +1,32 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth.guard';
+import { dirtyGuard } from './core/dirty.guard';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./public/inicio').then((m) => m.Inicio),
+  },
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./admin/admin-login').then((m) => m.AdminLogin),
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard],
+    loadComponent: () => import('./admin/admin-shell').then((m) => m.AdminShell),
+    children: [
+      { path: '', redirectTo: 'paginas', pathMatch: 'full' },
+      {
+        path: 'paginas',
+        loadComponent: () => import('./admin/admin-paginas').then((m) => m.AdminPaginas),
+      },
+      {
+        path: 'editor/:slug',
+        canDeactivate: [dirtyGuard],
+        loadComponent: () => import('./admin/page-editor').then((m) => m.PageEditor),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

@@ -1,28 +1,39 @@
 /* ========================================================
-   TOKENS NEUTRALES DE LA PLANTILLA
+   TOKENS DE LA PLANTILLA
    --------------------------------------------------------
-   Variables CSS semánticas y configurables. Una tarea
-   posterior permitirá editarlas desde el panel de
-   administración; aquí solo se definen valores por defecto
-   neutros (sin marca).
+   Variables CSS semánticas. La paleta, la tipografía y los
+   radios siguen docs/DISENO-VISUAL.md. Los valores de color
+   son editables desde el panel; aquí viven los valores por
+   defecto (neutros, sin marca).
    ======================================================== */
 
 :root {
   color-scheme: light;
 
   /* Colores institucionales (editables desde el panel) */
-  --color-primario: #123a6d;      /* azul oscuro institucional */
-  --color-primario-suave: #2f5b96; /* hover / variante del primario */
-  --color-secundario: #2d4a72;
-  --color-acento: #2f80ed;
-  --color-texto: #2b2b2b;
-  --color-fondo: #fbfbfa;         /* fondo casi blanco */
-  --color-superficie: #ffffff;
-  --color-borde: #dde1e6;
+  --color-primario: #123a6d; /* azul institucional: estructura, enlaces, foco */
+  --color-primario-fuerte: #0d2a50; /* hover / texto sobre superficie clara */
+  --color-primario-suave: #0d2a50; /* alias heredado del primario-fuerte */
+  --color-secundario: #5a6b80; /* gris azulado: texto secundario, bordes de apoyo */
+  --color-acento: #b3541e; /* terracota sobrio: aviso, error, dato destacado */
+  --color-texto: #1b1f24; /* texto principal, nunca negro puro */
+  --color-texto-suave: #525c68; /* texto secundario */
+  --color-fondo: #ffffff; /* fondo de página */
+  --color-superficie: #f4f6f8; /* superficie elevada: tarjetas, paneles */
+  --color-borde: #d8dee5; /* bordes y separadores */
 
-  /* Tipografía */
-  --font-titulos: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-cuerpo: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Tipografía: display serif (Source Serif 4) y cuerpo (IBM Plex Sans). */
+  --font-titulos: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-cuerpo: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Escala tipográfica (tamaño / altura de línea) */
+  --texto-xs: 0.75rem; /* metadatos, notas al pie */
+  --texto-sm: 0.875rem; /* texto de apoyo, etiquetas de campo */
+  --texto-base: 1rem; /* cuerpo de página */
+  --texto-lg: 1.125rem; /* entradilla, texto destacado */
+  --texto-xl: 1.5rem; /* título de sección */
+  --texto-2xl: 2rem; /* título de página */
+  --texto-3xl: 2.75rem; /* título de portada */
 
   /* Espaciado */
   --space-4: 4px;
@@ -34,29 +45,34 @@
   --space-48: 48px;
   --space-64: 64px;
 
-  /* Radios */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* Radios por jerarquía (no un radio único) */
+  --radio-campo: 4px; /* campos y botones */
+  --radio-tarjeta: 6px; /* tarjetas */
+  --radio-avatar: 999px; /* solo la foto de persona */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(18, 26, 43, 0.06), 0 2px 6px rgba(18, 26, 43, 0.04);
-  --shadow-md: 0 6px 18px rgba(18, 26, 43, 0.1), 0 2px 4px rgba(18, 26, 43, 0.06);
+  /* Sombras: una sola, sutil, solo para elementos elevados. */
+  --shadow-sm: 0 1px 2px rgba(13, 42, 80, 0.08);
+  --shadow-md: 0 6px 18px rgba(13, 42, 80, 0.12), 0 2px 4px rgba(13, 42, 80, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
     --color-primario: #7ea6d8;
+    --color-primario-fuerte: #a9c6e8;
     --color-primario-suave: #a9c6e8;
     --color-secundario: #8aa8cc;
-    --color-acento: #4d9bff;
+    --color-acento: #d08a5e;
     --color-texto: #e8eaee;
+    --color-texto-suave: #aeb6c0;
     --color-fondo: #12151c;
     --color-superficie: #1a1e27;
     --color-borde: #2c3340;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.18);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
     --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32), 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 }
@@ -64,13 +80,15 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --color-primario: #7ea6d8;
+  --color-primario-fuerte: #a9c6e8;
   --color-primario-suave: #a9c6e8;
   --color-secundario: #8aa8cc;
-  --color-acento: #4d9bff;
+  --color-acento: #d08a5e;
   --color-texto: #e8eaee;
+  --color-texto-suave: #aeb6c0;
   --color-fondo: #12151c;
   --color-superficie: #1a1e27;
   --color-borde: #2c3340;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
