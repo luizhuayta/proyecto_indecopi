@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../../nucleo/sesion.php';
+require_once __DIR__ . '/../../nucleo/json.php';
 require_once __DIR__ . '/../../nucleo/auditoria.php';
 require_once __DIR__ . '/../../nucleo/validacion.php';
 require_once __DIR__ . '/../../nucleo/fechas.php';
@@ -81,8 +82,8 @@ function validarContenidoBloques(array $contenido): void
  */
 function lanzarConflictoPagina(array $fila, string $mensaje): never
 {
-    $borrador = decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = decodificarJsonColumna($fila['contenido'] ?? null);
+    $borrador = decodificarJson($fila['borrador'] ?? null);
+    $publicado = decodificarJson($fila['contenido'] ?? null);
     $contenido = $borrador !== null ? $borrador : ($publicado ?? []);
     error_app($mensaje, 409, [
         'version' => (int) ($fila['version'] ?? 1),
@@ -102,8 +103,8 @@ function documentoPagina(string $slug, string $locale, bool $conBorrador): ?arra
     if ($fila === null) {
         return null;
     }
-    $borrador = decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = decodificarJsonColumna($fila['contenido'] ?? null);
+    $borrador = decodificarJson($fila['borrador'] ?? null);
+    $publicado = decodificarJson($fila['contenido'] ?? null);
     $tieneBorrador = $borrador !== null;
     $contenido = ($conBorrador && $tieneBorrador) ? $borrador : $publicado;
     if ($contenido === null) {
@@ -222,8 +223,8 @@ function publicarPagina(string $slug, string $locale, int $version): array
         lanzarConflictoPagina($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
     }
 
-    $borrador = decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = decodificarJsonColumna($fila['contenido'] ?? null);
+    $borrador = decodificarJson($fila['borrador'] ?? null);
+    $publicado = decodificarJson($fila['contenido'] ?? null);
     $aPublicar = $borrador !== null ? $borrador : ($publicado ?? []);
 
     validarContenidoBloques($aPublicar);
@@ -264,7 +265,7 @@ function listarRevisiones(string $slug, string $locale): array
             'id' => (int) $fila['id'],
             'autor' => (string) ($fila['autor'] ?? ''),
             'creado_en' => aIso(isset($fila['creado_en']) ? (string) $fila['creado_en'] : null),
-            'instantanea' => decodificarJsonColumna($fila['instantanea'] ?? null) ?? [],
+            'instantanea' => decodificarJson($fila['instantanea'] ?? null) ?? [],
         ];
     }, revisionesDePagina($slug, $locale));
     return ['items' => $items];
@@ -282,7 +283,7 @@ function restaurarRevision(string $slug, string $locale, int $id, int $version):
     if ($revision === null) {
         noEncontrado('Revisión no encontrada.');
     }
-    $instantanea = decodificarJsonColumna($revision['instantanea'] ?? null) ?? [];
+    $instantanea = decodificarJson($revision['instantanea'] ?? null) ?? [];
 
     $fila = paginaPorSlug($slug, $locale);
     if ($fila === null) {

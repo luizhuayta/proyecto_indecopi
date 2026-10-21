@@ -313,25 +313,6 @@ function sanearPropsSegunEsquema(array $valor, array $esquema): array
 }
 
 /**
- * Decodifica una columna que guarda JSON (JSON nativo o LONGTEXT). Devuelve un
- * array, o null si está vacía o no es un objeto/array JSON.
- */
-function decodificarJsonColumna(mixed $valor): ?array
-{
-    if ($valor === null || $valor === '') {
-        return null;
-    }
-    if (is_array($valor)) {
-        return $valor;
-    }
-    if (is_string($valor)) {
-        $decodificado = json_decode($valor, true);
-        return is_array($decodificado) ? $decodificado : null;
-    }
-    return null;
-}
-
-/**
  * Normaliza el locale. Solo se admite 'es' (o vacío, que se normaliza a 'es');
  * cualquier otro valor responde 400.
  */
@@ -355,132 +336,10 @@ function localeDePeticion(): string
 }
 
 /**
- * Documento de configuración del sitio (publicado o borrador según la sesión).
+ * Prepara el documento general del sitio antes de guardarlo: sanea el texto
+ * enriquecido de los bloques. Lo invoca el núcleo de configuración.
  */
-function contenidoConfiguracion(string $locale): array
+function prepararContenidoDelSitio(array $contenido): array
 {
-    $fila = configuracionPorLocale($locale);
-    $conSesion = usuarioActual() !== null;
-
-    if ($fila === null) {
-        $payload = ['contenido' => [], 'version' => 1, 'schemaVersion' => CMS_SCHEMA_VERSION];
-        if ($conSesion) {
-            $payload['tiene_borrador'] = false;
-        }
-        return $payload;
-    }
-
-    $borrador = decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = decodificarJsonColumna($fila['contenido'] ?? null);
-    $tieneBorrador = $borrador !== null;
-    $contenido = ($conSesion && $tieneBorrador) ? $borrador : ($publicado ?? []);
-
-    $payload = [
-        'contenido' => $contenido,
-        'version' => (int) ($fila['version'] ?? 1),
-        'actualizado_en' => aIso(isset($fila['actualizado_en']) ? (string) $fila['actualizado_en'] : null),
-        'schemaVersion' => CMS_SCHEMA_VERSION,
-    ];
-    if ($conSesion) {
-        $payload['tiene_borrador'] = $tieneBorrador;
-    }
-    return $payload;
-}
-
-/**
- * Guarda el borrador de la configuración. Exige la versión leída por el
- * cliente; si no coincide responde 409.
- */
-function guardarConfiguracion(string $locale, array $contenido, int $version): array
-{
-    exigirSesion();
-
-    $contenido = sanearContenido($contenido);
-    $json = json_encode($contenido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($json === false) {
-        solicitudInvalida('El contenido no se puede guardar.');
-    }
-
-    $fila = configuracionPorLocale($locale);
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    if ($version !== $actual) {
-        lanzarConflictoConfiguracion($fila, 'Alguien guardó el sitio antes. Recarga para no pisar cambios.');
-    }
-
-    $nueva = $actual + 1;
-    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
-        asegurarConfiguracion($locale);
-        return actualizarBorradorConfiguracion($locale, $json, $actual, $nueva);
-    });
-    if ($afectadas === 0) {
-        lanzarConflictoConfiguracion($fila, 'Alguien guardó el sitio antes. Recarga para no pisar cambios.');
-    }
-
-    $fresca = configuracionPorLocale($locale);
-    registrarAuditoria('guardar_configuracion', 'configuracion_sitio', $locale, ['version' => $nueva]);
-
-    return [
-        'contenido' => $contenido,
-        'version' => $nueva,
-        'actualizado_en' => aIso($fresca !== null && isset($fresca['actualizado_en']) ? (string) $fresca['actualizado_en'] : null),
-    ];
-}
-
-/**
- * Publica la configuración: pasa el borrador a contenido (o publica el
- * contenido actual si no hay borrador) y sube la versión.
- */
-function publicarConfiguracion(string $locale, int $version): array
-{
-    exigirRol('admin');
-
-    $fila = configuracionPorLocale($locale);
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    if ($version !== $actual) {
-        lanzarConflictoConfiguracion($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
-    }
-
-    $borrador = $fila === null ? null : decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = $fila === null ? null : decodificarJsonColumna($fila['contenido'] ?? null);
-    $aPublicar = $borrador !== null ? $borrador : ($publicado ?? []);
-    $aPublicar = sanearContenido($aPublicar);
-    $json = json_encode($aPublicar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($json === false) {
-        solicitudInvalida('El contenido no se puede publicar.');
-    }
-
-    $nueva = $actual + 1;
-    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
-        asegurarConfiguracion($locale);
-        return publicarConfiguracionBd($locale, $json, $actual, $nueva);
-    });
-    if ($afectadas === 0) {
-        lanzarConflictoConfiguracion($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
-    }
-
-    $fresca = configuracionPorLocale($locale);
-    registrarAuditoria('publicar_configuracion', 'configuracion_sitio', $locale, ['version' => $nueva]);
-
-    return [
-        'contenido' => $aPublicar,
-        'version' => $nueva,
-        'actualizado_en' => aIso($fresca !== null && isset($fresca['actualizado_en']) ? (string) $fresca['actualizado_en'] : null),
-    ];
-}
-
-/**
- * Lanza el 409 de conflicto de versión para la configuración, con la versión,
- * la fecha y el contenido actuales.
- */
-function lanzarConflictoConfiguracion(?array $fila, string $mensaje): never
-{
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    $borrador = $fila === null ? null : decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = $fila === null ? null : decodificarJsonColumna($fila['contenido'] ?? null);
-    $contenido = $borrador !== null ? $borrador : ($publicado ?? []);
-    error_app($mensaje, 409, [
-        'version' => $actual,
-        'actualizado_en' => $fila !== null && isset($fila['actualizado_en']) ? aIso((string) $fila['actualizado_en']) : null,
-        'contenido' => sanearContenido($contenido),
-    ]);
+    return ['contenido' => sanearContenido($contenido), 'avisos' => []];
 }

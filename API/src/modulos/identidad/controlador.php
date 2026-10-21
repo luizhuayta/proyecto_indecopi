@@ -8,19 +8,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../http/respuesta.php';
 require_once __DIR__ . '/../../nucleo/csr.php';
 require_once __DIR__ . '/../../nucleo/sesion.php';
+require_once __DIR__ . '/../../nucleo/documento.php';
 require_once __DIR__ . '/servicio.php';
-
-if (!function_exists('cuerpoJson')) {
-    /**
-     * Cuerpo JSON de la petición como array (vacío si no lo hay).
-     */
-    function cuerpoJson(): array
-    {
-        $bruto = file_get_contents('php://input') ?: '';
-        $datos = json_decode($bruto, true);
-        return is_array($datos) ? $datos : [];
-    }
-}
 
 /**
  * GET /identidad — identidad de la institución (admin).
@@ -46,7 +35,7 @@ function controladorGuardarIdentidad(): void
 function controladorVerApariencia(): void
 {
     exigirRol('admin');
-    json_out(configuracionApariencia(localeDePeticion()), 200);
+    json_out(leerDocumento(CLAVE_APARIENCIA, localeDePeticion()), 200);
 }
 
 /**
@@ -58,7 +47,7 @@ function controladorGuardarApariencia(): void
     $cuerpo = cuerpoJson();
     $contenido = is_array($cuerpo['contenido'] ?? null) ? $cuerpo['contenido'] : [];
     $version = (int) ($cuerpo['version'] ?? 0);
-    json_out(guardarApariencia(localeDePeticion(), $contenido, $version), 200);
+    json_out(guardarDocumento(CLAVE_APARIENCIA, localeDePeticion(), $contenido, $version, 'prepararApariencia'), 200);
 }
 
 /**
@@ -68,5 +57,5 @@ function controladorPublicarApariencia(): void
 {
     exigirCsrf();
     $version = (int) (cuerpoJson()['version'] ?? 0);
-    json_out(publicarApariencia(localeDePeticion(), $version), 200);
+    json_out(publicarDocumento(CLAVE_APARIENCIA, localeDePeticion(), $version, 'prepararApariencia'), 200);
 }

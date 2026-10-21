@@ -122,8 +122,8 @@ probar('publicar mueve el borrador a publicado', function () {
     afirmar(($resultado['version'] ?? 0) === 3, 'debe subir la versión');
     $fila = paginaPorSlug('publica1', 'es');
     afirmar($fila !== null, 'debe existir la página');
-    afirmar(decodificarJsonColumna($fila['borrador'] ?? null) === null, 'el borrador queda vacío');
-    afirmar(textoDeContenido(decodificarJsonColumna($fila['contenido']) ?? []) === 'visible', 'el contenido publicado es el borrador');
+    afirmar(decodificarJson($fila['borrador'] ?? null) === null, 'el borrador queda vacío');
+    afirmar(textoDeContenido(decodificarJson($fila['contenido']) ?? []) === 'visible', 'el contenido publicado es el borrador');
 });
 
 probar('publicar deja historial', function () {
@@ -150,8 +150,8 @@ probar('restaurar una revision la guarda como borrador', function () {
     afirmar(($resultado['version'] ?? 0) === 5, 'debe subir la versión');
     $fila = paginaPorSlug('restaurar1', 'es');
     afirmar($fila !== null, 'debe existir la página');
-    $borrador = decodificarJsonColumna($fila['borrador'] ?? null);
-    $publicado = decodificarJsonColumna($fila['contenido'] ?? null);
+    $borrador = decodificarJson($fila['borrador'] ?? null);
+    $publicado = decodificarJson($fila['contenido'] ?? null);
     afirmar($borrador !== null, 'debe quedar un borrador');
     afirmar(textoDeContenido($borrador ?? []) === 'primero', 'el borrador es la instantánea');
     afirmar(textoDeContenido($publicado ?? []) === 'primero', 'lo publicado no cambia');

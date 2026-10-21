@@ -63,6 +63,7 @@ require_once $raiz . '/src/nucleo/fechas.php';
 require_once $raiz . '/src/nucleo/slug.php';
 require_once $raiz . '/src/nucleo/codigos.php';
 require_once $raiz . '/src/nucleo/validacion.php';
+require_once $raiz . '/src/nucleo/json.php';
 require_once $raiz . '/src/http/respuesta.php';
 require_once $raiz . '/src/http/errores.php';
 

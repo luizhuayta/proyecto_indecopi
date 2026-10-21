@@ -10,6 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/nucleo/sesion.php';
 require_once __DIR__ . '/../src/nucleo/archivos.php';
 require_once __DIR__ . '/../src/nucleo/auditoria.php';
+require_once __DIR__ . '/../src/nucleo/documento.php';
 require_once __DIR__ . '/../src/modulos/medios/servicio.php';
 require_once __DIR__ . '/../src/modulos/identidad/servicio.php';
 
@@ -158,13 +159,13 @@ probar('resolverTokens no lanza con contenido vacio', function () {
 probar('el contraste insuficiente genera un aviso sin rechazar el guardado', function () {
     $admin = usuarioAdminMedios();
     fijarSesionDePrueba($admin);
-    conexion()->prepare("DELETE FROM apariencia_sitio WHERE locale = 'es'")->execute();
-    $r = guardarApariencia('es', [
+    conexion()->prepare("DELETE FROM configuracion_sitio WHERE clave = 'apariencia' AND locale = 'es'")->execute();
+    $r = guardarDocumento(CLAVE_APARIENCIA, 'es', [
         'color_primario' => '#ffffff',
         'color_texto' => '#ffffff',
         'color_fondo' => '#ffffff',
         'color_superficie' => '#ffffff',
-    ], 1);
+    ], 1, 'prepararApariencia');
     afirmar(($r['version'] ?? 0) === 2, 'debe guardar subiendo a la versión 2');
     afirmar(isset($r['avisos']) && is_array($r['avisos']) && count($r['avisos']) >= 1, 'debe devolver avisos');
 });
@@ -172,9 +173,9 @@ probar('el contraste insuficiente genera un aviso sin rechazar el guardado', fun
 probar('un color con formato invalido se rechaza', function () {
     $admin = usuarioAdminMedios();
     fijarSesionDePrueba($admin);
-    conexion()->prepare("DELETE FROM apariencia_sitio WHERE locale = 'es'")->execute();
+    conexion()->prepare("DELETE FROM configuracion_sitio WHERE clave = 'apariencia' AND locale = 'es'")->execute();
     intentar(function () {
-        guardarApariencia('es', ['color_primario' => '#ZZZZZZ'], 1);
+        guardarDocumento(CLAVE_APARIENCIA, 'es', ['color_primario' => '#ZZZZZZ'], 1, 'prepararApariencia');
     });
     afirmar(error_ultimo_codigo() === 400, 'debe responder 400');
 });

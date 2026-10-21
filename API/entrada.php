@@ -17,6 +17,8 @@ require_once __DIR__ . '/src/nucleo/base_datos.php';
 require_once __DIR__ . '/src/nucleo/sesion.php';
 require_once __DIR__ . '/src/nucleo/csr.php';
 require_once __DIR__ . '/src/nucleo/auditoria.php';
+require_once __DIR__ . '/src/nucleo/json.php';
+require_once __DIR__ . '/src/nucleo/documento.php';
 require_once __DIR__ . '/src/modulos/sesion_usuarios/rutas.php';
 require_once __DIR__ . '/src/modulos/paginas/rutas.php';
 require_once __DIR__ . '/src/modulos/contenido/rutas.php';

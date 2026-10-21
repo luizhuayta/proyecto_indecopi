@@ -30,13 +30,16 @@ CREATE TABLE IF NOT EXISTS paginas (
     KEY idx_paginas_menu (locale, mostrar_en_menu, orden_menu)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Documentos publicables del sitio. La columna `clave` los distingue:
+-- 'contenido' (documento general) y 'apariencia' (colores, logo, tipografías).
 CREATE TABLE IF NOT EXISTS configuracion_sitio (
+    clave VARCHAR(40) NOT NULL,
     locale VARCHAR(8) NOT NULL,
     contenido JSON NULL,
     borrador LONGTEXT NULL,
     version INT NOT NULL DEFAULT 1,
     actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (locale)
+    PRIMARY KEY (clave, locale)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS institucion (
@@ -49,15 +52,6 @@ CREATE TABLE IF NOT EXISTS institucion (
     ciudad VARCHAR(120) NOT NULL DEFAULT '',
     actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS apariencia_sitio (
-    locale VARCHAR(8) NOT NULL,
-    contenido JSON NULL,
-    borrador LONGTEXT NULL,
-    version INT NOT NULL DEFAULT 1,
-    actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (locale)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS medios (

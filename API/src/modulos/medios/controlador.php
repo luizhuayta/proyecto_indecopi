@@ -10,18 +10,6 @@ require_once __DIR__ . '/../../nucleo/csr.php';
 require_once __DIR__ . '/../../nucleo/sesion.php';
 require_once __DIR__ . '/servicio.php';
 
-if (!function_exists('cuerpoJson')) {
-    /**
-     * Cuerpo JSON de la petición como array (vacío si no lo hay).
-     */
-    function cuerpoJson(): array
-    {
-        $bruto = file_get_contents('php://input') ?: '';
-        $datos = json_decode($bruto, true);
-        return is_array($datos) ? $datos : [];
-    }
-}
-
 /**
  * POST /medios — multipart con el campo 'file'.
  */

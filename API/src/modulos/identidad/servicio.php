@@ -39,22 +39,6 @@ function camposColorApariencia(): array
     ];
 }
 
-/** Decodifica una columna JSON (borrador/contenido) en un array, o null. */
-function decodificarJsonIdentidad(mixed $valor): ?array
-{
-    if ($valor === null || $valor === '') {
-        return null;
-    }
-    if (is_array($valor)) {
-        return $valor;
-    }
-    if (is_string($valor)) {
-        $decodificado = json_decode($valor, true);
-        return is_array($decodificado) ? $decodificado : null;
-    }
-    return null;
-}
-
 /**
  * Datos de identidad de la institución (id 1).
  */
@@ -143,38 +127,6 @@ function resolverTokens(string $texto, ?array $identidad = null): string
         $texto = str_replace('{{institucion.' . $token . '}}', $valor, $texto);
     }
     return $texto;
-}
-
-/**
- * Documento de apariencia del sitio (publicado o borrador según la sesión).
- */
-function configuracionApariencia(string $locale): array
-{
-    $fila = aparienciaPorLocaleBd($locale);
-    $conSesion = usuarioActual() !== null;
-
-    if ($fila === null) {
-        $payload = ['contenido' => [], 'version' => 1];
-        if ($conSesion) {
-            $payload['tiene_borrador'] = false;
-        }
-        return $payload;
-    }
-
-    $borrador = decodificarJsonIdentidad($fila['borrador'] ?? null);
-    $publicado = decodificarJsonIdentidad($fila['contenido'] ?? null);
-    $tieneBorrador = $borrador !== null;
-    $contenido = ($conSesion && $tieneBorrador) ? $borrador : ($publicado ?? []);
-
-    $payload = [
-        'contenido' => $contenido,
-        'version' => (int) ($fila['version'] ?? 1),
-        'actualizado_en' => aIso(isset($fila['actualizado_en']) ? (string) $fila['actualizado_en'] : null),
-    ];
-    if ($conSesion) {
-        $payload['tiene_borrador'] = $tieneBorrador;
-    }
-    return $payload;
 }
 
 /** Normaliza un color #RGB/#RRGGBB a [r, g, b] enteros 0-255, o null. */
@@ -314,97 +266,11 @@ function validarApariencia(array $contenido): array
 }
 
 /**
- * Guarda el borrador de apariencia. Exige la versión leída por el cliente
- * (409 si no coincide) y devuelve los avisos de contraste cuando los hay.
+ * Prepara la apariencia antes de guardarla: valida los colores y devuelve los
+ * avisos de contraste, que no impiden el guardado. Lo invoca el núcleo de
+ * configuración.
  */
-function guardarApariencia(string $locale, array $contenido, int $version): array
+function prepararApariencia(array $contenido): array
 {
-    exigirRol('admin');
-
-    $avisos = validarApariencia($contenido);
-    $json = json_encode($contenido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($json === false) {
-        solicitudInvalida('La apariencia no se puede guardar.');
-    }
-
-    $fila = aparienciaPorLocaleBd($locale);
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    if ($version !== $actual) {
-        lanzarConflictoApariencia($fila, 'Alguien guardó la apariencia antes. Recarga para no pisar cambios.');
-    }
-
-    $nueva = $actual + 1;
-    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
-        asegurarAparienciaBd($locale);
-        return actualizarBorradorAparienciaBd($locale, $json, $actual, $nueva);
-    });
-    if ($afectadas === 0) {
-        lanzarConflictoApariencia($fila, 'Alguien guardó la apariencia antes. Recarga para no pisar cambios.');
-    }
-
-    $fresca = aparienciaPorLocaleBd($locale);
-    registrarAuditoria('guardar_apariencia', 'apariencia_sitio', $locale, ['version' => $nueva]);
-
-    $payload = [
-        'contenido' => $contenido,
-        'version' => $nueva,
-        'actualizado_en' => aIso($fresca !== null && isset($fresca['actualizado_en']) ? (string) $fresca['actualizado_en'] : null),
-    ];
-    if ($avisos !== []) {
-        $payload['avisos'] = $avisos;
-    }
-    return $payload;
-}
-
-/**
- * Publica la apariencia: pasa el borrador a contenido (o publica el actual si
- * no hay borrador) y sube la versión.
- */
-function publicarApariencia(string $locale, int $version): array
-{
-    exigirRol('admin');
-
-    $fila = aparienciaPorLocaleBd($locale);
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    if ($version !== $actual) {
-        lanzarConflictoApariencia($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
-    }
-
-    $borrador = $fila === null ? null : decodificarJsonIdentidad($fila['borrador'] ?? null);
-    $publicado = $fila === null ? null : decodificarJsonIdentidad($fila['contenido'] ?? null);
-    $aPublicar = $borrador !== null ? $borrador : ($publicado ?? []);
-    validarApariencia($aPublicar);
-    $json = json_encode($aPublicar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($json === false) {
-        solicitudInvalida('La apariencia no se puede publicar.');
-    }
-
-    $nueva = $actual + 1;
-    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
-        asegurarAparienciaBd($locale);
-        return publicarAparienciaBd($locale, $json, $actual, $nueva);
-    });
-    if ($afectadas === 0) {
-        lanzarConflictoApariencia($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
-    }
-
-    registrarAuditoria('publicar_apariencia', 'apariencia_sitio', $locale, ['version' => $nueva]);
-
-    return ['contenido' => $aPublicar, 'version' => $nueva];
-}
-
-/**
- * Lanza el 409 de conflicto de versión de la apariencia.
- */
-function lanzarConflictoApariencia(?array $fila, string $mensaje): never
-{
-    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
-    $borrador = $fila === null ? null : decodificarJsonIdentidad($fila['borrador'] ?? null);
-    $publicado = $fila === null ? null : decodificarJsonIdentidad($fila['contenido'] ?? null);
-    $contenido = $borrador !== null ? $borrador : ($publicado ?? []);
-    error_app($mensaje, 409, [
-        'version' => $actual,
-        'actualizado_en' => $fila !== null && isset($fila['actualizado_en']) ? aIso((string) $fila['actualizado_en']) : null,
-        'contenido' => $contenido,
-    ]);
+    return ['contenido' => $contenido, 'avisos' => validarApariencia($contenido)];
 }

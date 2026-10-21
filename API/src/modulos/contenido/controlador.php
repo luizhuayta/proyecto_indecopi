@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../http/respuesta.php';
 require_once __DIR__ . '/../../nucleo/csr.php';
+require_once __DIR__ . '/../../nucleo/documento.php';
 require_once __DIR__ . '/servicio.php';
 
 /**
@@ -14,7 +15,7 @@ require_once __DIR__ . '/servicio.php';
  */
 function controladorVerConfiguracion(): void
 {
-    json_out(contenidoConfiguracion(localeDePeticion()), 200);
+    json_out(leerDocumento(CLAVE_CONTENIDO, localeDePeticion()), 200);
 }
 
 /**
@@ -26,7 +27,7 @@ function controladorGuardarConfiguracion(): void
     $cuerpo = cuerpoJson();
     $contenido = is_array($cuerpo['contenido'] ?? null) ? $cuerpo['contenido'] : [];
     $version = (int) ($cuerpo['version'] ?? 0);
-    json_out(guardarConfiguracion(localeDePeticion(), $contenido, $version), 200);
+    json_out(guardarDocumento(CLAVE_CONTENIDO, localeDePeticion(), $contenido, $version, 'prepararContenidoDelSitio'), 200);
 }
 
 /**
@@ -36,5 +37,5 @@ function controladorPublicarConfiguracion(): void
 {
     exigirCsrf();
     $version = (int) (cuerpoJson()['version'] ?? 0);
-    json_out(publicarConfiguracion(localeDePeticion(), $version), 200);
+    json_out(publicarDocumento(CLAVE_CONTENIDO, localeDePeticion(), $version, 'prepararContenidoDelSitio'), 200);
 }
