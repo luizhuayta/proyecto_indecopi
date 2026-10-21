@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/src/http/errores.php';
 require_once __DIR__ . '/src/http/respuesta.php';
+require_once __DIR__ . '/src/http/router.php';
 require_once __DIR__ . '/src/nucleo/base_datos.php';
 require_once __DIR__ . '/src/nucleo/sesion.php';
 require_once __DIR__ . '/src/nucleo/csr.php';
@@ -21,10 +22,7 @@ require_once __DIR__ . '/src/modulos/paginas/rutas.php';
 require_once __DIR__ . '/src/modulos/contenido/rutas.php';
 
 $metodo = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
-$ruta = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-if ($ruta !== '/' && str_ends_with($ruta, '/')) {
-    $ruta = rtrim($ruta, '/');
-}
+$ruta = rutaDePeticion();
 
 try {
     if (str_starts_with($ruta, '/auth')) {

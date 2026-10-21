@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CmsContentService } from '../cms/cms-content.service';
@@ -94,8 +94,11 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
       </div>
 
       <div class="editor__cuerpo">
-        <div class="editor__preview">
-          <div class="editor__preview-inner" [style.width.px]="deviceWidth()">
+        <div class="editor__preview" #marcoPreview>          <div
+            class="editor__preview-inner"
+            [style.width.px]="deviceWidth()"
+            [style.zoom.%]="escala() * 100"
+          >
             <app-cms-page-blocks
               [slug]="slug()"
               [seleccionadoId]="selectedId() ?? ''"
@@ -216,6 +219,23 @@ export class PageEditor implements OnInit, OnDestroy {
   readonly status = signal('');
   readonly newType = signal('richText');
 
+  /** Ancho disponible en la vista previa, en píxeles. */
+  private readonly anchoDisponible = signal(0);
+  private observador?: ResizeObserver;
+
+  /**
+   * Factor con el que se reduce la vista previa para que quepa sin scroll
+   * horizontal. La maqueta conserva su ancho real (1200, 768 o 390) y se
+   * muestra encogida, como en el editor de Matt.
+   */
+  readonly escala = computed(() => {
+    const ancho = this.anchoDisponible();
+    if (ancho <= 0) {
+      return 1;
+    }
+    return Math.min(1, ancho / this.deviceWidth());
+  });
+
   private sub?: Subscription;
 
   readonly bloques = computed(() => pageBlocks(this.cms.activeContent()));
@@ -244,9 +264,29 @@ export class PageEditor implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Mide el marco de la vista previa para calcular la escala. Se llama desde
+   * la plantilla, cuando el marco ya existe en el DOM. Si el entorno no
+   * tiene ResizeObserver (por ejemplo, en las pruebas), la vista previa se
+   * muestra a escala 1:1.
+   */
+  medirMarco(elemento: HTMLElement): void {
+    this.observador?.disconnect();
+    this.observador = undefined;
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    this.observador = new ResizeObserver((entradas) => {
+      const ancho = entradas[0]?.contentRect.width ?? 0;
+      this.anchoDisponible.set(Math.max(0, Math.floor(ancho)));
+    });
+    this.observador.observe(elemento);
+  }
+
   ngOnDestroy(): void {
     this.editor.disable();
     this.cms.stopEditingSession();
+    this.observador?.disconnect();
     this.sub?.unsubscribe();
   }
 
@@ -256,6 +296,19 @@ export class PageEditor implements OnInit, OnDestroy {
 
   deviceWidth(): number {
     return this.editor.deviceWidth();
+  }
+
+  /**
+   * Referencia al marco de la vista previa, para medirlo.
+   */
+  marcoPreview?: ElementRef<HTMLElement>;
+
+  @ViewChild('marcoPreview')
+  set marco(elemento: ElementRef<HTMLElement> | undefined) {
+    this.marcoPreview = elemento;
+    if (elemento) {
+      this.medirMarco(elemento.nativeElement);
+    }
   }
 
   deviceLabel(): string {

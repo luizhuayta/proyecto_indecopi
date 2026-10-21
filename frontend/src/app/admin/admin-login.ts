@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../cms/auth.service';
 
@@ -9,6 +10,7 @@ import { AuthService } from '../cms/auth.service';
 @Component({
   selector: 'app-admin-login',
   standalone: true,
+  imports: [FormsModule],
   template: `
     <div class="login">
       <div class="login__tarjeta">

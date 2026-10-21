@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CmsContentService } from '../cms/cms-content.service';
 import { PAGE_TEMPLATES } from '../cms/block-registry';
@@ -10,7 +11,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
 @Component({
   selector: 'app-admin-paginas',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   template: `
     <header>
       <h1 class="admin-titulo">Páginas</h1>
@@ -26,7 +27,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
           type="text"
           [value]="titulo()"
           (input)="titulo.set($any($event.target).value)"
-          placeholder="Nombre de la institución"
+          placeholder="Por ejemplo: Admisión"
         />
       </div>
       <div class="admin-campo">
@@ -67,7 +68,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
           @for (pagina of cms.pageList(); track pagina.slug) {
             <tr>
               <td>{{ pagina.titulo }}</td>
-              <td>/{{ pagina.ruta || pagina.slug }}</td>
+              <td>{{ pagina.ruta || '/' + pagina.slug }}</td>
               <td>{{ fecha(pagina.actualizado_en) }}</td>
               <td class="admin-tabla__acciones">
                 <a class="admin-btn admin-btn--fantasma" [routerLink]="['/admin/editor', pagina.slug]">
