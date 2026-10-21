@@ -7,3 +7,4 @@ API/tmp/
 API/pruebas/temporal/
 *.log
 .DS_Store
+.openchamber/
