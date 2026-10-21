@@ -1,0 +1,1139 @@
+{
+    "templates": [
+        {
+            "id": "blank",
+            "label": "En blanco",
+            "blocks": [
+                {
+                    "type": "richText"
+                }
+            ]
+        },
+        {
+            "id": "home",
+            "label": "Portada",
+            "blocks": [
+                {
+                    "type": "hero"
+                },
+                {
+                    "type": "about"
+                },
+                {
+                    "type": "cta"
+                }
+            ]
+        },
+        {
+            "id": "service",
+            "label": "Servicio",
+            "blocks": [
+                {
+                    "type": "serviceHero"
+                },
+                {
+                    "type": "reasons"
+                }
+            ]
+        },
+        {
+            "id": "legal",
+            "label": "Legal",
+            "blocks": [
+                {
+                    "type": "richText"
+                }
+            ]
+        },
+        {
+            "id": "entidades",
+            "label": "Entidades",
+            "blocks": [
+                {
+                    "type": "listingHero",
+                    "props": {
+                        "title": "Entidades colaboradoras"
+                    }
+                },
+                {
+                    "type": "entidades"
+                },
+                {
+                    "type": "cta"
+                }
+            ]
+        },
+        {
+            "id": "contact",
+            "label": "Contacto",
+            "blocks": [
+                {
+                    "type": "pageHero"
+                },
+                {
+                    "type": "contactCards"
+                },
+                {
+                    "type": "contactForm"
+                }
+            ]
+        }
+    ],
+    "blocks": {
+        "hero": {
+            "type": "hero",
+            "label": "Banner carrusel",
+            "icon": "bi-images",
+            "category": "Portada",
+            "description": "Fotos grandes que rotan con título y botón.",
+            "schema": [
+                {
+                    "path": "slides",
+                    "type": "list",
+                    "label": "Banners",
+                    "min": 1,
+                    "item": [
+                        {
+                            "path": "badge",
+                            "type": "text",
+                            "label": "Etiqueta"
+                        },
+                        {
+                            "path": "title",
+                            "type": "area",
+                            "label": "Título",
+                            "maxLength": 180
+                        },
+                        {
+                            "path": "image",
+                            "type": "image",
+                            "label": "Imagen"
+                        }
+                    ]
+                },
+                {
+                    "path": "subtitle",
+                    "type": "area",
+                    "label": "Subtítulo"
+                },
+                {
+                    "path": "cta",
+                    "type": "text",
+                    "label": "Botón"
+                },
+                {
+                    "path": "ctaLink",
+                    "type": "link",
+                    "label": "Enlace del botón"
+                }
+            ],
+            "defaults": {
+                "slides": [
+                    {
+                        "badge": "Etiqueta",
+                        "title": "Título del banner",
+                        "image": ""
+                    }
+                ],
+                "subtitle": "Texto de ejemplo para la portada.",
+                "cta": "Ver más",
+                "ctaLink": "#"
+            }
+        },
+        "about": {
+            "type": "about",
+            "label": "Quiénes somos",
+            "icon": "bi-people",
+            "category": "Contenido",
+            "description": "Imagen, texto y botón. Puedes añadir puntos destacados.",
+            "schema": [
+                {
+                    "path": "tag",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "image",
+                    "type": "image",
+                    "label": "Imagen"
+                },
+                {
+                    "path": "imageAlt",
+                    "type": "text",
+                    "label": "Texto de la imagen"
+                },
+                {
+                    "path": "cta",
+                    "type": "text",
+                    "label": "Botón"
+                },
+                {
+                    "path": "ctaLink",
+                    "type": "link",
+                    "label": "Enlace del botón"
+                },
+                {
+                    "path": "features",
+                    "type": "list",
+                    "label": "Puntos destacados",
+                    "item": [
+                        {
+                            "path": "text",
+                            "type": "text",
+                            "label": "Texto"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "tag": "QUIÉNES SOMOS",
+                "title": "Título de la sección",
+                "text": "Describe aquí tu institución.",
+                "image": "",
+                "imageAlt": "",
+                "cta": "Leer más",
+                "ctaLink": "#",
+                "features": []
+            }
+        },
+        "contactCards": {
+            "type": "contactCards",
+            "label": "Tarjetas de contacto",
+            "icon": "bi-geo-alt",
+            "category": "Contacto",
+            "description": "Dirección, correo o teléfono en tarjetas.",
+            "schema": [
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Tarjetas",
+                    "min": 1,
+                    "item": [
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        },
+                        {
+                            "path": "text",
+                            "type": "area",
+                            "label": "Texto"
+                        },
+                        {
+                            "path": "icon",
+                            "type": "text",
+                            "label": "Icono"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "items": [
+                    {
+                        "title": "Contacto",
+                        "text": "Escribe aquí el dato",
+                        "icon": "bi-geo-alt-fill"
+                    }
+                ]
+            }
+        },
+        "services": {
+            "type": "services",
+            "label": "Servicios (cuadrícula)",
+            "icon": "bi-grid",
+            "category": "Servicios",
+            "description": "Tarjetas con foto, título y texto.",
+            "schema": [
+                {
+                    "path": "tag",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "cards",
+                    "type": "list",
+                    "label": "Tarjetas",
+                    "min": 1,
+                    "item": [
+                        {
+                            "path": "img",
+                            "type": "image",
+                            "label": "Imagen"
+                        },
+                        {
+                            "path": "alt",
+                            "type": "text",
+                            "label": "Texto de la imagen"
+                        },
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        },
+                        {
+                            "path": "text",
+                            "type": "area",
+                            "label": "Texto"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "tag": "QUÉ HACEMOS",
+                "title": "Ofrecemos servicios",
+                "cards": [
+                    {
+                        "img": "",
+                        "alt": "",
+                        "title": "Servicio",
+                        "text": "Descripción del servicio."
+                    }
+                ]
+            }
+        },
+        "pageHero": {
+            "type": "pageHero",
+            "label": "Portada de página",
+            "icon": "bi-window",
+            "category": "Portada",
+            "description": "Título, texto y botón sobre un fondo.",
+            "schema": [
+                {
+                    "path": "badge",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "cta",
+                    "type": "text",
+                    "label": "Botón"
+                },
+                {
+                    "path": "ctaLink",
+                    "type": "link",
+                    "label": "Enlace del botón"
+                },
+                {
+                    "path": "image",
+                    "type": "image",
+                    "label": "Imagen de fondo"
+                }
+            ],
+            "defaults": {
+                "badge": "SECCIÓN",
+                "title": "Título de la página",
+                "text": "",
+                "cta": "Contáctanos",
+                "ctaLink": "#",
+                "image": ""
+            }
+        },
+        "stats": {
+            "type": "stats",
+            "label": "Cifras",
+            "icon": "bi-graph-up",
+            "category": "Contenido",
+            "description": "Números destacados: años, estudiantes, programas.",
+            "schema": [
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Cifras",
+                    "item": [
+                        {
+                            "path": "icon",
+                            "type": "text",
+                            "label": "Icono"
+                        },
+                        {
+                            "path": "number",
+                            "type": "text",
+                            "label": "Número"
+                        },
+                        {
+                            "path": "label",
+                            "type": "text",
+                            "label": "Etiqueta"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "items": [
+                    {
+                        "icon": "bi-calendar3",
+                        "number": "+10",
+                        "label": "Años"
+                    }
+                ]
+            }
+        },
+        "team": {
+            "type": "team",
+            "label": "Equipo",
+            "icon": "bi-person-badge",
+            "category": "Contenido",
+            "description": "Fotos y cargos de las personas del equipo.",
+            "schema": [
+                {
+                    "path": "tag",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Personas",
+                    "item": [
+                        {
+                            "path": "name",
+                            "type": "text",
+                            "label": "Nombre"
+                        },
+                        {
+                            "path": "role",
+                            "type": "text",
+                            "label": "Cargo"
+                        },
+                        {
+                            "path": "image",
+                            "type": "image",
+                            "label": "Foto"
+                        },
+                        {
+                            "path": "linkedin",
+                            "type": "link",
+                            "label": "LinkedIn"
+                        },
+                        {
+                            "path": "github",
+                            "type": "link",
+                            "label": "GitHub"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "tag": "NUESTRO EQUIPO",
+                "title": "Conoce al equipo",
+                "text": "",
+                "items": [
+                    {
+                        "name": "Nombre",
+                        "role": "Cargo",
+                        "image": "",
+                        "linkedin": "#",
+                        "github": "#"
+                    }
+                ]
+            }
+        },
+        "videos": {
+            "type": "videos",
+            "label": "Videos",
+            "icon": "bi-youtube",
+            "category": "Contenido",
+            "description": "Videos de YouTube embebidos.",
+            "schema": [
+                {
+                    "path": "tag",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Videos",
+                    "item": [
+                        {
+                            "path": "embed",
+                            "type": "embed",
+                            "label": "Enlace de YouTube"
+                        },
+                        {
+                            "path": "user",
+                            "type": "text",
+                            "label": "Usuario"
+                        },
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "tag": "NOVEDADES",
+                "title": "Videos",
+                "text": "",
+                "items": [
+                    {
+                        "embed": "https://ejemplo.test/video",
+                        "user": "Usuario",
+                        "title": "Video"
+                    }
+                ]
+            }
+        },
+        "listingHero": {
+            "type": "listingHero",
+            "label": "Banner de listado",
+            "icon": "bi-image",
+            "category": "Portada",
+            "description": "Imagen ancha con título encima.",
+            "schema": [
+                {
+                    "path": "image",
+                    "type": "image",
+                    "label": "Imagen"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                }
+            ],
+            "defaults": {
+                "image": "",
+                "title": "Título del listado",
+                "text": ""
+            }
+        },
+        "serviceCards": {
+            "type": "serviceCards",
+            "label": "Listado con enlaces",
+            "icon": "bi-card-list",
+            "category": "Servicios",
+            "description": "Tarjetas que llevan a otra página.",
+            "schema": [
+                {
+                    "path": "subtitle",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "cards",
+                    "type": "list",
+                    "label": "Tarjetas",
+                    "item": [
+                        {
+                            "path": "path",
+                            "type": "link",
+                            "label": "Enlace"
+                        },
+                        {
+                            "path": "img",
+                            "type": "image",
+                            "label": "Imagen"
+                        },
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        },
+                        {
+                            "path": "text",
+                            "type": "area",
+                            "label": "Texto"
+                        },
+                        {
+                            "path": "link",
+                            "type": "text",
+                            "label": "Texto del enlace"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "subtitle": "CONOCE NUESTROS",
+                "title": "Servicios",
+                "cards": [
+                    {
+                        "path": "#",
+                        "img": "",
+                        "title": "Servicio",
+                        "text": "Descripción.",
+                        "link": "Ver más"
+                    }
+                ]
+            }
+        },
+        "cta": {
+            "type": "cta",
+            "label": "Llamado a la acción",
+            "icon": "bi-megaphone",
+            "category": "Contenido",
+            "description": "Título, texto y botón para contactar.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "button",
+                    "type": "text",
+                    "label": "Botón"
+                },
+                {
+                    "path": "link",
+                    "type": "link",
+                    "label": "Enlace"
+                }
+            ],
+            "defaults": {
+                "title": "¿Listo para dar el siguiente paso?",
+                "text": "Contáctanos y descubre cómo podemos ayudarte.",
+                "button": "Contáctanos",
+                "link": "#"
+            }
+        },
+        "serviceHero": {
+            "type": "serviceHero",
+            "label": "Detalle de servicio",
+            "icon": "bi-layers",
+            "category": "Servicios",
+            "description": "Banner, foto y texto introductorio.",
+            "schema": [
+                {
+                    "path": "heroImage",
+                    "type": "image",
+                    "label": "Imagen del banner"
+                },
+                {
+                    "path": "heroAlt",
+                    "type": "text",
+                    "label": "Texto del banner"
+                },
+                {
+                    "path": "image",
+                    "type": "image",
+                    "label": "Imagen"
+                },
+                {
+                    "path": "imageAlt",
+                    "type": "text",
+                    "label": "Texto de la imagen"
+                },
+                {
+                    "path": "label",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "cta",
+                    "type": "text",
+                    "label": "Botón"
+                },
+                {
+                    "path": "ctaLink",
+                    "type": "link",
+                    "label": "Enlace del botón"
+                }
+            ],
+            "defaults": {
+                "heroImage": "",
+                "heroAlt": "",
+                "image": "",
+                "imageAlt": "",
+                "label": "SERVICIO",
+                "title": "Nombre del servicio",
+                "text": "Describe el servicio.",
+                "cta": "Contáctanos",
+                "ctaLink": "#"
+            }
+        },
+        "reasons": {
+            "type": "reasons",
+            "label": "Motivos / beneficios",
+            "icon": "bi-check2-square",
+            "category": "Servicios",
+            "description": "Por qué elegirte, con foto y texto.",
+            "schema": [
+                {
+                    "path": "subtitle",
+                    "type": "text",
+                    "label": "Etiqueta"
+                },
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Motivos",
+                    "item": [
+                        {
+                            "path": "img",
+                            "type": "image",
+                            "label": "Imagen"
+                        },
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        },
+                        {
+                            "path": "text",
+                            "type": "area",
+                            "label": "Texto"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "subtitle": "RAZONES PARA ELEGIRNOS",
+                "title": "Por qué elegirnos",
+                "items": [
+                    {
+                        "img": "",
+                        "title": "Motivo",
+                        "text": "Explica el beneficio."
+                    }
+                ]
+            }
+        },
+        "richText": {
+            "type": "richText",
+            "label": "Texto largo",
+            "icon": "bi-textarea-t",
+            "category": "Contenido",
+            "description": "Título y contenido con negritas, listas y enlaces.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "lastUpdated",
+                    "type": "text",
+                    "label": "Última actualización"
+                },
+                {
+                    "path": "body",
+                    "type": "rich",
+                    "label": "Texto"
+                }
+            ],
+            "defaults": {
+                "title": "Título",
+                "lastUpdated": "",
+                "body": "<p>Escribe el contenido aquí.</p>"
+            }
+        },
+        "contactForm": {
+            "type": "contactForm",
+            "label": "Formulario de contacto",
+            "icon": "bi-envelope",
+            "category": "Contacto",
+            "description": "Formulario que envía mensajes al correo que indiques.",
+            "schema": [
+                {
+                    "path": "submitLabel",
+                    "type": "text",
+                    "label": "Texto del botón enviar"
+                },
+                {
+                    "path": "destinationEmail",
+                    "type": "text",
+                    "label": "Correo donde llegan los mensajes"
+                },
+                {
+                    "path": "fields",
+                    "type": "group",
+                    "label": "Campos visibles",
+                    "children": [
+                        {
+                            "path": "name",
+                            "type": "bool",
+                            "label": "Nombre"
+                        },
+                        {
+                            "path": "email",
+                            "type": "bool",
+                            "label": "Correo"
+                        },
+                        {
+                            "path": "phone",
+                            "type": "bool",
+                            "label": "Teléfono"
+                        },
+                        {
+                            "path": "subject",
+                            "type": "bool",
+                            "label": "Asunto"
+                        },
+                        {
+                            "path": "message",
+                            "type": "bool",
+                            "label": "Mensaje"
+                        }
+                    ]
+                },
+                {
+                    "path": "placeholders",
+                    "type": "group",
+                    "label": "Textos de ayuda",
+                    "children": [
+                        {
+                            "path": "name",
+                            "type": "text",
+                            "label": "Nombre"
+                        },
+                        {
+                            "path": "email",
+                            "type": "text",
+                            "label": "Correo"
+                        },
+                        {
+                            "path": "phone",
+                            "type": "text",
+                            "label": "Teléfono"
+                        },
+                        {
+                            "path": "subject",
+                            "type": "text",
+                            "label": "Asunto"
+                        },
+                        {
+                            "path": "message",
+                            "type": "text",
+                            "label": "Mensaje"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "submitLabel": "Enviar mensaje",
+                "destinationEmail": "correo@ejemplo.test",
+                "fields": {
+                    "name": true,
+                    "email": true,
+                    "phone": true,
+                    "subject": true,
+                    "message": true
+                },
+                "placeholders": {
+                    "name": "Su nombre",
+                    "email": "Su correo electrónico",
+                    "phone": "Teléfono",
+                    "subject": "Asunto",
+                    "message": "Mensaje"
+                }
+            }
+        },
+        "claimsBook": {
+            "type": "claimsBook",
+            "label": "Libro de reclamaciones",
+            "icon": "bi-journal-text",
+            "category": "Legal",
+            "description": "Textos del libro virtual. Los campos del reclamo los pide la ley.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "company",
+                    "type": "text",
+                    "label": "Institución"
+                },
+                {
+                    "path": "subtitle",
+                    "type": "area",
+                    "label": "Subtítulo"
+                },
+                {
+                    "path": "logo",
+                    "type": "image",
+                    "label": "Logo"
+                },
+                {
+                    "path": "ruc",
+                    "type": "text",
+                    "label": "RUC"
+                },
+                {
+                    "path": "destinationEmail",
+                    "type": "text",
+                    "label": "Correo de destino"
+                },
+                {
+                    "path": "disclaimer1",
+                    "type": "area",
+                    "label": "Aviso legal 1"
+                },
+                {
+                    "path": "disclaimer2",
+                    "type": "area",
+                    "label": "Aviso legal 2"
+                },
+                {
+                    "path": "submitLabel",
+                    "type": "text",
+                    "label": "Texto del botón enviar"
+                }
+            ],
+            "defaults": {
+                "title": "Libro de reclamaciones",
+                "company": "Nombre de la institución",
+                "subtitle": "",
+                "logo": "",
+                "ruc": "",
+                "destinationEmail": "correo@ejemplo.test",
+                "disclaimer1": "",
+                "disclaimer2": "",
+                "submitLabel": "Enviar reclamación"
+            }
+        },
+        "entidades": {
+            "type": "entidades",
+            "label": "Entidades colaboradoras",
+            "icon": "bi-building",
+            "category": "Entidades",
+            "description": "Logos de las entidades que colaboran con la institución.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Entidades",
+                    "min": 1,
+                    "item": [
+                        {
+                            "path": "title",
+                            "type": "text",
+                            "label": "Título"
+                        },
+                        {
+                            "path": "url",
+                            "type": "link",
+                            "label": "Enlace"
+                        },
+                        {
+                            "path": "image",
+                            "type": "image",
+                            "label": "Imagen"
+                        },
+                        {
+                            "path": "alt",
+                            "type": "text",
+                            "label": "Texto alternativo"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "title": "Entidades colaboradoras",
+                "text": "Instituciones que colaboran con nosotros.",
+                "items": [
+                    {
+                        "title": "Entidad colaboradora",
+                        "url": "https://ejemplo.test",
+                        "image": "",
+                        "alt": "Entidad colaboradora"
+                    }
+                ]
+            }
+        },
+        "faq": {
+            "type": "faq",
+            "label": "Preguntas frecuentes",
+            "icon": "bi-question-circle",
+            "category": "Contenido",
+            "description": "Pregunta y respuesta en lista.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Preguntas",
+                    "item": [
+                        {
+                            "path": "question",
+                            "type": "text",
+                            "label": "Pregunta"
+                        },
+                        {
+                            "path": "answer",
+                            "type": "area",
+                            "label": "Respuesta"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "title": "Preguntas frecuentes",
+                "items": [
+                    {
+                        "question": "¿Cómo empezamos?",
+                        "answer": "Escríbenos y agenda una reunión."
+                    }
+                ]
+            }
+        },
+        "gallery": {
+            "type": "gallery",
+            "label": "Galería",
+            "icon": "bi-images",
+            "category": "Contenido",
+            "description": "Varias fotos en cuadrícula.",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "items",
+                    "type": "list",
+                    "label": "Fotos",
+                    "item": [
+                        {
+                            "path": "image",
+                            "type": "image",
+                            "label": "Imagen"
+                        },
+                        {
+                            "path": "alt",
+                            "type": "text",
+                            "label": "Texto de la imagen"
+                        },
+                        {
+                            "path": "caption",
+                            "type": "text",
+                            "label": "Pie de foto"
+                        }
+                    ]
+                }
+            ],
+            "defaults": {
+                "title": "Galería",
+                "items": [
+                    {
+                        "image": "",
+                        "alt": "",
+                        "caption": ""
+                    }
+                ]
+            }
+        },
+        "map": {
+            "type": "map",
+            "label": "Mapa",
+            "icon": "bi-map",
+            "category": "Contacto",
+            "description": "Mapa embebido (Google Maps u otro iframe).",
+            "schema": [
+                {
+                    "path": "title",
+                    "type": "text",
+                    "label": "Título"
+                },
+                {
+                    "path": "embed",
+                    "type": "embed",
+                    "label": "Enlace del mapa"
+                },
+                {
+                    "path": "text",
+                    "type": "area",
+                    "label": "Texto"
+                }
+            ],
+            "defaults": {
+                "title": "Dónde estamos",
+                "embed": "",
+                "text": ""
+            }
+        }
+    }
+}

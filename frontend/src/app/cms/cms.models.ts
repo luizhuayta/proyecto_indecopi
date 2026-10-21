@@ -1,0 +1,109 @@
+export type JsonMap = Record<string, unknown>;
+
+export function getByPath(obj: unknown, path: string): unknown {
+  if (!path) {
+    return obj;
+  }
+  return path.split('.').reduce<unknown>((acc, key) => {
+    if (acc == null) {
+      return undefined;
+    }
+    if (Array.isArray(acc)) {
+      return acc[Number(key)];
+    }
+    if (typeof acc === 'object') {
+      return (acc as JsonMap)[key];
+    }
+    return undefined;
+  }, obj);
+}
+
+export function setByPath<T>(obj: T, path: string, value: unknown): T {
+  const keys = path.split('.');
+  const clone = structuredClone(obj ?? {}) as JsonMap | unknown[];
+  let cursor: JsonMap | unknown[] = clone;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    const nextKey = keys[i + 1];
+    const asIndex = Array.isArray(cursor);
+    const current = asIndex ? (cursor as unknown[])[Number(key)] : (cursor as JsonMap)[key];
+    if (current == null) {
+      const next = /^\d+$/.test(nextKey) ? [] : {};
+      if (asIndex) {
+        (cursor as unknown[])[Number(key)] = next;
+      } else {
+        (cursor as JsonMap)[key] = next;
+      }
+    }
+    cursor = (asIndex ? (cursor as unknown[])[Number(key)] : (cursor as JsonMap)[key]) as
+      | JsonMap
+      | unknown[];
+  }
+  const last = keys[keys.length - 1];
+  if (Array.isArray(cursor)) {
+    cursor[Number(last)] = value;
+  } else {
+    cursor[last] = value;
+  }
+  return clone as T;
+}
+
+export function changedPaths(before: unknown, after: unknown, prefix = ''): string[] {
+  if (before === after) {
+    return [];
+  }
+  if (typeof before !== 'object' || typeof after !== 'object' || !before || !after) {
+    return [prefix || '(documento)'];
+  }
+  const keys = new Set([...Object.keys(before as JsonMap), ...Object.keys(after as JsonMap)]);
+  const out: string[] = [];
+  for (const key of keys) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    const left = (before as JsonMap)[key];
+    const right = (after as JsonMap)[key];
+    if (JSON.stringify(left) !== JSON.stringify(right)) {
+      if (left && right && typeof left === 'object' && typeof right === 'object') {
+        out.push(...changedPaths(left, right, path));
+      } else {
+        out.push(path);
+      }
+    }
+  }
+  return out;
+}
+
+const MARCADORES = new Set([
+  'Nombre de la institución',
+  'RUC',
+  'Dirección',
+  'Teléfono',
+  'Correo',
+  'Ciudad',
+]);
+
+export function buscarMarcadores(contenido: unknown): string[] {
+  const out: string[] = [];
+  const walk = (value: unknown, path: string): void => {
+    if (value == null) {
+      return;
+    }
+    if (typeof value === 'string') {
+      const texto = value.trim();
+      if (MARCADORES.has(texto) || (texto.startsWith('{{') && texto.endsWith('}}'))) {
+        out.push(path);
+      }
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => walk(item, path ? `${path}.${index}` : String(index)));
+      return;
+    }
+    if (typeof value === 'object') {
+      for (const [key, child] of Object.entries(value as JsonMap)) {
+        walk(child, path ? `${path}.${key}` : key);
+      }
+    }
+  };
+  walk(contenido, '');
+  return out;
+}
