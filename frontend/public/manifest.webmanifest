@@ -1,0 +1,10 @@
+{
+  "name": "Plantilla Educativa",
+  "short_name": "Plantilla",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbfbfa",
+  "theme_color": "#123a6d",
+  "lang": "es",
+  "icons": []
+}
