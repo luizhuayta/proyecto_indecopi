@@ -70,14 +70,16 @@ function insertarUsuario(string $usuario, string $hash, string $rol): int
 
 /**
  * Actualiza rol y estado. Si viene un hash nuevo, también cambia la contraseña
- * e invalida las sesiones (contrasena_actualizada_en = UTC_TIMESTAMP()).
+ * e invalida las sesiones: sube el contador de credenciales del usuario.
  */
 function actualizarPerfilUsuario(int $id, string $rol, int $activo, ?string $hash): void
 {
     if ($hash !== null) {
         $stmt = conexion()->prepare(
             'UPDATE usuarios
-                SET rol = ?, activo = ?, hash_contrasena = ?, contrasena_actualizada_en = UTC_TIMESTAMP()
+                SET rol = ?, activo = ?, hash_contrasena = ?,
+                    contrasena_actualizada_en = UTC_TIMESTAMP(),
+                    sesion_version = sesion_version + 1
               WHERE id = ?'
         );
         $stmt->execute([$rol, $activo, $hash, $id]);
@@ -88,13 +90,15 @@ function actualizarPerfilUsuario(int $id, string $rol, int $activo, ?string $has
 }
 
 /**
- * Cambia la contraseña de un usuario e invalida sus sesiones.
+ * Cambia la contraseña de un usuario e invalida sus sesiones subiendo el
+ * contador de credenciales.
  */
 function actualizarContrasenaUsuario(int $id, string $hash): void
 {
     $stmt = conexion()->prepare(
         'UPDATE usuarios
-            SET hash_contrasena = ?, contrasena_actualizada_en = UTC_TIMESTAMP()
+            SET hash_contrasena = ?, contrasena_actualizada_en = UTC_TIMESTAMP(),
+                sesion_version = sesion_version + 1
           WHERE id = ?'
     );
     $stmt->execute([$hash, $id]);

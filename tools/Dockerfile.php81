@@ -1,0 +1,18 @@
+# Imagen de verificación con PHP 8.1 y las extensiones que usa el API.
+# La imagen oficial php:8.1-cli no trae pdo_mysql ni mbstring, y el proyecto
+# los necesita para hablar con MariaDB. Se compila una vez y se reutiliza.
+#
+#   docker build -t plantilla-php81 -f tools/Dockerfile.php81 .
+#   docker run --rm -v "$PWD":/app -w /app plantilla-php81 php API/pruebas/ejecutar.php
+#
+# Para las pruebas que necesitan base de datos, la MariaDB de desarrollo
+# corre en el host, así que se conecta por el nombre del host del docker:
+#   docker run --rm --add-host=host.docker.internal:host-gateway \
+#     -e DB_HOST=host.docker.internal -e DB_PORT=3307 \
+#     -v "$PWD":/app -w /app plantilla-php81 php API/pruebas/ejecutar.php
+
+FROM php:8.1-cli
+
+RUN docker-php-ext-install pdo_mysql mbstring
+
+WORKDIR /app

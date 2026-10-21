@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     rol VARCHAR(20) NOT NULL DEFAULT 'admin',
     activo TINYINT NOT NULL DEFAULT 1,
     contrasena_actualizada_en DATETIME NULL,
+    sesion_version INT UNSIGNED NOT NULL DEFAULT 1,
     creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unq_usuarios_usuario (usuario)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

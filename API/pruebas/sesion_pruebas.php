@@ -52,14 +52,32 @@ probar('la sesion se invalida cuando se desactiva la cuenta', function () {
 probar('la sesion se invalida cuando cambia la contrasena', function () {
     $id = crear_usuario_de_prueba('cambiaclave1', 'admin');
     fijarSesionDePrueba($id);
-    // Simula el cambio de contraseña: la fecha queda DESPUÉS de la emisión.
-    conexion()->prepare(
-        'UPDATE usuarios SET contrasena_actualizada_en = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 SECOND) WHERE id = ?'
-    )->execute([$id]);
+    // Cambia la contraseña de verdad: sube el contador de credenciales.
+    actualizarContrasenaUsuario($id, password_hash('OtraClave123', PASSWORD_DEFAULT));
     intentar(function () {
         exigirSesion();
     });
     afirmar(error_ultimo_codigo() === 401, 'debe responder 401');
+});
+
+probar('la sesion se invalida aunque la contrasena cambie dos veces en el mismo segundo', function () {
+    $id = crear_usuario_de_prueba('mismo segundo1', 'admin');
+    fijarSesionDePrueba($id);
+    // Dos cambios de contraseña seguidos: la marca de tiempo no distinguiría
+    // los dos, pero el contador de credenciales sí.
+    actualizarContrasenaUsuario($id, password_hash('ClaveSegunda123', PASSWORD_DEFAULT));
+    actualizarContrasenaUsuario($id, password_hash('ClaveTercera123', PASSWORD_DEFAULT));
+    intentar(function () {
+        exigirSesion();
+    });
+    afirmar(error_ultimo_codigo() === 401, 'debe responder 401');
+});
+
+probar('la sesion sobrevive si no cambian las credenciales', function () {
+    $id = crear_usuario_de_prueba('sigueviva1', 'admin');
+    fijarSesionDePrueba($id);
+    $usuario = exigirSesion();
+    afirmar((int) $usuario['id'] === $id, 'la sesion debe seguir valida');
 });
 
 probar('el rol se lee de la base y no de la sesion', function () {

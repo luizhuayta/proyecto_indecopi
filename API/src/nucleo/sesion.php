@@ -71,21 +71,27 @@ function arrancarSesionPhp(): void
 }
 
 /**
- * Estado de la sesión actual: `['usuario_id' => int, 'emitida_en' => int]`.
+ * Estado de la sesión actual: `['usuario_id' => int, 'sesion_version' => int]`.
  * Prefiere la sesión fijada en memoria por las pruebas; si no, lee `$_SESSION`.
+ *
+ * `sesion_version` es el contador de credenciales del usuario en el momento en
+ * que se emitió la sesión. Si la contraseña cambia, el contador sube y las
+ * sesiones emitidas antes dejan de valer. Se compara un entero, no una marca
+ * de tiempo: cambiar la contraseña dos veces en el mismo segundo también
+ * invalida, sin excepciones ni ventanas.
  */
 function sesionEnMemoria(): array
 {
     if (isset($GLOBALS['__sesion_prueba']) && is_array($GLOBALS['__sesion_prueba'])) {
         return [
             'usuario_id' => (int) ($GLOBALS['__sesion_prueba']['usuario_id'] ?? 0),
-            'emitida_en' => (int) ($GLOBALS['__sesion_prueba']['emitida_en'] ?? 0),
+            'sesion_version' => (int) ($GLOBALS['__sesion_prueba']['sesion_version'] ?? 0),
         ];
     }
     arrancarSesionPhp();
     return [
         'usuario_id' => (int) ($_SESSION['usuario_id'] ?? 0),
-        'emitida_en' => (int) ($_SESSION['emitida_en'] ?? 0),
+        'sesion_version' => (int) ($_SESSION['sesion_version'] ?? 0),
     ];
 }
 
@@ -100,32 +106,41 @@ function fijarUsuarioDeSesion(int $usuarioId): void
 }
 
 /**
+ * Contador de credenciales del usuario: sube cada vez que se cambia la
+ * contraseña, para invalidar las sesiones emitidas antes del cambio.
+ */
+function versionSesionDeUsuario(int $usuarioId): int
+{
+    $usuario = usuarioDeSesionPorId($usuarioId);
+    return $usuario === null ? 0 : (int) ($usuario['sesion_version'] ?? 0);
+}
+
+/**
  * Finaliza un inicio de sesión: regenera el identificador (contra fijación de
- * sesión) y sella el instante de emisión para invalidar la sesión si la
- * contraseña cambia después.
+ * sesión) y sella el contador de credenciales del usuario.
  */
 function iniciarSesion(): void
 {
     arrancarSesionPhp();
     session_regenerate_id(true);
-    $_SESSION['emitida_en'] = time();
+    $_SESSION['sesion_version'] = versionSesionDeUsuario((int) ($_SESSION['usuario_id'] ?? 0));
 }
 
 /**
- * SOLO PARA PRUEBAS: fija en memoria la sesión actual (usuario + instante de
- * emisión) sin tocar cookies ni `$_SESSION`. `exigirSesion()` revalida contra
- * la base igual que en una petición real.
+ * SOLO PARA PRUEBAS: fija en memoria la sesión actual (usuario + contador de
+ * credenciales) sin tocar cookies ni `$_SESSION`. `exigirSesion()` revalida
+ * contra la base igual que en una petición real.
  */
 function fijarSesionDePrueba(int $usuarioId): void
 {
     $GLOBALS['__sesion_prueba'] = [
         'usuario_id' => $usuarioId,
-        'emitida_en' => time(),
+        'sesion_version' => versionSesionDeUsuario($usuarioId),
     ];
 }
 
 /**
- * Lee del usuario actual (id, usuario, rol, activo, contrasena_actualizada_en).
+ * Lee del usuario actual (id, usuario, rol, activo, sesion_version).
  * Es una consulta mínima de revalidación propia del núcleo; la capa de
  * repositorio del módulo `sesion_usuarios` repite el acceso a `usuarios` para
  * el resto de operaciones.
@@ -133,7 +148,7 @@ function fijarSesionDePrueba(int $usuarioId): void
 function usuarioDeSesionPorId(int $id): ?array
 {
     $stmt = conexion()->prepare(
-        'SELECT id, usuario, rol, activo, contrasena_actualizada_en
+        'SELECT id, usuario, rol, activo, sesion_version
            FROM usuarios WHERE id = ? LIMIT 1'
     );
     $stmt->execute([$id]);
@@ -166,8 +181,8 @@ function destruirSesion(): void
 /**
  * Revalida la sesión contra la base y devuelve
  * `['id' => int, 'usuario' => string, 'rol' => string]`, o null si no es
- * válida. Destruye la sesión cuando la cuenta está inactiva o la contraseña
- * cambió después de emitir la sesión.
+ * válida. Destruye la sesión cuando la cuenta está inactiva o cuando las
+ * credenciales cambiaron después de emitir la sesión.
  */
 function revalidarSesion(): ?array
 {
@@ -183,9 +198,7 @@ function revalidarSesion(): ?array
         return null;
     }
 
-    $cambio = trim((string) ($usuario['contrasena_actualizada_en'] ?? ''));
-    $emitida = gmdate('Y-m-d H:i:s', (int) $estado['emitida_en']);
-    if ($cambio !== '' && strcmp($cambio, $emitida) > 0) {
+    if ((int) $usuario['sesion_version'] !== (int) $estado['sesion_version']) {
         destruirSesion();
         return null;
     }
