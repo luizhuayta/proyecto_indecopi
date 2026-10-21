@@ -38,11 +38,45 @@ export interface RecortarMedioBody {
   h: number;
 }
 
-export interface SubirMedioResult {
+export interface RecortarMedioResult {
   url: string;
   ancho?: number | null;
   alto?: number | null;
-  variantes?: CmsMediaItem['variantes'];
+  id: number;
+}
+
+/** Identidad de la institución (contrato GET/PUT /identidad). */
+export interface Identidad {
+  nombre: string;
+  ruc: string;
+  direccion: string;
+  telefono: string;
+  correo: string;
+  ciudad: string;
+  actualizado_en?: string | null;
+}
+
+/** Respuesta de apariencia (GET/PUT /configuracion/apariencia y publicar). */
+export interface AparienciaResponse {
+  contenido: JsonMap;
+  version: number;
+  actualizado_en?: string | null;
+  tiene_borrador?: boolean;
+  avisos?: Array<{ campo: string; mensaje: string }>;
+}
+
+/**
+ * Elemento de la biblioteca de medios. El contrato del API trae `creado_en`;
+ * `alt` se gestiona en el cliente (el servidor lo exige para imágenes con
+ * contenido, pero aún no lo devuelve en este contrato).
+ */
+export interface MedioItem extends CmsMediaItem {
+  creado_en?: string | null;
+  alt?: string | null;
+}
+
+export interface ListarMediosResponse {
+  items: MedioItem[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -152,22 +186,55 @@ export class CmsApiService {
     );
   }
 
-  subirMedio(file: File): Promise<SubirMedioResult> {
+  // ---- Identidad ----
+
+  getIdentidad(): Promise<Identidad> {
+    return firstValueFrom(this.http.get<Identidad>(`${API_BASE}/identidad`));
+  }
+
+  guardarIdentidad(body: Partial<Identidad>): Promise<Identidad> {
+    return firstValueFrom(this.http.put<Identidad>(`${API_BASE}/identidad`, body));
+  }
+
+  // ---- Apariencia ----
+
+  getApariencia(): Promise<AparienciaResponse> {
+    return firstValueFrom(this.http.get<AparienciaResponse>(`${API_BASE}/configuracion/apariencia`));
+  }
+
+  guardarApariencia(contenido: JsonMap, version: number): Promise<AparienciaResponse> {
+    return firstValueFrom(
+      this.http.put<AparienciaResponse>(`${API_BASE}/configuracion/apariencia`, { contenido, version })
+    );
+  }
+
+  publicarApariencia(version: number): Promise<AparienciaResponse> {
+    return firstValueFrom(
+      this.http.post<AparienciaResponse>(`${API_BASE}/configuracion/apariencia/publicar`, { version })
+    );
+  }
+
+  // ---- Medios ----
+
+  subirMedio(file: File): Promise<MedioItem> {
     const body = new FormData();
     body.append('file', file);
-    return firstValueFrom(this.http.post<SubirMedioResult>(`${API_BASE}/medios`, body));
+    return firstValueFrom(this.http.post<MedioItem>(`${API_BASE}/medios`, body));
+  }
+
+  listarMedios(): Promise<MedioItem[]> {
+    return firstValueFrom(
+      this.http.get<ListarMediosResponse>(`${API_BASE}/medios`)
+    ).then((res) => res.items ?? []);
   }
 
   eliminarMedio(id: number): Promise<void> {
     return firstValueFrom(this.http.delete(`${API_BASE}/medios/${id}`)).then(() => undefined);
   }
 
-  recortarMedio(body: RecortarMedioBody): Promise<{ url: string; ancho?: number | null; alto?: number | null }> {
+  recortarMedio(body: RecortarMedioBody): Promise<RecortarMedioResult> {
     return firstValueFrom(
-      this.http.post<{ url: string; ancho?: number | null; alto?: number | null }>(
-        `${API_BASE}/medios/recortar`,
-        body
-      )
+      this.http.post<RecortarMedioResult>(`${API_BASE}/medios/recortar`, body)
     );
   }
 }

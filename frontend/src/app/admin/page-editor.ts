@@ -226,7 +226,7 @@ export class PageEditor implements OnInit, OnDestroy {
   /**
    * Factor con el que se reduce la vista previa para que quepa sin scroll
    * horizontal. La maqueta conserva su ancho real (1200, 768 o 390) y se
-   * muestra encogida, como en el editor de Matt.
+   * muestra encogida para caber sin desplazamiento horizontal.
    */
   readonly escala = computed(() => {
     const ancho = this.anchoDisponible();

@@ -19,8 +19,9 @@ import { buscarMarcadores } from '../cms/cms.models';
         <div class="admin-nav__marca">Panel</div>
         <nav aria-label="Secciones del panel">
           <a routerLink="/admin/paginas" routerLinkActive="activo">Páginas</a>
-          <span class="admin-nav__pronto" aria-disabled="true">Identidad</span>
-          <span class="admin-nav__pronto" aria-disabled="true">Medios</span>
+          <a routerLink="/admin/identidad" routerLinkActive="activo">Identidad</a>
+          <a routerLink="/admin/apariencia" routerLinkActive="activo">Apariencia</a>
+          <a routerLink="/admin/medios" routerLinkActive="activo">Medios</a>
           <span class="admin-nav__pronto" aria-disabled="true">Mensajes</span>
           <span class="admin-nav__pronto" aria-disabled="true">Usuarios</span>
         </nav>

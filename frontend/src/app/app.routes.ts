@@ -26,6 +26,18 @@ export const routes: Routes = [
         canDeactivate: [dirtyGuard],
         loadComponent: () => import('./admin/page-editor').then((m) => m.PageEditor),
       },
+      {
+        path: 'identidad',
+        loadComponent: () => import('./admin/admin-identidad').then((m) => m.AdminIdentidad),
+      },
+      {
+        path: 'apariencia',
+        loadComponent: () => import('./admin/admin-apariencia').then((m) => m.AdminApariencia),
+      },
+      {
+        path: 'medios',
+        loadComponent: () => import('./admin/admin-medios').then((m) => m.AdminMedios),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
