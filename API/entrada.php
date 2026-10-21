@@ -20,6 +20,8 @@ require_once __DIR__ . '/src/nucleo/auditoria.php';
 require_once __DIR__ . '/src/modulos/sesion_usuarios/rutas.php';
 require_once __DIR__ . '/src/modulos/paginas/rutas.php';
 require_once __DIR__ . '/src/modulos/contenido/rutas.php';
+require_once __DIR__ . '/src/modulos/medios/rutas.php';
+require_once __DIR__ . '/src/modulos/identidad/rutas.php';
 
 $metodo = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $ruta = rutaDePeticion();
@@ -29,6 +31,10 @@ try {
         manejarRutasSesionUsuarios($metodo, $ruta);
     } elseif (str_starts_with($ruta, '/paginas')) {
         manejarRutasPaginas($metodo, $ruta);
+    } elseif (str_starts_with($ruta, '/medios')) {
+        manejarRutasMedios($metodo, $ruta);
+    } elseif (str_starts_with($ruta, '/identidad') || str_starts_with($ruta, '/configuracion/apariencia')) {
+        manejarRutasIdentidad($metodo, $ruta);
     } elseif (str_starts_with($ruta, '/configuracion')) {
         manejarRutasContenido($metodo, $ruta);
     } else {

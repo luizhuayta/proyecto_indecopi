@@ -1,6 +1,7 @@
 # Imagen de verificación con PHP 8.1 y las extensiones que usa el API.
-# La imagen oficial php:8.1-cli no trae pdo_mysql ni mbstring, y el proyecto
-# los necesita para hablar con MariaDB. Se compila una vez y se reutiliza.
+# La imagen oficial php:8.1-cli no trae pdo_mysql, mbstring ni gd, y el proyecto
+# los necesita para hablar con MariaDB y para procesar imágenes (medios). Se
+# compila una vez y se reutiliza.
 #
 #   docker build -t plantilla-php81 -f tools/Dockerfile.php81 .
 #   docker run --rm -v "$PWD":/app -w /app plantilla-php81 php API/pruebas/ejecutar.php
@@ -13,10 +14,18 @@
 
 FROM php:8.1-cli
 
-# pdo_mysql necesita el cliente de MySQL y mbstring necesita oniguruma.
+# pdo_mysql necesita el cliente de MySQL, mbstring necesita oniguruma y gd
+# necesita libpng/libjpeg/libwebp/freetype para procesar imágenes.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libonig-dev default-libmysqlclient-dev \
-    && docker-php-ext-install pdo_mysql mbstring \
+    && apt-get install -y --no-install-recommends \
+        libonig-dev \
+        default-libmysqlclient-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libwebp-dev \
+        libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql mbstring gd \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

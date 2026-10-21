@@ -51,6 +51,15 @@ CREATE TABLE IF NOT EXISTS institucion (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS apariencia_sitio (
+    locale VARCHAR(8) NOT NULL,
+    contenido JSON NULL,
+    borrador LONGTEXT NULL,
+    version INT NOT NULL DEFAULT 1,
+    actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (locale)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS medios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre_original VARCHAR(255) NOT NULL DEFAULT '',
@@ -64,7 +73,10 @@ CREATE TABLE IF NOT EXISTS medios (
     padre_id INT NULL,
     tipo VARCHAR(20) NOT NULL DEFAULT 'subida',
     original_guardado VARCHAR(255) NULL,
-    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    sha256 CHAR(64) NOT NULL DEFAULT '',
+    publico TINYINT NOT NULL DEFAULT 1,
+    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_medios_sha256_publico (sha256, publico)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS versiones_medio (

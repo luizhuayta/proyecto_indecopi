@@ -1,0 +1,410 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Lógica de identidad institucional y apariencia del sitio.
+ *
+ * - Identidad: lee y escribe la tabla `institucion` (id 1), de donde salen los
+ *   tokens `{{institucion.*}}` que se sustituyen al servir el contenido público.
+ * - Apariencia: colores, tipografía, logo, pie y redes, con borrador /
+ *   publicación / 409 como las páginas, y verificación de contraste que avisa
+ *   (sin rechazar) cuando un color no cumple 4.5:1.
+ */
+
+require_once __DIR__ . '/../../nucleo/base_datos.php';
+require_once __DIR__ . '/../../nucleo/sesion.php';
+require_once __DIR__ . '/../../nucleo/auditoria.php';
+require_once __DIR__ . '/../../nucleo/validacion.php';
+require_once __DIR__ . '/../../nucleo/fechas.php';
+require_once __DIR__ . '/../../http/errores.php';
+require_once __DIR__ . '/esquemas.php';
+require_once __DIR__ . '/repositorio.php';
+
+/** Relación de contraste mínima exigida (WCAG AA para texto normal). */
+const CONTRASTE_MINIMO = 4.5;
+
+/** Campos de color de la apariencia. */
+function camposColorApariencia(): array
+{
+    return [
+        'color_primario',
+        'color_primario_fuerte',
+        'color_secundario',
+        'color_acento',
+        'color_texto',
+        'color_texto_suave',
+        'color_fondo',
+        'color_superficie',
+        'color_borde',
+    ];
+}
+
+/** Decodifica una columna JSON (borrador/contenido) en un array, o null. */
+function decodificarJsonIdentidad(mixed $valor): ?array
+{
+    if ($valor === null || $valor === '') {
+        return null;
+    }
+    if (is_array($valor)) {
+        return $valor;
+    }
+    if (is_string($valor)) {
+        $decodificado = json_decode($valor, true);
+        return is_array($decodificado) ? $decodificado : null;
+    }
+    return null;
+}
+
+/**
+ * Datos de identidad de la institución (id 1).
+ */
+function identidad(): array
+{
+    $fila = institucionPorIdBd(1);
+    if ($fila === null) {
+        return [
+            'nombre' => '', 'ruc' => '', 'direccion' => '', 'telefono' => '',
+            'correo' => '', 'ciudad' => '', 'actualizado_en' => null,
+        ];
+    }
+    return [
+        'nombre' => (string) $fila['nombre'],
+        'ruc' => (string) $fila['ruc'],
+        'direccion' => (string) $fila['direccion'],
+        'telefono' => (string) $fila['telefono'],
+        'correo' => (string) $fila['correo'],
+        'ciudad' => (string) $fila['ciudad'],
+        'actualizado_en' => aIso(isset($fila['actualizado_en']) ? (string) $fila['actualizado_en'] : null),
+    ];
+}
+
+/**
+ * Guarda la identidad de la institución. Exige rol admin. La auditoría registra
+ * SOLO qué campos cambiaron, sin los valores de correo ni teléfono.
+ */
+function guardarIdentidad(array $datos): array
+{
+    exigirRol('admin');
+
+    $fallo = validar($datos, esquemasIdentidad()['identidad']);
+    if ($fallo !== []) {
+        solicitudInvalida($fallo['mensaje'], $fallo);
+    }
+
+    $actual = institucionPorIdBd(1);
+    $campos = ['nombre', 'ruc', 'direccion', 'telefono', 'correo', 'ciudad'];
+    $nuevos = [];
+    foreach ($campos as $campo) {
+        $nuevos[$campo] = array_key_exists($campo, $datos)
+            ? trim((string) ($datos[$campo] ?? ''))
+            : ($actual !== null ? (string) ($actual[$campo] ?? '') : '');
+    }
+
+    if ($nuevos['correo'] !== '' && filter_var($nuevos['correo'], FILTER_VALIDATE_EMAIL) === false) {
+        solicitudInvalida('El correo no es válido.', ['campo' => 'correo']);
+    }
+
+    $cambiados = [];
+    foreach ($campos as $campo) {
+        $antes = $actual !== null ? (string) ($actual[$campo] ?? '') : '';
+        if ($nuevos[$campo] !== $antes) {
+            $cambiados[] = $campo;
+        }
+    }
+
+    enTransaccion(static function () use ($nuevos): void {
+        if (institucionPorIdBd(1) === null) {
+            insertarInstitucionBd(1, $nuevos);
+        } else {
+            actualizarInstitucionBd(1, $nuevos);
+        }
+    });
+
+    registrarAuditoria('guardar_identidad', 'institucion', '1', ['campos_cambiados' => $cambiados]);
+
+    return identidad();
+}
+
+/**
+ * Sustituye los tokens `{{institucion.*}}` por los valores guardados. Si un
+ * token no tiene valor, se deja el texto del token intacto.
+ */
+function resolverTokens(string $texto, ?array $identidad = null): string
+{
+    if ($identidad === null) {
+        $identidad = identidad();
+    }
+    $tokens = ['nombre', 'ruc', 'direccion', 'telefono', 'correo', 'ciudad'];
+    foreach ($tokens as $token) {
+        $valor = (string) ($identidad[$token] ?? '');
+        if ($valor === '') {
+            continue;
+        }
+        $texto = str_replace('{{institucion.' . $token . '}}', $valor, $texto);
+    }
+    return $texto;
+}
+
+/**
+ * Documento de apariencia del sitio (publicado o borrador según la sesión).
+ */
+function configuracionApariencia(string $locale): array
+{
+    $fila = aparienciaPorLocaleBd($locale);
+    $conSesion = usuarioActual() !== null;
+
+    if ($fila === null) {
+        $payload = ['contenido' => [], 'version' => 1];
+        if ($conSesion) {
+            $payload['tiene_borrador'] = false;
+        }
+        return $payload;
+    }
+
+    $borrador = decodificarJsonIdentidad($fila['borrador'] ?? null);
+    $publicado = decodificarJsonIdentidad($fila['contenido'] ?? null);
+    $tieneBorrador = $borrador !== null;
+    $contenido = ($conSesion && $tieneBorrador) ? $borrador : ($publicado ?? []);
+
+    $payload = [
+        'contenido' => $contenido,
+        'version' => (int) ($fila['version'] ?? 1),
+        'actualizado_en' => aIso(isset($fila['actualizado_en']) ? (string) $fila['actualizado_en'] : null),
+    ];
+    if ($conSesion) {
+        $payload['tiene_borrador'] = $tieneBorrador;
+    }
+    return $payload;
+}
+
+/** Normaliza un color #RGB/#RRGGBB a [r, g, b] enteros 0-255, o null. */
+function colorARgb(string $color): ?array
+{
+    $color = strtolower(trim($color));
+    if (preg_match('/^#([0-9a-f]{3})$/', $color, $m) === 1) {
+        $r = hexdec($m[1][0] . $m[1][0]);
+        $g = hexdec($m[1][1] . $m[1][1]);
+        $b = hexdec($m[1][2] . $m[1][2]);
+        return [$r, $g, $b];
+    }
+    if (preg_match('/^#([0-9a-f]{6})$/', $color, $m) === 1) {
+        return [hexdec(substr($m[1], 0, 2)), hexdec(substr($m[1], 2, 2)), hexdec(substr($m[1], 4, 2))];
+    }
+    return null;
+}
+
+/** Luminancia relativa WCAG de un color. */
+function luminanciaRelativa(string $color): float
+{
+    $rgb = colorARgb($color);
+    if ($rgb === null) {
+        return 0.0;
+    }
+    $canales = [];
+    foreach ($rgb as $canal) {
+        $c = $canal / 255.0;
+        $canales[] = $c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+    }
+    return 0.2126 * $canales[0] + 0.7152 * $canales[1] + 0.0722 * $canales[2];
+}
+
+/** Relación de contraste WCAG entre dos colores. */
+function relacionContraste(string $color1, string $color2): float
+{
+    $l1 = luminanciaRelativa($color1);
+    $l2 = luminanciaRelativa($color2);
+    $clara = max($l1, $l2);
+    $oscura = min($l1, $l2);
+    return ($clara + 0.05) / ($oscura + 0.05);
+}
+
+/**
+ * Sugiere un color de primer plano que alcance 4.5:1 contra el fondo dado,
+ * oscureciendo o aclarando el color actual según corresponda.
+ */
+function sugerirColorContraste(string $frente, string $fondo): string
+{
+    $rgb = colorARgb($frente);
+    if ($rgb === null) {
+        return $frente;
+    }
+    $fondoLum = luminanciaRelativa($fondo);
+    $oscurecer = $fondoLum > 0.5; // fondo claro -> oscurecer el frente
+    for ($i = 0; $i < 64; $i++) {
+        $hex = sprintf('#%02x%02x%02x', $rgb[0], $rgb[1], $rgb[2]);
+        if (relacionContraste($hex, $fondo) >= CONTRASTE_MINIMO) {
+            return $hex;
+        }
+        for ($j = 0; $j < 3; $j++) {
+            $rgb[$j] = $oscurecer ? max(0, $rgb[$j] - 12) : min(255, $rgb[$j] + 12);
+        }
+    }
+    return $oscurecer ? '#000000' : '#ffffff';
+}
+
+/**
+ * Valida los colores de la apariencia (400 si el formato es inválido) y
+ * devuelve los avisos de contraste (sin rechazar el guardado).
+ */
+function validarApariencia(array $contenido): array
+{
+    $fallo = validar($contenido, esquemasIdentidad()['apariencia']);
+    if ($fallo !== []) {
+        solicitudInvalida($fallo['mensaje'], $fallo);
+    }
+
+    // La lista `redes` debe ser una lista de objetos {nombre, url} si viene.
+    if (isset($contenido['redes']) && is_array($contenido['redes'])) {
+        foreach ($contenido['redes'] as $indice => $red) {
+            if (!is_array($red)) {
+                solicitudInvalida('Cada red social debe ser un objeto con nombre y url.', ['campo' => 'redes.' . $indice]);
+            }
+        }
+    }
+
+    $avisos = [];
+    $texto = (string) ($contenido['color_texto'] ?? '');
+    $fondo = (string) ($contenido['color_fondo'] ?? '');
+    $superficie = (string) ($contenido['color_superficie'] ?? '');
+    $primario = (string) ($contenido['color_primario'] ?? '');
+
+    if ($texto !== '' && $fondo !== '') {
+        $relacion = relacionContraste($texto, $fondo);
+        if ($relacion < CONTRASTE_MINIMO) {
+            $avisos[] = [
+                'campo' => 'color_texto',
+                'mensaje' => sprintf(
+                    'El color de texto contrasta poco con el fondo (%.2f:1; mínimo %.1f:1). Sugerencia: %s.',
+                    $relacion,
+                    CONTRASTE_MINIMO,
+                    sugerirColorContraste($texto, $fondo)
+                ),
+            ];
+        }
+    }
+    if ($texto !== '' && $superficie !== '') {
+        $relacion = relacionContraste($texto, $superficie);
+        if ($relacion < CONTRASTE_MINIMO) {
+            $avisos[] = [
+                'campo' => 'color_texto',
+                'mensaje' => sprintf(
+                    'El color de texto contrasta poco con la superficie (%.2f:1; mínimo %.1f:1). Sugerencia: %s.',
+                    $relacion,
+                    CONTRASTE_MINIMO,
+                    sugerirColorContraste($texto, $superficie)
+                ),
+            ];
+        }
+    }
+    if ($primario !== '') {
+        $relacion = relacionContraste($primario, '#ffffff');
+        if ($relacion < CONTRASTE_MINIMO) {
+            $avisos[] = [
+                'campo' => 'color_primario',
+                'mensaje' => sprintf(
+                    'El color primario contrasta poco con texto blanco (%.2f:1; mínimo %.1f:1). Sugerencia: %s.',
+                    $relacion,
+                    CONTRASTE_MINIMO,
+                    sugerirColorContraste($primario, '#ffffff')
+                ),
+            ];
+        }
+    }
+    return $avisos;
+}
+
+/**
+ * Guarda el borrador de apariencia. Exige la versión leída por el cliente
+ * (409 si no coincide) y devuelve los avisos de contraste cuando los hay.
+ */
+function guardarApariencia(string $locale, array $contenido, int $version): array
+{
+    exigirRol('admin');
+
+    $avisos = validarApariencia($contenido);
+    $json = json_encode($contenido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        solicitudInvalida('La apariencia no se puede guardar.');
+    }
+
+    $fila = aparienciaPorLocaleBd($locale);
+    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
+    if ($version !== $actual) {
+        lanzarConflictoApariencia($fila, 'Alguien guardó la apariencia antes. Recarga para no pisar cambios.');
+    }
+
+    $nueva = $actual + 1;
+    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
+        asegurarAparienciaBd($locale);
+        return actualizarBorradorAparienciaBd($locale, $json, $actual, $nueva);
+    });
+    if ($afectadas === 0) {
+        lanzarConflictoApariencia($fila, 'Alguien guardó la apariencia antes. Recarga para no pisar cambios.');
+    }
+
+    $fresca = aparienciaPorLocaleBd($locale);
+    registrarAuditoria('guardar_apariencia', 'apariencia_sitio', $locale, ['version' => $nueva]);
+
+    $payload = [
+        'contenido' => $contenido,
+        'version' => $nueva,
+        'actualizado_en' => aIso($fresca !== null && isset($fresca['actualizado_en']) ? (string) $fresca['actualizado_en'] : null),
+    ];
+    if ($avisos !== []) {
+        $payload['avisos'] = $avisos;
+    }
+    return $payload;
+}
+
+/**
+ * Publica la apariencia: pasa el borrador a contenido (o publica el actual si
+ * no hay borrador) y sube la versión.
+ */
+function publicarApariencia(string $locale, int $version): array
+{
+    exigirRol('admin');
+
+    $fila = aparienciaPorLocaleBd($locale);
+    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
+    if ($version !== $actual) {
+        lanzarConflictoApariencia($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
+    }
+
+    $borrador = $fila === null ? null : decodificarJsonIdentidad($fila['borrador'] ?? null);
+    $publicado = $fila === null ? null : decodificarJsonIdentidad($fila['contenido'] ?? null);
+    $aPublicar = $borrador !== null ? $borrador : ($publicado ?? []);
+    validarApariencia($aPublicar);
+    $json = json_encode($aPublicar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($json === false) {
+        solicitudInvalida('La apariencia no se puede publicar.');
+    }
+
+    $nueva = $actual + 1;
+    $afectadas = enTransaccion(static function () use ($locale, $json, $actual, $nueva): int {
+        asegurarAparienciaBd($locale);
+        return publicarAparienciaBd($locale, $json, $actual, $nueva);
+    });
+    if ($afectadas === 0) {
+        lanzarConflictoApariencia($fila, 'Alguien publicó o guardó antes. Recarga para no pisar cambios.');
+    }
+
+    registrarAuditoria('publicar_apariencia', 'apariencia_sitio', $locale, ['version' => $nueva]);
+
+    return ['contenido' => $aPublicar, 'version' => $nueva];
+}
+
+/**
+ * Lanza el 409 de conflicto de versión de la apariencia.
+ */
+function lanzarConflictoApariencia(?array $fila, string $mensaje): never
+{
+    $actual = $fila === null ? 1 : (int) ($fila['version'] ?? 1);
+    $borrador = $fila === null ? null : decodificarJsonIdentidad($fila['borrador'] ?? null);
+    $publicado = $fila === null ? null : decodificarJsonIdentidad($fila['contenido'] ?? null);
+    $contenido = $borrador !== null ? $borrador : ($publicado ?? []);
+    error_app($mensaje, 409, [
+        'version' => $actual,
+        'actualizado_en' => $fila !== null && isset($fila['actualizado_en']) ? aIso((string) $fila['actualizado_en']) : null,
+        'contenido' => $contenido,
+    ]);
+}
