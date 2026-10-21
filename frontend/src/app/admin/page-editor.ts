@@ -97,7 +97,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
         <div class="editor__preview" #marcoPreview>          <div
             class="editor__preview-inner"
             [style.width.px]="deviceWidth()"
-            [style.zoom.%]="escala() * 100"
+            [style.zoom]="escala()"
           >
             <app-cms-page-blocks
               [slug]="slug()"

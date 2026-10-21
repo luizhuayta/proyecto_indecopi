@@ -82,12 +82,29 @@ import { renderBloque } from './render-bloque';
         top: 0.25rem;
         right: 0.25rem;
         z-index: 2;
-        padding: 0.15rem 0.5rem;
+        padding: 0.1rem 0.4rem;
+        border: 1px solid var(--color-primario);
         border-radius: var(--radio-campo, 4px);
-        background: var(--color-primario);
-        color: #fff;
+        background: var(--color-fondo);
+        color: var(--color-primario);
         font-size: var(--texto-xs, 0.75rem);
         font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+        pointer-events: none;
+      }
+      .bloque-host:hover > .bloque-host__etiqueta,
+      .bloque-host:focus-visible > .bloque-host__etiqueta,
+      .bloque-host--seleccionado > .bloque-host__etiqueta {
+        opacity: 1;
+      }
+      .bloque-host:hover {
+        outline: 1px dashed var(--color-borde);
+        outline-offset: -1px;
+      }
+      .bloque-host--seleccionado {
+        outline: 2px solid var(--color-primario);
+        outline-offset: -2px;
       }
       .bloque-host__estado {
         margin-left: 0.35rem;

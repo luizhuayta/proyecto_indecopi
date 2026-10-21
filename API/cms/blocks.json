@@ -196,7 +196,7 @@
                 }
             ],
             "defaults": {
-                "tag": "QUIÉNES SOMOS",
+                "tag": "Sobre la institución",
                 "title": "Título de la sección",
                 "text": "Describe aquí tu institución.",
                 "image": "",
@@ -294,7 +294,7 @@
                 }
             ],
             "defaults": {
-                "tag": "QUÉ HACEMOS",
+                "tag": "Qué ofrecemos",
                 "title": "Ofrecemos servicios",
                 "cards": [
                     {
@@ -345,7 +345,7 @@
                 }
             ],
             "defaults": {
-                "badge": "SECCIÓN",
+                "badge": "Sección",
                 "title": "Título de la página",
                 "text": "",
                 "cta": "Contáctanos",
@@ -449,7 +449,7 @@
                 }
             ],
             "defaults": {
-                "tag": "NUESTRO EQUIPO",
+                "tag": "El equipo",
                 "title": "Conoce al equipo",
                 "text": "",
                 "items": [
@@ -509,7 +509,7 @@
                 }
             ],
             "defaults": {
-                "tag": "NOVEDADES",
+                "tag": "Novedades",
                 "title": "Videos",
                 "text": "",
                 "items": [
@@ -601,7 +601,7 @@
                 }
             ],
             "defaults": {
-                "subtitle": "CONOCE NUESTROS",
+                "subtitle": "Nuestros programas",
                 "title": "Servicios",
                 "cards": [
                     {
@@ -707,7 +707,7 @@
                 "heroAlt": "",
                 "image": "",
                 "imageAlt": "",
-                "label": "SERVICIO",
+                "label": "Programa",
                 "title": "Nombre del servicio",
                 "text": "Describe el servicio.",
                 "cta": "Contáctanos",
@@ -755,7 +755,7 @@
                 }
             ],
             "defaults": {
-                "subtitle": "RAZONES PARA ELEGIRNOS",
+                "subtitle": "Por qué elegirnos",
                 "title": "Por qué elegirnos",
                 "items": [
                     {

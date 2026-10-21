@@ -199,7 +199,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "tag": "QUIÉNES SOMOS",
+      "tag": "Sobre la institución",
       "title": "Título de la sección",
       "text": "Describe aquí tu institución.",
       "image": "",
@@ -297,7 +297,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "tag": "QUÉ HACEMOS",
+      "tag": "Qué ofrecemos",
       "title": "Ofrecemos servicios",
       "cards": [
         {
@@ -348,7 +348,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "badge": "SECCIÓN",
+      "badge": "Sección",
       "title": "Título de la página",
       "text": "",
       "cta": "Contáctanos",
@@ -452,7 +452,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "tag": "NUESTRO EQUIPO",
+      "tag": "El equipo",
       "title": "Conoce al equipo",
       "text": "",
       "items": [
@@ -512,7 +512,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "tag": "NOVEDADES",
+      "tag": "Novedades",
       "title": "Videos",
       "text": "",
       "items": [
@@ -604,7 +604,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "subtitle": "CONOCE NUESTROS",
+      "subtitle": "Nuestros programas",
       "title": "Servicios",
       "cards": [
         {
@@ -710,7 +710,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       "heroAlt": "",
       "image": "",
       "imageAlt": "",
-      "label": "SERVICIO",
+      "label": "Programa",
       "title": "Nombre del servicio",
       "text": "Describe el servicio.",
       "cta": "Contáctanos",
@@ -758,7 +758,7 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
-      "subtitle": "RAZONES PARA ELEGIRNOS",
+      "subtitle": "Por qué elegirnos",
       "title": "Por qué elegirnos",
       "items": [
         {
