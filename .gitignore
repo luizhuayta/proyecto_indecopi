@@ -3,6 +3,7 @@ dist/
 .env
 API/.env
 API/almacen/
+API/tmp/
 API/pruebas/temporal/
 *.log
 .DS_Store
