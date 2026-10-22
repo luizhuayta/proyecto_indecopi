@@ -10,61 +10,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/nucleo/sesion.php';
 require_once __DIR__ . '/../src/nucleo/saneado.php';
 require_once __DIR__ . '/../src/modulos/paginas/servicio.php';
-
-/**
- * Crea (o recrea) un usuario administrador de pruebas y devuelve su id.
- */
-function usuarioAdminPaginas(): int
-{
-    $pdo = conexion();
-    $pdo->prepare("DELETE FROM usuarios WHERE usuario = 'adminpaginas'")->execute();
-    $stmt = $pdo->prepare(
-        "INSERT INTO usuarios (usuario, hash_contrasena, rol, activo) VALUES (?, ?, 'admin', 1)"
-    );
-    $stmt->execute(['adminpaginas', password_hash('ClavePrueba123', PASSWORD_DEFAULT)]);
-    return (int) $pdo->lastInsertId();
-}
-
-/**
- * Elimina una página de pruebas y sus revisiones (para ejecuciones repetidas).
- */
-function limpiarPaginaPrueba(string $slug): void
-{
-    $pdo = conexion();
-    $pdo->prepare('DELETE FROM revisiones WHERE slug = ?')->execute([$slug]);
-    $pdo->prepare('DELETE FROM paginas WHERE slug = ?')->execute([$slug]);
-}
-
-/**
- * Bloque richText de pruebas.
- */
-function bloqueRichTextPrueba(string $texto): array
-{
-    return [
-        'id' => 'bloque-prueba',
-        'type' => 'richText',
-        'hidden' => false,
-        'layout' => ['width' => 'full', 'padding' => '', 'background' => ''],
-        'props' => ['title' => '', 'lastUpdated' => '', 'body' => '<p>' . $texto . '</p>'],
-    ];
-}
-
-/**
- * Contenido válido de una página de pruebas (un bloque richText).
- */
-function contenidoPrueba(string $texto): array
-{
-    return ['schemaVersion' => 1, 'blocks' => [bloqueRichTextPrueba($texto)]];
-}
-
-/**
- * Texto plano del cuerpo del primer bloque de un contenido.
- */
-function textoDeContenido(array $contenido): string
-{
-    $cuerpo = $contenido['blocks'][0]['props']['body'] ?? '';
-    return trim(strip_tags((string) $cuerpo));
-}
+require_once __DIR__ . '/ayuda.php';
 
 probar('el saneado quita scripts y manejadores', function () {
     $limpio = sanearHtml('<p>Hola<script>alert(1)</script></p><a href="/x" onclick="x()">enlace</a>');
@@ -76,6 +22,20 @@ probar('el saneado quita scripts y manejadores', function () {
 
 probar('el saneado baja los titulos h3 a h2', function () {
     afirmar(str_contains(sanearHtml('<h3>Sub</h3>'), '<h2>'), 'h3 debe bajar a h2');
+});
+
+probar('el saneado conserva el texto de una etiqueta no permitida', function () {
+    $limpio = sanearHtml('<p>Hola <span>mundo</span> <strong>bien</strong></p>');
+    afirmar(str_contains($limpio, 'Hola'), 'debe conservar el texto');
+    afirmar(str_contains($limpio, 'mundo'), 'no debe tragarse el texto de un span');
+    afirmar(!str_contains($limpio, '<span'), 'debe quitar la etiqueta');
+    afirmar(str_contains($limpio, '<strong>'), 'debe conservar las etiquetas permitidas');
+});
+
+probar('el saneado elimina el contenido de script e iframe', function () {
+    $limpio = sanearHtml('<p>Hola</p><script>alert(1)</script><iframe src="https://x.test"></iframe>');
+    afirmar(!str_contains($limpio, 'alert'), 'debe quitar el contenido del script');
+    afirmar(!str_contains($limpio, 'iframe'), 'debe quitar el iframe');
 });
 
 probar('el enlace javascript se rechaza', function () {

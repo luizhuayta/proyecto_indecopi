@@ -122,10 +122,10 @@ function prepararContenidoDocumento(array $contenido, ?callable $preparar): arra
  * Documento publicable: publicado para el público, borrador para quien tiene
  * sesión. Devuelve ['contenido', 'version', 'actualizado_en', 'tiene_borrador'].
  */
-function leerDocumento(string $clave, string $locale): array
+function leerDocumento(string $clave, string $locale, ?bool $conBorrador = null): array
 {
     $fila = documentoPorClave($clave, $locale);
-    $conSesion = usuarioActual() !== null;
+    $conSesion = $conBorrador ?? (usuarioActual() !== null);
 
     if ($fila === null) {
         $payload = ['contenido' => [], 'version' => 1, 'actualizado_en' => null];

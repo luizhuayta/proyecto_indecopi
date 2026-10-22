@@ -48,4 +48,18 @@ describe('CmsPageBlocks', () => {
     expect(secciones.length).toBe(1);
     expect(fixture.nativeElement.textContent).not.toContain('Años');
   });
+
+  it('el documento publico no usa el borrador ni activa controles editoriales', () => {
+    sembrar([makeBlock('richText', { body: '<p>Borrador privado</p>' })]);
+    TestBed.inject(CmsEditorService).enable();
+    fixture.componentRef.setInput('documento', { blocks: [makeBlock('richText', { body: '<p>Publicado</p>' })] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Publicado');
+    expect(fixture.nativeElement.textContent).not.toContain('Borrador privado');
+    expect(fixture.nativeElement.querySelector('[role="button"]')).toBeNull();
+    fixture.componentRef.setInput('documento', { blocks: [makeBlock('richText', { body: '<p>Otra página</p>' })] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Otra página');
+    expect(fixture.nativeElement.textContent).not.toContain('Publicado');
+  });
 });

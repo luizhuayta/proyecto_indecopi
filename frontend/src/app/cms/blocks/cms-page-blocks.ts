@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output, computed, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CmsContentService } from '../cms-content.service';
 import { CmsEditorService } from '../cms-editor.service';
 import { blockLabel, pageBlocks } from '../block-registry';
 import type { CmsBlock } from '../block-registry';
 import { renderBloque } from './render-bloque';
+import { JsonMap } from '../cms.models';
 
 /**
  * Renderiza los bloques de una página.
@@ -23,6 +24,7 @@ import { renderBloque } from './render-bloque';
       @for (block of visibles(); track block.id) {
         <div
           class="bloque-host"
+          [class.bloque-host--editable]="editable()"
           [class.bloque-host--seleccionado]="editable() && seleccionadoId === block.id"
           [class.bloque-host--oculto]="block.hidden"
           [attr.data-block-id]="block.id"
@@ -98,7 +100,7 @@ import { renderBloque } from './render-bloque';
       .bloque-host--seleccionado > .bloque-host__etiqueta {
         opacity: 1;
       }
-      .bloque-host:hover {
+      .bloque-host--editable:hover {
         outline: 1px dashed var(--color-borde);
         outline-offset: -1px;
       }
@@ -120,11 +122,15 @@ export class CmsPageBlocks {
 
   @Input() slug = '';
   @Input() seleccionadoId = '';
+  private readonly documentoPublico = signal<JsonMap | null>(null);
+  @Input() set documento(valor: JsonMap | null) { this.documentoPublico.set(valor); }
   @Output() bloqueSeleccionado = new EventEmitter<string>();
 
-  readonly editable = computed(() => this.editor.editMode());
+  readonly editable = computed(() => this.documentoPublico() === null && this.editor.editMode());
 
   readonly bloques = computed(() => {
+    const publicado = this.documentoPublico();
+    if (publicado !== null) return pageBlocks(publicado);
     const slug = this.slug || this.cms.currentSlug();
     const page = slug === 'sitio' ? this.cms.site() : (this.cms.pages()[slug] ?? {});
     return pageBlocks(page);
@@ -139,6 +145,8 @@ export class CmsPageBlocks {
   });
 
   html(block: CmsBlock): SafeHtml {
+    // El HTML lo genera el renderizador del catálogo: escapa los textos y solo
+    // deja los embebidos validados por el servidor.
     return this.sanitizer.bypassSecurityTrustHtml(
       renderBloque(block, { imageMeta: this.cms.imageMeta() }),
     );

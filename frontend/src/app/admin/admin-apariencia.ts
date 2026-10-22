@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CmsApiService } from '../cms/cms-api.service';
 import { getByPath, setByPath, JsonMap } from '../cms/cms.models';
 import { contraste, normalizarHex, sugerirContraste } from '../core/contraste';
+import { COLORES_DEFECTO, FONTS_DEFECTO } from '../core/tema';
 
 interface CampoColor {
   key: string;
@@ -29,24 +30,6 @@ const CAMPOS_COLOR: CampoColor[] = [
   { key: 'color_superficie', label: 'Superficie' },
   { key: 'color_borde', label: 'Borde' },
 ];
-
-/** Valores por defecto del tema (coinciden con _tokens.scss) para la maqueta. */
-const COLORES_DEFECTO: Record<string, string> = {
-  color_primario: '#123a6d',
-  color_primario_fuerte: '#0d2a50',
-  color_secundario: '#5a6b80',
-  color_acento: '#b3541e',
-  color_texto: '#1b1f24',
-  color_texto_suave: '#525c68',
-  color_fondo: '#ffffff',
-  color_superficie: '#f4f6f8',
-  color_borde: '#d8dee5',
-};
-
-const FONTS_DEFECTO: Record<string, string> = {
-  tipografia_titulos: "'Source Serif 4', Georgia, 'Times New Roman', serif",
-  tipografia_cuerpo: "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-};
 
 /**
  * Apariencia del sitio: colores, tipografías, logo, pie, contacto y redes.

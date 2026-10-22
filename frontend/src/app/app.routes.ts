@@ -5,7 +5,8 @@ import { dirtyGuard } from './core/dirty.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./public/inicio').then((m) => m.Inicio),
+    pathMatch: 'full',
+    loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico),
   },
   {
     path: 'admin/login',
@@ -40,5 +41,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico) },
 ];

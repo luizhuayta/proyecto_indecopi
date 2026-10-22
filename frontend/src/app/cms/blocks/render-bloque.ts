@@ -422,7 +422,8 @@ const heroEspecial: RenderEspecial = (props, opts) => {
 
 const pageHeroEspecial: RenderEspecial = (props, opts) => {
   const badge = etiqueta(props['badge']);
-  const t = titulo(props['title'], 1);
+  // El título de la página ya es el h1 del documento: el bloque usa h2.
+  const t = titulo(props['title'], 2);
   const textoHtml = hayTexto(props['text'])
     ? `<p class="page-hero__texto">${escapeHtml((props['text'] as string).trim())}</p>`
     : '';

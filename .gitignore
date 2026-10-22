@@ -8,3 +8,4 @@ API/pruebas/temporal/
 *.log
 .DS_Store
 .openchamber/
+.atl/

@@ -55,7 +55,7 @@
   padding: 0.6rem 1.25rem;
   border-radius: var(--radio-campo, 4px);
   background: var(--color-primario);
-  color: #fff;
+  color: var(--color-boton-texto, #fff);
   font-weight: 600;
   text-decoration: none;
   border: 1px solid var(--color-primario);
@@ -64,7 +64,7 @@
 .boton:hover {
   background: var(--color-primario-fuerte, var(--color-primario));
   border-color: var(--color-primario-fuerte, var(--color-primario));
-  color: #fff;
+  color: var(--color-boton-texto-hover, #fff);
 }
 
 .boton:focus-visible {

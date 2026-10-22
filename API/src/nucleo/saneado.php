@@ -73,9 +73,10 @@ function sanearHtml(?string $html): string
 }
 
 /**
- * Recorre un nodo y sus hijos aplicando la lista blanca. Las etiquetas no
- * permitidas (script, style, iframe, span, ...) se eliminan por completo,
- * incluido su contenido.
+ * Recorre un nodo y sus hijos aplicando la lista blanca. Las etiquetas cuyo
+ * contenido no es texto (script, style, iframe) se eliminan por completo; las
+ * demás etiquetas no permitidas (span, div, ...) se desenvuelven, conservando
+ * el texto que había dentro.
  */
 function sanearNodoDom(DOMNode $nodo, array $permitidas): void
 {
@@ -111,7 +112,17 @@ function sanearNodoDom(DOMNode $nodo, array $permitidas): void
             continue;
         }
 
-        if ($etiqueta === 'script' || $etiqueta === 'style' || $etiqueta === 'iframe' || !isset($permitidas[$etiqueta])) {
+        if ($etiqueta === 'script' || $etiqueta === 'style' || $etiqueta === 'iframe') {
+            $eliminar[] = $hijo;
+            continue;
+        }
+
+        if (!isset($permitidas[$etiqueta])) {
+            // Se quita la etiqueta pero se conserva el texto que contenía.
+            sanearNodoDom($hijo, $permitidas);
+            while ($hijo->firstChild) {
+                $nodo->insertBefore($hijo->firstChild, $hijo);
+            }
             $eliminar[] = $hijo;
             continue;
         }
