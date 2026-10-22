@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../nucleo/fechas.php';
 require_once __DIR__ . '/../../nucleo/slug.php';
 require_once __DIR__ . '/../../http/errores.php';
 require_once __DIR__ . '/../contenido/servicio.php';
+require_once __DIR__ . '/../busqueda/servicio.php';
 require_once __DIR__ . '/esquemas.php';
 require_once __DIR__ . '/repositorio.php';
 
@@ -250,6 +251,8 @@ function publicarPagina(string $slug, string $locale, int $version): array
         'slug' => $slug,
         'version' => $nueva,
     ]);
+
+    indexarPagina(rutaEfectiva($slug, (string) ($fila['ruta'] ?? '')), $locale, (string) $fila['titulo'], $aPublicar);
 
     return ['contenido' => $aPublicar, 'version' => $nueva];
 }

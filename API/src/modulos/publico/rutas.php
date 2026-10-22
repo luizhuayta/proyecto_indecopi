@@ -13,5 +13,17 @@ function manejarRutasPublico(string $metodo, string $ruta): void
         controladorPaginaPublica();
         return;
     }
+    if ($metodo === 'GET' && $ruta === '/publico/sitemap.xml') {
+        controladorSitemap();
+        return;
+    }
+    if ($metodo === 'GET' && $ruta === '/publico/robots.txt') {
+        controladorRobots();
+        return;
+    }
+    if ($metodo === 'GET' && $ruta === '/publico/buscar') {
+        controladorBuscar();
+        return;
+    }
     noEncontrado('Ruta no encontrada.');
 }

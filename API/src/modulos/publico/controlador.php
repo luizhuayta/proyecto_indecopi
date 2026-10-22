@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/servicio.php';
+require_once __DIR__ . '/../seo/servicio.php';
+require_once __DIR__ . '/../busqueda/servicio.php';
 require_once __DIR__ . '/../../http/respuesta.php';
 
 function controladorSitioPublico(): void
@@ -20,4 +22,35 @@ function controladorPaginaPublica(): void
         noEncontrado('Esta página no está disponible.');
     }
     json_out($pagina);
+}
+
+/**
+ * GET /publico/sitemap.xml — sitemap con las páginas publicadas.
+ */
+function controladorSitemap(): void
+{
+    header('Content-Type: application/xml; charset=utf-8');
+    echo generarSitemap(localeDePeticion());
+}
+
+/**
+ * GET /publico/robots.txt — permite indexar y señala el sitemap.
+ */
+function controladorRobots(): void
+{
+    header('Content-Type: text/plain; charset=utf-8');
+    echo contenidoRobots();
+}
+
+/**
+ * GET /publico/buscar?q=texto — resultados en las páginas publicadas.
+ */
+function controladorBuscar(): void
+{
+    $consulta = (string) ($_GET['q'] ?? '');
+    if (mb_strlen($consulta) > 120) {
+        solicitudInvalida('La consulta es demasiado larga.');
+    }
+    $limite = (int) ($_GET['limite'] ?? 20);
+    json_out(['resultados' => buscar($consulta, localeDePeticion(), $limite)]);
 }
