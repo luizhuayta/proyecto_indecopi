@@ -36,6 +36,10 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/admin-apariencia').then((m) => m.AdminApariencia),
       },
       {
+        path: 'mensajes',
+        loadComponent: () => import('./admin/admin-mensajes').then((m) => m.AdminMensajes),
+      },
+      {
         path: 'medios',
         loadComponent: () => import('./admin/admin-medios').then((m) => m.AdminMedios),
       },

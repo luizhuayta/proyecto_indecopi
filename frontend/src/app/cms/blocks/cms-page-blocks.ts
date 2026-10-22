@@ -49,8 +49,8 @@ import { JsonMap } from '../cms.models';
           @if (esFormulario(block)) {
             <app-formulario-contacto
               [bloque]="block.props"
-              [csrf]="csrf()"
-              [ruta]="ruta()"
+              [csrf]="csrf"
+              [ruta]="ruta"
             />
           } @else {
             <div

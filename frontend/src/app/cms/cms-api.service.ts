@@ -79,6 +79,31 @@ export interface ListarMediosResponse {
   items: MedioItem[];
 }
 
+/** Mensaje de contacto recibido desde el sitio público. */
+export interface MensajeItem {
+  id: number;
+  tipo: string;
+  asunto: string;
+  ticket: string;
+  estado: 'pendiente' | 'respondido' | 'archivado';
+  respuesta: string;
+  notificado: boolean;
+  creado_en: string | null;
+  nombre: string;
+  correo: string;
+  telefono: string;
+  mensaje: string;
+}
+
+/** Resultado de responder un mensaje. */
+export interface MensajeRespondido {
+  id: number;
+  estado: string;
+  respuesta: string;
+  notificado: boolean;
+  correo: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CmsApiService {
   private readonly http = inject(HttpClient);
@@ -211,6 +236,26 @@ export class CmsApiService {
   publicarApariencia(version: number): Promise<AparienciaResponse> {
     return firstValueFrom(
       this.http.post<AparienciaResponse>(`${API_BASE}/configuracion/apariencia/publicar`, { version })
+    );
+  }
+
+  // ---- Mensajes ----
+
+  listarMensajes(filtros: { tipo?: string; estado?: string } = {}): Promise<MensajeItem[]> {
+    const params: Record<string, string> = { locale: LOCALE };
+    if (filtros.tipo) params['tipo'] = filtros.tipo;
+    if (filtros.estado) params['estado'] = filtros.estado;
+    return firstValueFrom(
+      this.http.get<{ items: MensajeItem[] }>(`${API_BASE}/mensajes`, { params })
+    ).then((res) => res.items ?? []);
+  }
+
+  responderMensaje(id: number, respuesta: string, notificar: boolean): Promise<MensajeRespondido> {
+    return firstValueFrom(
+      this.http.post<MensajeRespondido>(
+        `${API_BASE}/mensajes/${id}/responder`,
+        { respuesta, notificar }
+      )
     );
   }
 
