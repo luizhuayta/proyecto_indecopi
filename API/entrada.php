@@ -25,6 +25,7 @@ require_once __DIR__ . '/src/modulos/contenido/rutas.php';
 require_once __DIR__ . '/src/modulos/medios/rutas.php';
 require_once __DIR__ . '/src/modulos/identidad/rutas.php';
 require_once __DIR__ . '/src/modulos/publico/rutas.php';
+require_once __DIR__ . '/src/modulos/mensajes/rutas.php';
 
 $metodo = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $ruta = rutaDePeticion();
@@ -32,6 +33,8 @@ $ruta = rutaDePeticion();
 try {
     if (str_starts_with($ruta, '/publico/')) {
         manejarRutasPublico($metodo, $ruta);
+    } elseif (str_starts_with($ruta, '/mensajes')) {
+        manejarRutasMensajes($metodo, $ruta);
     } elseif (str_starts_with($ruta, '/auth')) {
         manejarRutasSesionUsuarios($metodo, $ruta);
     } elseif (str_starts_with($ruta, '/paginas')) {

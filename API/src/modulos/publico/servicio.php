@@ -5,6 +5,7 @@ require_once __DIR__ . '/repositorio.php';
 require_once __DIR__ . '/../paginas/servicio.php';
 require_once __DIR__ . '/../identidad/servicio.php';
 require_once __DIR__ . '/../../nucleo/documento.php';
+require_once __DIR__ . '/../../nucleo/csr.php';
 
 /** Resuelve valores de texto sin cambiar claves, tipos ni identificadores. */
 function resolverValoresPublicos(mixed $valor, array $institucion): mixed
@@ -78,5 +79,6 @@ function sitioPublico(string $locale): array
         'identidad' => $institucion,
         'apariencia' => resolverValoresPublicos(leerDocumento(CLAVE_APARIENCIA, $locale, false)['contenido'], $institucion),
         'menu' => resolverValoresPublicos($menu, $institucion),
+        'csrf' => tokenCsrf(),
     ];
 }

@@ -129,10 +129,15 @@ function iniciarSesion(): void
 /**
  * SOLO PARA PRUEBAS: fija en memoria la sesión actual (usuario + contador de
  * credenciales) sin tocar cookies ni `$_SESSION`. `exigirSesion()` revalida
- * contra la base igual que en una petición real.
+ * contra la base igual que en una petición real. Con null se cierra la sesión
+ * de prueba.
  */
-function fijarSesionDePrueba(int $usuarioId): void
+function fijarSesionDePrueba(?int $usuarioId): void
 {
+    if ($usuarioId === null) {
+        unset($GLOBALS['__sesion_prueba']);
+        return;
+    }
     $GLOBALS['__sesion_prueba'] = [
         'usuario_id' => $usuarioId,
         'sesion_version' => versionSesionDeUsuario($usuarioId),

@@ -14,6 +14,7 @@ interface SitioPublico {
   identidad: Identidad;
   apariencia: JsonMap;
   menu: CmsMenuItem[];
+  csrf: string;
 }
 
 @Component({
@@ -35,6 +36,7 @@ export class PortalPublico {
   readonly pagina = signal<CmsDocResponse | null>(null);
   readonly estado = signal<'cargando' | 'lista' | 'no-encontrada' | 'error'>('cargando');
   readonly menuAbierto = signal(false);
+  readonly rutaActual = signal('/');
   readonly nombre = computed(() => this.sitio()?.identidad.nombre || 'Portal institucional');
   readonly apariencia = computed(() => this.sitio()?.apariencia ?? {});
   readonly tema = computed(() => temaPublico(this.apariencia()));
@@ -50,15 +52,19 @@ export class PortalPublico {
         this.pagina.set(null);
         this.menuAbierto.set(false);
       }),
-      switchMap(([segmentos]) => forkJoin({
+      switchMap(([segmentos]) => {
+        const ruta = '/' + segmentos.map((s) => s.path).join('/');
+        this.rutaActual.set(ruta);
+        return forkJoin({
         sitio: this.http.get<SitioPublico>(`${API_BASE}/publico/sitio`, { params: { locale: LOCALE } }),
         pagina: this.http.get<CmsDocResponse>(`${API_BASE}/publico/pagina`, {
-          params: { locale: LOCALE, ruta: '/' + segmentos.map((s) => s.path).join('/') },
+          params: { locale: LOCALE, ruta },
         }).pipe(
           map((pagina) => ({ pagina, ausente: false })),
           catchError((e: HttpErrorResponse) => e.status === 404 ? of({ pagina: null, ausente: true }) : (() => { throw e; })()),
         ),
-      }).pipe(catchError(() => of(null)))),
+      }).pipe(catchError(() => of(null)));
+      }),
       takeUntilDestroyed(),
     ).subscribe((resultado) => {
       if (!resultado) {

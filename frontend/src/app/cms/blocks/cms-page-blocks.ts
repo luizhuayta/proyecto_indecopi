@@ -5,6 +5,7 @@ import { CmsEditorService } from '../cms-editor.service';
 import { blockLabel, pageBlocks } from '../block-registry';
 import type { CmsBlock } from '../block-registry';
 import { renderBloque } from './render-bloque';
+import { FormularioContacto } from '../../public/formulario-contacto';
 import { JsonMap } from '../cms.models';
 
 /**
@@ -19,6 +20,7 @@ import { JsonMap } from '../cms.models';
 @Component({
   selector: 'app-cms-page-blocks',
   standalone: true,
+  imports: [FormularioContacto],
   template: `
     <div class="cms-bloques">
       @for (block of visibles(); track block.id) {
@@ -44,11 +46,19 @@ import { JsonMap } from '../cms.models';
               }
             </div>
           }
-          <div
-            class="bloque-host__cuerpo"
-            [attr.aria-hidden]="editable() || null"
-            [innerHTML]="html(block)"
-          ></div>
+          @if (esFormulario(block)) {
+            <app-formulario-contacto
+              [bloque]="block.props"
+              [csrf]="csrf()"
+              [ruta]="ruta()"
+            />
+          } @else {
+            <div
+              class="bloque-host__cuerpo"
+              [attr.aria-hidden]="editable() || null"
+              [innerHTML]="html(block)"
+            ></div>
+          }
         </div>
       }
     </div>
@@ -122,11 +132,17 @@ export class CmsPageBlocks {
 
   @Input() slug = '';
   @Input() seleccionadoId = '';
+  @Input() csrf = '';
+  @Input() ruta = '';
   private readonly documentoPublico = signal<JsonMap | null>(null);
   @Input() set documento(valor: JsonMap | null) { this.documentoPublico.set(valor); }
   @Output() bloqueSeleccionado = new EventEmitter<string>();
 
   readonly editable = computed(() => this.documentoPublico() === null && this.editor.editMode());
+
+  esFormulario(block: CmsBlock): boolean {
+    return block.type === 'contactForm';
+  }
 
   readonly bloques = computed(() => {
     const publicado = this.documentoPublico();
