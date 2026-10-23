@@ -62,3 +62,31 @@ function textoDeContenido(array $contenido): string
     $cuerpo = $contenido['blocks'][0]['props']['body'] ?? '';
     return trim(strip_tags((string) $cuerpo));
 }
+
+/**
+ * Slugs fijos que usan las pruebas de páginas (y que quedarían en la base de
+ * desarrollo si no se borraran al terminar).
+ */
+const SLUGS_PRUEBA_PAGINAS = [
+    'versionvieja', 'versionok', 'publica1', 'historial1', 'restaurar1',
+    'tipomalo', 'cero1', 'blank1', 'duplicado1', 'menuvisible', 'menuoculta',
+];
+
+/**
+ * Limpieza final: borra las páginas y revisiones creadas por las pruebas (por
+ * slug) y el usuario de pruebas `adminpaginas`. Se ejecuta al terminar toda la
+ * suite, tras el resumen del corredor.
+ */
+function limpiarTrasPruebasDePaginas(): void
+{
+    try {
+        foreach (SLUGS_PRUEBA_PAGINAS as $slug) {
+            limpiarPaginaPrueba($slug);
+        }
+        conexion()->prepare("DELETE FROM usuarios WHERE usuario = 'adminpaginas'")->execute();
+    } catch (Throwable $e) {
+        // Sin base de datos o error transitorio: la limpieza es lo mejor posible.
+    }
+}
+
+register_shutdown_function('limpiarTrasPruebasDePaginas');

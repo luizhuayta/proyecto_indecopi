@@ -39,8 +39,23 @@ function crear_usuario_de_prueba(string $usuario, string $rol, bool $activo = tr
     return (int) $pdo->lastInsertId();
 }
 
+/**
+ * Borra los usuarios creados por estas pruebas (con su prefijo), para que no
+ * queden filas en la base de desarrollo. Se ejecuta al terminar toda la suite.
+ */
+function limpiarUsuariosDeSesionPrueba(): void
+{
+    try {
+        conexion()->prepare("DELETE FROM usuarios WHERE usuario LIKE 'prueba-sesion-%'")->execute();
+    } catch (Throwable $e) {
+        // Mejor esfuerzo: sin base de datos no hay nada que limpiar.
+    }
+}
+
+register_shutdown_function('limpiarUsuariosDeSesionPrueba');
+
 probar('la sesion se invalida cuando se desactiva la cuenta', function () {
-    $id = crear_usuario_de_prueba('desactivo1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-desactivo1', 'admin');
     fijarSesionDePrueba($id);
     conexion()->prepare('UPDATE usuarios SET activo = 0 WHERE id = ?')->execute([$id]);
     intentar(function () {
@@ -50,7 +65,7 @@ probar('la sesion se invalida cuando se desactiva la cuenta', function () {
 });
 
 probar('la sesion se invalida cuando cambia la contrasena', function () {
-    $id = crear_usuario_de_prueba('cambiaclave1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-cambiaclave1', 'admin');
     fijarSesionDePrueba($id);
     // Cambia la contraseña de verdad: sube el contador de credenciales.
     actualizarContrasenaUsuario($id, password_hash('OtraClave123', PASSWORD_DEFAULT));
@@ -61,7 +76,7 @@ probar('la sesion se invalida cuando cambia la contrasena', function () {
 });
 
 probar('la sesion se invalida aunque la contrasena cambie dos veces en el mismo segundo', function () {
-    $id = crear_usuario_de_prueba('mismo segundo1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-mismosegundo', 'admin');
     fijarSesionDePrueba($id);
     // Dos cambios de contraseña seguidos: la marca de tiempo no distinguiría
     // los dos, pero el contador de credenciales sí.
@@ -74,14 +89,14 @@ probar('la sesion se invalida aunque la contrasena cambie dos veces en el mismo 
 });
 
 probar('la sesion sobrevive si no cambian las credenciales', function () {
-    $id = crear_usuario_de_prueba('sigueviva1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-sigueviva', 'admin');
     fijarSesionDePrueba($id);
     $usuario = exigirSesion();
     afirmar((int) $usuario['id'] === $id, 'la sesion debe seguir valida');
 });
 
 probar('el rol se lee de la base y no de la sesion', function () {
-    $id = crear_usuario_de_prueba('rolbase1', 'editor');
+    $id = crear_usuario_de_prueba('prueba-sesion-rolbase', 'editor');
     fijarSesionDePrueba($id);
     // Aunque una sesión obsoleta dijese 'admin', exigirRol consulta la base.
     intentar(function () {
@@ -91,7 +106,7 @@ probar('el rol se lee de la base y no de la sesion', function () {
 });
 
 probar('la auditoria no guarda el cuerpo del mensaje', function () {
-    $id = crear_usuario_de_prueba('audit1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-audit', 'admin');
     fijarSesionDePrueba($id);
     registrarAuditoria('crear', 'mensajes', '7', ['cuerpo' => 'dni 12345678']);
     $fila = conexion()->query('SELECT datos FROM auditoria ORDER BY id DESC LIMIT 1')->fetch();
@@ -101,7 +116,7 @@ probar('la auditoria no guarda el cuerpo del mensaje', function () {
 });
 
 probar('el rol editor no puede crear usuarios', function () {
-    $id = crear_usuario_de_prueba('editornoadmin1', 'editor');
+    $id = crear_usuario_de_prueba('prueba-sesion-editornoadmin', 'editor');
     fijarSesionDePrueba($id);
     intentar(function () {
         exigirRol('admin');
@@ -110,7 +125,7 @@ probar('el rol editor no puede crear usuarios', function () {
 });
 
 probar('el login con contrasena incorrecta responde 401', function () {
-    crear_usuario_de_prueba('loginmalo1', 'admin');
+    crear_usuario_de_prueba('prueba-sesion-loginmalo', 'admin');
     intentar(function () {
         autenticarUsuario('loginmalo1', 'ClaveIncorrecta9');
     });
@@ -118,7 +133,7 @@ probar('el login con contrasena incorrecta responde 401', function () {
 });
 
 probar('el hash de la contrasena no es el texto plano', function () {
-    $id = crear_usuario_de_prueba('hash1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-hash', 'admin');
     $stmt = conexion()->prepare('SELECT hash_contrasena FROM usuarios WHERE id = ?');
     $stmt->execute([$id]);
     $fila = $stmt->fetch();
@@ -129,7 +144,7 @@ probar('el hash de la contrasena no es el texto plano', function () {
 });
 
 probar('un usuario no puede desactivar su propia cuenta', function () {
-    $id = crear_usuario_de_prueba('noadesactiva1', 'admin');
+    $id = crear_usuario_de_prueba('prueba-sesion-noadesactiva', 'admin');
     fijarSesionDePrueba($id);
     intentar(function () use ($id) {
         actualizarUsuario($id, ['activo' => false]);

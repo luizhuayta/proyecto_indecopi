@@ -10,13 +10,18 @@ require_once __DIR__ . '/../src/modulos/mensajes/servicio.php';
 require_once __DIR__ . '/ayuda.php';
 
 probar('el mensaje guarda y devuelve un ticket', function () {
-    conexion()->exec("DELETE FROM mensajes WHERE ticket LIKE 'MSG-TEST-%'");
-    $r = crearMensaje([
-        'nombre' => 'Ana', 'correo' => 'a@b.test',
-        'asunto' => 'Prueba', 'mensaje' => 'Hola',
-    ], 'contacto');
-    afirmar(str_starts_with((string) $r['ticket'], 'MSG-'), 'debe devolver ticket');
-    afirmar($r['estado'] === 'pendiente', 'debe quedar pendiente');
+    $pdo = conexion();
+    $pdo->beginTransaction();
+    try {
+        $r = crearMensaje([
+            'nombre' => 'Ana', 'correo' => 'a@b.test',
+            'asunto' => 'Prueba', 'mensaje' => 'Hola',
+        ], 'contacto');
+        afirmar(str_starts_with((string) $r['ticket'], 'MSG-'), 'debe devolver ticket');
+        afirmar($r['estado'] === 'pendiente', 'debe quedar pendiente');
+    } finally {
+        $pdo->rollBack();
+    }
 });
 
 probar('el correo con direccion invalida se rechaza', function () {
@@ -27,13 +32,19 @@ probar('el correo con direccion invalida se rechaza', function () {
 });
 
 probar('el mensaje exige el mensaje y el correo, no el nombre ni el asunto', function () {
-    intentar(function () {
-        crearMensaje(['correo' => 'a@b.test'], 'contacto');
-    });
-    afirmar(error_ultimo_codigo() === 400, 'debe responder 400 sin mensaje');
+    $pdo = conexion();
+    $pdo->beginTransaction();
+    try {
+        intentar(function () {
+            crearMensaje(['correo' => 'a@b.test'], 'contacto');
+        });
+        afirmar(error_ultimo_codigo() === 400, 'debe responder 400 sin mensaje');
 
-    $r = crearMensaje(['correo' => 'a@b.test', 'mensaje' => 'Hola'], 'contacto');
-    afirmar(str_starts_with((string) $r['ticket'], 'MSG-'), 'debe guardarlo sin nombre ni asunto');
+        $r = crearMensaje(['correo' => 'a@b.test', 'mensaje' => 'Hola'], 'contacto');
+        afirmar(str_starts_with((string) $r['ticket'], 'MSG-'), 'debe guardarlo sin nombre ni asunto');
+    } finally {
+        $pdo->rollBack();
+    }
 });
 
 probar('la bandeja solo ve los mensajes del tipo pedido', function () {

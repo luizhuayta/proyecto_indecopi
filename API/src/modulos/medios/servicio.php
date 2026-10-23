@@ -116,9 +116,16 @@ function redimensionarImagenGd($src, int $srcW, int $srcH, int $max, string $rut
 }
 
 /**
- * Procesa una imagen subida: genera la versión principal (máx. 1920 px) y una
- * variante de 960 px si la imagen es mayor, en WebP si GD lo permite y si no en
- * JPEG. Devuelve el resultado de disco de la principal y de la variante.
+ * Procesa una imagen subida. El original se conserva SIEMPRE: la versión
+ * principal lleva el binario tal cual se subió (y es desde donde se recorta) y
+ * las versiones optimizadas quedan como variantes registradas:
+ *
+ * - Variante WebP optimizada (calidad 82, imagen completa con tope de 1920
+ *   px): solo si GD genera WebP; si `imagewebp` no existe, se omite sin error.
+ * - Variante de 960 px si la imagen es mayor, en WebP si GD lo permite y si no
+ *   en JPEG.
+ *
+ * Devuelve el resultado de disco del original guardado y de cada variante.
  */
 function procesarImagenSubida(string $tmp, string $mime, string $id, string $raiz, string $carpeta): array
 {
@@ -136,33 +143,57 @@ function procesarImagenSubida(string $tmp, string $mime, string $id, string $rai
             'tamano' => (int) (filesize($raiz . '/' . $nombreGuardado) ?: 0),
             'ancho' => is_array($info) ? (int) $info[0] : null,
             'alto' => is_array($info) ? (int) $info[1] : null,
+            'varianteWebp' => null,
             'variante' => null,
         ];
     }
 
     $srcW = imagesx($src);
     $srcH = imagesy($src);
-    $webp = soportaWebp();
-    $ext = $webp ? 'webp' : 'jpg';
-    $mimeSalida = $webp ? 'image/webp' : 'image/jpeg';
 
-    $nombreGuardado = $carpeta . '/' . $id . '.' . $ext;
-    redimensionarImagenGd($src, $srcW, $srcH, 1920, $raiz . '/' . $nombreGuardado, $webp);
+    // El original se conserva SIEMPRE: la versión principal lleva el binario
+    // tal cual se subió (y es desde donde se recorta).
+    $extOriginal = extensionParaMime($mime);
+    $nombreGuardado = $carpeta . '/' . $id . '.' . $extOriginal;
+    copy($tmp, $raiz . '/' . $nombreGuardado);
     asegurarPermisosAlmacen($raiz . '/' . $nombreGuardado);
-    $mainInfo = @getimagesize($raiz . '/' . $nombreGuardado);
-    $ancho = is_array($mainInfo) ? (int) $mainInfo[0] : min(1920, $srcW);
-    $alto = is_array($mainInfo) ? (int) $mainInfo[1] : min(1920, $srcH);
-    $tamano = (int) (filesize($raiz . '/' . $nombreGuardado) ?: 0);
+    $infoPrincipal = @getimagesize($raiz . '/' . $nombreGuardado);
+    $principal = [
+        'nombre_guardado' => $nombreGuardado,
+        'mime' => $mime,
+        'tamano' => (int) (filesize($raiz . '/' . $nombreGuardado) ?: 0),
+        'ancho' => is_array($infoPrincipal) ? (int) $infoPrincipal[0] : $srcW,
+        'alto' => is_array($infoPrincipal) ? (int) $infoPrincipal[1] : $srcH,
+    ];
+
+    // Versiones registradas igual que las variantes de ancho existentes.
+    $varianteWebp = null;
+    if (soportaWebp()) {
+        $webpNombre = $carpeta . '/' . $id . '-webp.webp';
+        redimensionarImagenGd($src, $srcW, $srcH, 1920, $raiz . '/' . $webpNombre, true);
+        asegurarPermisosAlmacen($raiz . '/' . $webpNombre);
+        $webpInfo = @getimagesize($raiz . '/' . $webpNombre);
+        $varianteWebp = [
+            'nombre_guardado' => $webpNombre,
+            'mime' => 'image/webp',
+            'tamano' => (int) (filesize($raiz . '/' . $webpNombre) ?: 0),
+            'ancho' => is_array($webpInfo) ? (int) $webpInfo[0] : min(1920, $srcW),
+            'alto' => is_array($webpInfo) ? (int) $webpInfo[1] : min(1920, $srcH),
+            'sha256' => hash('sha256', (string) file_get_contents($raiz . '/' . $webpNombre)),
+        ];
+    }
 
     $variante = null;
     if ($srcW > 960 || $srcH > 960) {
+        $webp = soportaWebp();
+        $ext = $webp ? 'webp' : 'jpg';
         $varNombre = $carpeta . '/' . $id . '-960.' . $ext;
         redimensionarImagenGd($src, $srcW, $srcH, 960, $raiz . '/' . $varNombre, $webp);
         asegurarPermisosAlmacen($raiz . '/' . $varNombre);
         $varInfo = @getimagesize($raiz . '/' . $varNombre);
         $variante = [
             'nombre_guardado' => $varNombre,
-            'mime' => $mimeSalida,
+            'mime' => $webp ? 'image/webp' : 'image/jpeg',
             'tamano' => (int) (filesize($raiz . '/' . $varNombre) ?: 0),
             'ancho' => is_array($varInfo) ? (int) $varInfo[0] : 960,
             'alto' => is_array($varInfo) ? (int) $varInfo[1] : null,
@@ -171,12 +202,8 @@ function procesarImagenSubida(string $tmp, string $mime, string $id, string $rai
     }
     imagedestroy($src);
 
-    return [
-        'nombre_guardado' => $nombreGuardado,
-        'mime' => $mimeSalida,
-        'tamano' => $tamano,
-        'ancho' => $ancho,
-        'alto' => $alto,
+    return $principal + [
+        'varianteWebp' => $varianteWebp,
         'variante' => $variante,
     ];
 }
@@ -285,8 +312,13 @@ function guardarMedio(array $archivo, ?int $usuarioId): array
         ]);
         fijarUrlMedioBd($pid, urlMedio($pid));
 
-        if ($resultado['variante'] !== null) {
-            $variante = $resultado['variante'];
+        // Las variantes (WebP optimizada y de ancho) se registran igual que las
+        // variantes de ancho existentes: fila hija + entrada en `variantes`.
+        $variantes = [];
+        foreach ([$resultado['varianteWebp'] ?? null, $resultado['variante'] ?? null] as $variante) {
+            if ($variante === null) {
+                continue;
+            }
             $vid = insertarMedioBd([
                 'nombre_original' => $nombreOriginal,
                 'nombre_guardado' => $variante['nombre_guardado'],
@@ -303,12 +335,12 @@ function guardarMedio(array $archivo, ?int $usuarioId): array
                 'publico' => 1,
             ]);
             fijarUrlMedioBd($vid, urlMedio($vid));
+            $variantes[] = ['ancho' => $variante['ancho'], 'url' => urlMedio($vid)];
+        }
+        if ($variantes !== []) {
             actualizarVariantesMedioBd(
                 $pid,
-                json_encode(
-                    [['ancho' => $variante['ancho'], 'url' => urlMedio($vid)]],
-                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-                )
+                json_encode($variantes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
             );
         }
         return $pid;
