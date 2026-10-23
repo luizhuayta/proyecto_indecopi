@@ -23,7 +23,7 @@ import { buscarMarcadores } from '../cms/cms.models';
           <a routerLink="/admin/apariencia" routerLinkActive="activo">Apariencia</a>
           <a routerLink="/admin/medios" routerLinkActive="activo">Medios</a>
           <a routerLink="/admin/mensajes" routerLinkActive="activo">Mensajes</a>
-          <span class="admin-nav__pronto" aria-disabled="true">Usuarios</span>
+          <a routerLink="/admin/usuarios" routerLinkActive="activo">Usuarios</a>
         </nav>
       </aside>
 

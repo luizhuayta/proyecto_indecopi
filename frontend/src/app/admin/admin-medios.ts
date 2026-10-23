@@ -23,6 +23,28 @@ function clamp(v: number, min: number, max: number): number {
 }
 
 /**
+ * Convierte la caja de recorte, que el usuario maneja en fracciones de la
+ * imagen (0..1), a píxeles enteros de la imagen original: el servidor recorta
+ * sobre el binario real y exige enteros. La caja nunca sale de los límites.
+ */
+export function cajaRecorteEnPixeles(
+  caja: CropCaja,
+  ancho: number,
+  alto: number,
+): { x: number; y: number; w: number; h: number } {
+  const anchoReal = Math.max(1, Math.round(ancho));
+  const altoReal = Math.max(1, Math.round(alto));
+  const x = clamp(Math.round(caja.x * anchoReal), 0, anchoReal - 1);
+  const y = clamp(Math.round(caja.y * altoReal), 0, altoReal - 1);
+  return {
+    x,
+    y,
+    w: clamp(Math.round(caja.w * anchoReal), 1, anchoReal - x),
+    h: clamp(Math.round(caja.h * altoReal), 1, altoReal - y),
+  };
+}
+
+/**
  * Biblioteca de imágenes: subida (arrastrar o botón) con vista previa antes de
  * subir, cuadrícula de miniaturas y ficha con datos, URL para copiar, recorte
  * (el original se conserva) y eliminación. El texto alternativo se edita aquí
@@ -571,13 +593,18 @@ export class AdminMedios implements OnInit, OnDestroy {
       return;
     }
     const c = this.crop();
+    // Las dimensiones reales de la imagen: la caja del usuario es 0..1.
+    const imagen = this.escena?.nativeElement.querySelector('img');
+    const ancho = imagen?.naturalWidth || item.ancho || 1;
+    const alto = imagen?.naturalHeight || item.alto || 1;
+    const pixeles = cajaRecorteEnPixeles(c, ancho, alto);
     try {
       const recortado = await this.medios.recortar(item, {
         url: item.url,
-        x: c.x,
-        y: c.y,
-        w: c.w,
-        h: c.h,
+        x: pixeles.x,
+        y: pixeles.y,
+        w: pixeles.w,
+        h: pixeles.h,
       });
       this.cropMode.set(false);
       this.crop.set({ ...CROP_INICIAL });

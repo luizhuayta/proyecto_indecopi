@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { CmsApiService } from '../cms/cms-api.service';
 import { getByPath, setByPath, JsonMap } from '../cms/cms.models';
 import { contraste, normalizarHex, sugerirContraste } from '../core/contraste';
@@ -41,6 +42,7 @@ const CAMPOS_COLOR: CampoColor[] = [
 @Component({
   selector: 'app-admin-apariencia',
   standalone: true,
+  imports: [FormsModule],
   template: `
     <header>
       <h1 class="admin-titulo">Apariencia</h1>
@@ -663,7 +665,13 @@ export class AdminApariencia implements OnInit {
       const res = await this.api.guardarApariencia(this.contenido(), this.version());
       this.contenido.set(res.contenido ?? this.contenido());
       this.version.set(res.version);
-      this.status.set('Apariencia guardada.');
+      // La apariencia es un ajuste del sitio, no contenido: guardar publica,
+      // igual que la identidad. Así el color nuevo se ve en el sitio al instante.
+      const publicada = await this.api.publicarApariencia(res.version);
+      this.contenido.set(publicada.contenido ?? this.contenido());
+      this.version.set(publicada.version);
+      this.avisos.set(res.avisos ?? publicada.avisos ?? []);
+      this.status.set('Publicado en el sitio.');
     } catch {
       this.error.set('No se pudo guardar la apariencia. Revisa tu conexión.');
     } finally {

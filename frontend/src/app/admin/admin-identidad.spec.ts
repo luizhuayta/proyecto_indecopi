@@ -73,4 +73,29 @@ describe('AdminIdentidad', () => {
 
     expect(component.status()).toBe('Identidad guardada.');
   });
+
+  it('al enviar el formulario se guardan los cambios en el servidor', async () => {
+    fixture.detectChanges();
+    http.expectOne(`${API_BASE}/identidad`).flush(IDENTIDAD);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const campo = fixture.nativeElement.querySelector('#identidad-ciudad') as HTMLInputElement;
+    campo.value = 'Arequipa';
+    campo.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    const formulario = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    formulario.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const put = http.expectOne((r) => r.url === `${API_BASE}/identidad` && r.method === 'PUT');
+    expect(put.request.body).toEqual({ ciudad: 'Arequipa' });
+    put.flush({ ...IDENTIDAD, ciudad: 'Arequipa' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.status()).toBe('Identidad guardada.');
+  });
 });

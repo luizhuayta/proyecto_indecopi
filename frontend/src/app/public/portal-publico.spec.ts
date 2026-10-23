@@ -4,7 +4,7 @@ import { getTestBed, TestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { Title } from '@angular/platform-browser';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -87,6 +87,27 @@ describe('PortalPublico', () => {
     expect(harness.routeNativeElement?.textContent).not.toContain('Contenido publicado de prueba');
     responderPagina('/dos', 'Segunda página');
     expect(TestBed.inject(Title).getTitle()).toBe('Segunda página | Instituto de ejemplo');
+  });
+
+  it('el buscador de la cabecera navega a /buscar con la consulta', async () => {
+    await harness.navigateByUrl('/estudios/oferta');
+    responderPagina('/estudios/oferta');
+    const campo =
+      harness.routeNativeElement!.querySelector<HTMLInputElement>('#busqueda-cabecera-campo')!;
+    campo.value = 'oferta';
+    campo.dispatchEvent(new Event('input'));
+    harness.detectChanges();
+    harness.routeNativeElement!.querySelector<HTMLFormElement>('.busqueda-cabecera')!
+      .dispatchEvent(new Event('submit'));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(TestBed.inject(Router).url).toBe('/buscar?q=oferta');
+    http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
+    http
+      .expectOne((r) => r.url === '/api/publico/pagina')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.textContent).toContain('Página no encontrada');
   });
 
   it('el bloque de mapa conserva su iframe en el portal', async () => {

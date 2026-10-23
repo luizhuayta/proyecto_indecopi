@@ -6,7 +6,7 @@ import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AdminMedios } from './admin-medios';
+import { AdminMedios, cajaRecorteEnPixeles } from './admin-medios';
 import { MediosService } from '../core/medios.service';
 import { CmsContentService } from '../cms/cms-content.service';
 import { CmsApiService } from '../cms/cms-api.service';
@@ -118,5 +118,28 @@ describe('AdminMedios', () => {
     aceptado.mockRestore();
 
     expect(component.medios.items().length).toBe(0);
+  });
+});
+
+describe('cajaRecorteEnPixeles', () => {
+  it('convierte la caja normalizada a pixeles de la imagen original', () => {
+    const caja = cajaRecorteEnPixeles({ x: 0.25, y: 0.25, w: 0.5, h: 0.5 }, 1200, 800);
+    expect(caja).toEqual({ x: 300, y: 200, w: 600, h: 400 });
+  });
+
+  it('redondea a enteros que el servidor acepta', () => {
+    const caja = cajaRecorteEnPixeles({ x: 0.333, y: 0.1, w: 0.2, h: 0.15 }, 1000, 999);
+    for (const valor of Object.values(caja)) {
+      expect(Number.isInteger(valor)).toBe(true);
+    }
+    expect(caja.w).toBe(200);
+  });
+
+  it('no deja la caja fuera de los limites de la imagen', () => {
+    const caja = cajaRecorteEnPixeles({ x: 0.9, y: 0.9, w: 0.5, h: 0.5 }, 100, 100);
+    expect(caja.x + caja.w).toBeLessThanOrEqual(100);
+    expect(caja.y + caja.h).toBeLessThanOrEqual(100);
+    expect(caja.w).toBeGreaterThan(0);
+    expect(caja.h).toBeGreaterThan(0);
   });
 });

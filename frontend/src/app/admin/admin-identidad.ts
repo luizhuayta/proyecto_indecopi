@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { CmsApiService, Identidad } from '../cms/cms-api.service';
 
 type Campo = keyof Omit<Identidad, 'actualizado_en'>;
@@ -44,6 +45,7 @@ const VACIO: Identidad = {
 @Component({
   selector: 'app-admin-identidad',
   standalone: true,
+  imports: [FormsModule],
   template: `
     <header>
       <h1 class="admin-titulo">Identidad</h1>

@@ -6,7 +6,7 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PageEditor } from './page-editor';
 import { CmsContentService } from '../cms/cms-content.service';
 import { CmsEditorService } from '../cms/cms-editor.service';
@@ -101,5 +101,39 @@ describe('PageEditor', () => {
     fixture.detectChanges();
 
     expect(component.bloques().length).toBe(antes - 1);
+  });
+});
+
+describe('PageEditor — el editor usa el tema del sitio', () => {
+  it('aplica los colores de la apariencia como variables CSS en la vista previa', async () => {
+    TestBed.configureTestingModule({
+      imports: [PageEditor],
+      providers: [
+        provideHttpClient(),
+        CmsApiService,
+        CmsHistoryService,
+        CmsContentService,
+        CmsEditorService,
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => 'inicio' }) } },
+      ],
+    });
+    const api = TestBed.inject(CmsApiService);
+    vi.spyOn(api, 'getApariencia').mockResolvedValue({
+      contenido: { color_primario: '#123456', color_fondo: '#fefefe' },
+      version: 2,
+    });
+    const cms = TestBed.inject(CmsContentService);
+    cms.useSlug('inicio');
+    cms.pages.set({ inicio: { blocks: [makeBlock('cta')] } });
+    cms.loaded.set(true);
+
+    const fixture = TestBed.createComponent(PageEditor);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('.editor__preview-inner') as HTMLElement;
+    expect(preview.style.getPropertyValue('--color-primario')).toBe('#123456');
+    expect(preview.style.getPropertyValue('--color-fondo')).toBe('#fefefe');
   });
 });

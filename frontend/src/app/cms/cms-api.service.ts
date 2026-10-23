@@ -104,6 +104,29 @@ export interface MensajeRespondido {
   correo: string;
 }
 
+/** Cuenta del panel (contrato GET /auth/usuarios). */
+export interface UsuarioItem {
+  id: number;
+  usuario: string;
+  rol: 'admin' | 'editor';
+  activo: boolean;
+  creado_en?: string | null;
+}
+
+/** Datos para crear una cuenta (POST /auth/usuarios). */
+export interface CrearUsuarioBody {
+  usuario: string;
+  contrasena: string;
+  rol: 'admin' | 'editor';
+}
+
+/** Cambios de una cuenta (PATCH /auth/usuarios/{id}). */
+export interface ActualizarUsuarioBody {
+  rol?: 'admin' | 'editor';
+  activo?: boolean;
+  contrasena?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CmsApiService {
   private readonly http = inject(HttpClient);
@@ -257,6 +280,26 @@ export class CmsApiService {
         { respuesta, notificar }
       )
     );
+  }
+
+  // ---- Usuarios ----
+
+  listarUsuarios(): Promise<UsuarioItem[]> {
+    return firstValueFrom(
+      this.http.get<{ items: UsuarioItem[] }>(`${API_BASE}/auth/usuarios`)
+    ).then((res) => res.items ?? []);
+  }
+
+  crearUsuario(body: CrearUsuarioBody): Promise<UsuarioItem> {
+    return firstValueFrom(
+      this.http.post<{ ok: boolean; item: UsuarioItem }>(`${API_BASE}/auth/usuarios`, body)
+    ).then((res) => res.item);
+  }
+
+  actualizarUsuario(id: number, body: ActualizarUsuarioBody): Promise<UsuarioItem> {
+    return firstValueFrom(
+      this.http.patch<{ ok: boolean; item: UsuarioItem }>(`${API_BASE}/auth/usuarios/${id}`, body)
+    ).then((res) => res.item);
   }
 
   // ---- Medios ----

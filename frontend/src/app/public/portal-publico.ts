@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DOCUMENT, NgStyle } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, RouterLink, RouterLinkActive } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Title, Meta } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
@@ -20,13 +21,14 @@ interface SitioPublico {
 @Component({
   selector: 'app-portal-publico',
   standalone: true,
-  imports: [NgStyle, RouterLink, RouterLinkActive, CmsPageBlocks],
+  imports: [NgStyle, FormsModule, RouterLink, RouterLinkActive, CmsPageBlocks],
   templateUrl: './portal-publico.html',
   styleUrl: './portal-publico.scss',
 })
 export class PortalPublico {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
@@ -37,6 +39,7 @@ export class PortalPublico {
   readonly estado = signal<'cargando' | 'lista' | 'no-encontrada' | 'error'>('cargando');
   readonly menuAbierto = signal(false);
   readonly rutaActual = signal('/');
+  consultaCabecera = '';
   readonly nombre = computed(() => this.sitio()?.identidad.nombre || 'Portal institucional');
   readonly apariencia = computed(() => this.sitio()?.apariencia ?? {});
   readonly tema = computed(() => temaPublico(this.apariencia()));
@@ -84,6 +87,12 @@ export class PortalPublico {
   }
 
   reintentar(): void { this.recarga.next(this.recarga.value + 1); }
+
+  buscarDesdeCabecera(): void {
+    const q = this.consultaCabecera.trim();
+    this.menuAbierto.set(false);
+    void this.router.navigate(['/buscar'], { queryParams: q ? { q } : {} });
+  }
 
   texto(clave: string): string {
     const valor = this.apariencia()[clave];

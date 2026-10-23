@@ -1,7 +1,10 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { NgStyle } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CmsContentService } from '../cms/cms-content.service';
+import { CmsApiService } from '../cms/cms-api.service';
+import { temaPublico } from '../core/tema';
 import { CmsEditorService, PreviewDevice } from '../cms/cms-editor.service';
 import { CmsHistoryService } from '../cms/cms-history.service';
 import { BLOCK_TYPES, pageBlocks } from '../cms/block-registry';
@@ -17,7 +20,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
 @Component({
   selector: 'app-page-editor',
   standalone: true,
-  imports: [CmsPageBlocks, CmsInspector],
+  imports: [NgStyle, CmsPageBlocks, CmsInspector],
   template: `
     <div class="editor">
       <div class="editor__barra">
@@ -98,6 +101,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
             class="editor__preview-inner"
             [style.width.px]="deviceWidth()"
             [style.zoom]="escala()"
+            [ngStyle]="tema()"
           >
             <app-cms-page-blocks
               [slug]="slug()"
@@ -209,6 +213,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
 })
 export class PageEditor implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private api = inject(CmsApiService);
   cms = inject(CmsContentService);
   editor = inject(CmsEditorService);
   private history = inject(CmsHistoryService);
@@ -249,6 +254,8 @@ export class PageEditor implements OnInit, OnDestroy {
   });
   readonly canUndo = computed(() => this.history.canUndo());
   readonly canRedo = computed(() => this.history.canRedo());
+  /** Variables CSS del tema de la institución, para que la vista previa se vea como el sitio. */
+  readonly tema = signal<Record<string, string>>({});
 
   ngOnInit(): void {
     this.editor.enable();
@@ -256,6 +263,10 @@ export class PageEditor implements OnInit, OnDestroy {
     if (!this.cms.loaded()) {
       void this.cms.loadAll();
     }
+    void this.api
+      .getApariencia()
+      .then((res) => this.tema.set(temaPublico((res.contenido ?? {}) as Record<string, unknown>)))
+      .catch(() => undefined);
     this.sub = this.route.paramMap.subscribe((params) => {
       const slug = params.get('slug') || 'inicio';
       this.slug.set(slug);

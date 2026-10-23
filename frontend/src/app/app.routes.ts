@@ -9,6 +9,10 @@ export const routes: Routes = [
     loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico),
   },
   {
+    path: 'buscar',
+    loadComponent: () => import('./public/buscar').then((m) => m.Buscar),
+  },
+  {
     path: 'admin/login',
     loadComponent: () => import('./admin/admin-login').then((m) => m.AdminLogin),
   },
@@ -42,6 +46,10 @@ export const routes: Routes = [
       {
         path: 'medios',
         loadComponent: () => import('./admin/admin-medios').then((m) => m.AdminMedios),
+      },
+      {
+        path: 'usuarios',
+        loadComponent: () => import('./admin/admin-usuarios').then((m) => m.AdminUsuarios),
       },
     ],
   },

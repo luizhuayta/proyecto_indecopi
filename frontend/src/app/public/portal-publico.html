@@ -12,12 +12,28 @@
       <button class="menu-control" type="button" aria-controls="navegacion-principal"
         [attr.aria-expanded]="menuAbierto()" (click)="menuAbierto.set(!menuAbierto())">Menú</button>
       }
-      <nav id="navegacion-principal" aria-label="Navegación principal" [class.abierta]="menuAbierto()">
-        @for (item of sitio()?.menu ?? []; track item.slug) {
-          <a [routerLink]="item.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page"
-            [routerLinkActiveOptions]="{ exact: true }" (click)="menuAbierto.set(false)">{{ item.titulo }}</a>
-        }
-      </nav>
+      <div class="cabecera__acciones">
+        <form class="busqueda-cabecera" role="search" (ngSubmit)="buscarDesdeCabecera()">
+          <label class="sr-only" for="busqueda-cabecera-campo">Buscar en el sitio</label>
+          <input
+            id="busqueda-cabecera-campo"
+            class="busqueda-cabecera__campo"
+            type="search"
+            name="q"
+            autocomplete="off"
+            maxlength="120"
+            placeholder="Buscar en el sitio"
+            [(ngModel)]="consultaCabecera"
+          />
+          <button class="busqueda-cabecera__boton" type="submit">Buscar</button>
+        </form>
+        <nav id="navegacion-principal" aria-label="Navegación principal" [class.abierta]="menuAbierto()">
+          @for (item of sitio()?.menu ?? []; track item.slug) {
+            <a [routerLink]="item.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page"
+              [routerLinkActiveOptions]="{ exact: true }" (click)="menuAbierto.set(false)">{{ item.titulo }}</a>
+          }
+        </nav>
+      </div>
     </div>
   </header>
 

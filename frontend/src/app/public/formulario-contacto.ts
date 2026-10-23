@@ -70,7 +70,7 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
         }
 
         <button class="boton" type="submit" [disabled]="enviando()">
-          {{enviando() ? 'Enviando…' : boton()}
+          {{ enviando() ? 'Enviando…' : boton() }}
         </button>
       }
     </form>
