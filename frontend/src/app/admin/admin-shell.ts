@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../cms/auth.service';
 import { CmsContentService } from '../cms/cms-content.service';
 import { CmsEditorService } from '../cms/cms-editor.service';
@@ -9,6 +10,26 @@ import { buscarMarcadores } from '../cms/cms.models';
  * Marco del panel: navegación lateral, cabecera con las acciones Guardar y
  * Publicar (distintas y separadas) y el punto de montaje de las rutas hijas.
  */
+/**
+ * Nombre de la sección del panel según la ruta. Vacío cuando el título lo da
+ * la página abierta en el editor.
+ */
+export function tituloDeSeccion(url: string): string {
+  const secciones: Record<string, string> = {
+    '/admin/paginas': 'Páginas',
+    '/admin/identidad': 'Identidad',
+    '/admin/apariencia': 'Apariencia',
+    '/admin/medios': 'Medios',
+    '/admin/mensajes': 'Mensajes',
+    '/admin/usuarios': 'Usuarios',
+    '/admin': 'Panel',
+  };
+  if (url.startsWith('/admin/editor/')) {
+    return '';
+  }
+  return secciones[url] ?? 'Panel';
+}
+
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
@@ -68,21 +89,47 @@ import { buscarMarcadores } from '../cms/cms.models';
     </div>
   `,
 })
-export class AdminShell {
+export class AdminShell implements OnInit, OnDestroy {
   auth = inject(AuthService);
   cms = inject(CmsContentService);
   editor = inject(CmsEditorService);
+  private router = inject(Router);
+  private sub?: Subscription;
 
   readonly error = signal('');
   readonly status = signal('');
+  /** Ruta actual del panel: al cambiar, se limpia el aviso de la sección anterior. */
+  readonly ruta = signal('');
 
   readonly inicial = computed(() => (this.auth.username() || 'A').slice(0, 1).toUpperCase());
 
   readonly titulo = computed(() => {
+    const seccion = tituloDeSeccion(this.ruta());
+    if (seccion !== '') {
+      return seccion;
+    }
     const slug = this.cms.currentSlug();
     const pagina = this.cms.pageList().find((p) => p.slug === slug);
-    return pagina?.titulo || (this.editor.editMode() ? slug : 'Panel');
+    return pagina?.titulo || slug;
   });
+
+  ngOnInit(): void {
+    this.ruta.set(this.router.url.split('?')[0]);
+    this.sub = this.router.events.subscribe((evento) => {
+      if (!(evento instanceof NavigationEnd)) {
+        return;
+      }
+      this.ruta.set(evento.urlAfterRedirects.split('?')[0]);
+      // El aviso pertenece a la sección donde se produjo: al cambiar de
+      // pantalla se retira para no confundir con lo que se está viendo.
+      this.status.set('');
+      this.error.set('');
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 
   readonly aviso = computed(() => {
     if (this.error() || this.cms.conflict()) {
