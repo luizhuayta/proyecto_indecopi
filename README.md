@@ -1,27 +1,78 @@
-# Base de referencia para un CMS educativo
+# Portal institucional educativo
 
-Análisis realizado el **21 de octubre de 2026**. Este directorio contiene documentación, **no la plantilla implementada**.
+Plantilla maestra de portal institucional para universidades e institutos, con panel de administración y editor visual de páginas. Construida sobre **Angular 21 + PHP 8.1 + MariaDB**, pensada para hosting compartido cPanel.
 
-## Objetivo recibido
+## Qué incluye
 
-Analizar y conservar lo importante de dos proyectos para preparar después una plantilla en blanco, como un solo producto para universidades e institutos, pensando en su presentación a Indecopi.
+- **Portal público** con páginas reales, menú, buscador, SEO (`sitemap.xml`, `robots.txt`) y formulario de contacto.
+- **Panel de administración** con gestión de páginas, medios, identidad de la institución, apariencia, usuarios y bandeja de mensajes.
+- **Editor visual por bloques** (20 bloques y 6 plantillas) con vista previa por dispositivo, historial y publicación con borrador separado.
+- **API REST en PHP** sin framework, con control de acceso por roles, sesión y CSRF.
 
-- **Mattimnova:** referencia principal del CMS visual.
-- **Perucanadiense:** ejemplo de estructura institucional y funciones del sector educativo.
+## Requisitos
 
-## Documentos guardados
+| Componente | Versión |
+|---|---|
+| PHP | 8.1 o superior, con `pdo_mysql`, `gd`, `mbstring`, `openssl`, `curl`, `fileinfo`, `iconv` |
+| Node.js | 20 o superior (solo para compilar el frontend) |
+| MariaDB / MySQL | 10.6 o superior |
+| Docker | Para el entorno de desarrollo |
 
-1. [Análisis comparativo y alertas](docs/ANALISIS-COMPARATIVO.md).
-2. [Inventario de piezas aprovechables y sus archivos de origen](docs/INVENTARIO-REUTILIZABLE.md).
+## Puesta en marcha
 
-Se revisó código y se ejecutaron las pruebas indicadas en el análisis. No se modificó código fuente de los originales, no se copiaron credenciales ni datos de sus bases, y no se ejecutaron migraciones o verificadores que escribieran en ellas. Los tests pueden generar cachés de herramientas.
+```bash
+# 1. Dependencias del frontend
+cd frontend && npm install && cd ..
 
-## Pendiente de definir con el usuario
+# 2. Base de datos (MariaDB en el puerto 3307)
+docker compose up -d
 
-- Nombre, autoría y titularidad del producto.
-- Qué significa exactamente «plantilla en blanco»: estructura educativa preconfigurada sin datos reales, u otro alcance.
-- Módulos de la primera versión y diferencias entre universidad e instituto.
-- Hosting objetivo y backend definitivo. Tener un solo producto no exige mezclar las dos APIs existentes.
-- Alcance de la presentación a Indecopi y documentación necesaria según el trámite vigente.
+# 3. API (http://127.0.0.1:8000)
+docker run -d --name plantilla_portal_api --network plibre_default -p 8000:8000 \
+  -v "$PWD":/app \
+  -v "$HOME/.local/share/plibre-almacen":/tmp/opencode/plibre-almacen \
+  -w /app plantilla-php81 php -S 0.0.0.0:8000 -t API API/entrada.php
 
-**No se ha decidido una arquitectura final ni iniciado la implementación.**
+# 4. Frontend (http://127.0.0.1:4200)
+cd frontend && npm start
+```
+
+La configuración del API se lee de `API/.env` (copiar desde `API/.env.example`). La carpeta de archivos subidos debe quedar fuera del directorio público.
+
+## Compilar
+
+```bash
+cd frontend && npm run build
+```
+
+## Pruebas
+
+```bash
+# API (suite propia, requiere PHP 8.1 con pdo_mysql)
+docker run --rm --network plibre_default -v "$PWD":/app -w /app \
+  -e DB_HOST=plantilla_mariadb -e DB_PORT=3306 \
+  plantilla-php81 php API/pruebas/ejecutar.php
+
+# Frontend (Vitest)
+cd frontend && npm test
+
+# Tipos
+cd frontend && npx tsc -p tsconfig.app.json --noEmit
+```
+
+## Estructura
+
+```
+API/        API REST en PHP (núcleo, módulos, pruebas)
+frontend/   Aplicación Angular (panel, editor, portal público)
+cms/        Catálogo de bloques (fuente única)
+tools/      Utilidades de generación y verificación
+```
+
+## Instalación en cPanel
+
+1. Crea la base de datos y su usuario en cPanel («Bases de datos MySQL») y asígnale todos los permisos.
+2. Sube el proyecto a `public_html` y copia `API/.env.example` como `API/.env` con las credenciales de la base y `URL_BASE` de tu dominio.
+3. Importa `API/esquema.sql` en phpMyAdmin.
+4. Crea el administrador en la tabla `usuarios`: `usuario`, `hash_contrasena` (generado con `password_hash()`), `rol` = `admin` y `activo` = 1.
+5. Deja la carpeta de archivos subidos fuera de `public_html`, con permisos 700.
