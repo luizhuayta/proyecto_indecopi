@@ -37,6 +37,8 @@ export class PortalPublico {
   readonly sitio = signal<SitioPublico | null>(null);
   readonly pagina = signal<CmsDocResponse | null>(null);
   readonly estado = signal<'cargando' | 'lista' | 'no-encontrada' | 'error'>('cargando');
+  /** Causa del estado 'error', para dar un mensaje útil al visitante. */
+  readonly causaError = signal<'red' | 'servidor'>('servidor');
   readonly menuAbierto = signal(false);
   readonly rutaActual = signal('/');
   consultaCabecera = '';
@@ -59,14 +61,20 @@ export class PortalPublico {
         const ruta = '/' + segmentos.map((s) => s.path).join('/');
         this.rutaActual.set(ruta);
         return forkJoin({
-        sitio: this.http.get<SitioPublico>(`${API_BASE}/publico/sitio`, { params: { locale: LOCALE } }),
-        pagina: this.http.get<CmsDocResponse>(`${API_BASE}/publico/pagina`, {
-          params: { locale: LOCALE, ruta },
+          sitio: this.http.get<SitioPublico>(`${API_BASE}/publico/sitio`, { params: { locale: LOCALE } }),
+          pagina: this.http.get<CmsDocResponse>(`${API_BASE}/publico/pagina`, {
+            params: { locale: LOCALE, ruta },
+          }).pipe(
+            map((pagina) => ({ pagina, ausente: false })),
+            catchError((e: HttpErrorResponse) => e.status === 404 ? of({ pagina: null, ausente: true }) : (() => { throw e; })()),
+          ),
         }).pipe(
-          map((pagina) => ({ pagina, ausente: false })),
-          catchError((e: HttpErrorResponse) => e.status === 404 ? of({ pagina: null, ausente: true }) : (() => { throw e; })()),
-        ),
-      }).pipe(catchError(() => of(null)));
+          catchError((e: HttpErrorResponse) => {
+            // status 0 = no se pudo contactar al servidor; 5xx = caído o mal.
+            this.causaError.set(e.status === 0 ? 'red' : 'servidor');
+            return of(null);
+          }),
+        );
       }),
       takeUntilDestroyed(),
     ).subscribe((resultado) => {
@@ -82,7 +90,7 @@ export class PortalPublico {
       this.title.setTitle(`${resultado.pagina.pagina?.titulo || 'Página no encontrada'} | ${this.nombre()}`);
       this.meta.updateTag({ name: 'robots', content: resultado.pagina.ausente ? 'noindex' : 'index,follow' });
       const favicon = this.urlSegura(this.texto('favicon_url'));
-      this.document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href', favicon || 'favicon.ico');
+      this.document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href', favicon || '/favicon.ico');
     });
   }
 

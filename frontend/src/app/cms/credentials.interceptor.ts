@@ -20,7 +20,9 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   const csrf = auth.csrfToken();
   const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(req.method.toUpperCase());
   let headers = req.headers;
-  if (mutating && csrf) {
+  // El llamador ya puede traer su propio token (formulario público anónimo);
+  // en ese caso no se sobrescribe.
+  if (mutating && csrf && !headers.has('X-CSRF-Token')) {
     headers = headers.set('X-CSRF-Token', csrf);
   }
   return next(req.clone({ withCredentials: true, headers })).pipe(

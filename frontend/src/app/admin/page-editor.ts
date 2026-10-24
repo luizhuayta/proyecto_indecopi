@@ -266,7 +266,11 @@ export class PageEditor implements OnInit, OnDestroy {
     void this.api
       .getApariencia()
       .then((res) => this.tema.set(temaPublico((res.contenido ?? {}) as Record<string, unknown>)))
-      .catch(() => undefined);
+      .catch((e: unknown) => {
+        // Sin apariencia el editor sigue siendo usable (tema por defecto),
+        // pero el fallo no debe pasar desapercibido.
+        console.warn('No se pudo cargar la apariencia para la vista previa.', e);
+      });
     this.sub = this.route.paramMap.subscribe((params) => {
       const slug = params.get('slug') || 'inicio';
       this.slug.set(slug);
