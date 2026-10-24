@@ -22,6 +22,7 @@ export function tituloDeSeccion(url: string): string {
     '/admin/medios': 'Medios',
     '/admin/mensajes': 'Mensajes',
     '/admin/usuarios': 'Usuarios',
+    '/admin/cuenta': 'Mi cuenta',
     '/admin': 'Panel',
   };
   if (url.startsWith('/admin/editor/')) {
@@ -45,6 +46,7 @@ export function tituloDeSeccion(url: string): string {
           <a routerLink="/admin/medios" routerLinkActive="activo">Medios</a>
           <a routerLink="/admin/mensajes" routerLinkActive="activo">Mensajes</a>
           <a routerLink="/admin/usuarios" routerLinkActive="activo">Usuarios</a>
+          <a routerLink="/admin/cuenta" routerLinkActive="activo">Mi cuenta</a>
         </nav>
       </aside>
 

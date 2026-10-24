@@ -68,6 +68,26 @@ export class AuthService {
     }
   }
 
+  /**
+   * El propio usuario cambia su contraseña. Devuelve un mensaje de error o
+   * null si todo fue bien. La API invalida la sesión al cambiarla, así que
+   * el llamador debe limpiar el estado local y volver al login.
+   */
+  async cambiarContrasena(actual: string, nueva: string): Promise<string | null> {
+    try {
+      await firstValueFrom(
+        this.http.put(`${API_BASE}/auth/password`, {
+          contrasena_actual: actual,
+          contrasena: nueva,
+        })
+      );
+      return null;
+    } catch (err: unknown) {
+      const message = (err as { error?: { message?: string } })?.error?.message;
+      return message || 'No se pudo cambiar la contraseña. Revisa tu conexión.';
+    }
+  }
+
   async logout(): Promise<void> {
     try {
       await firstValueFrom(this.http.post(`${API_BASE}/auth/logout`, {}));

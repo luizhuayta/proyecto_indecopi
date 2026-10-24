@@ -51,6 +51,10 @@ export const routes: Routes = [
         path: 'usuarios',
         loadComponent: () => import('./admin/admin-usuarios').then((m) => m.AdminUsuarios),
       },
+      {
+        path: 'cuenta',
+        loadComponent: () => import('./admin/admin-cuenta').then((m) => m.AdminCuenta),
+      },
     ],
   },
   { path: '**', loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico) },
