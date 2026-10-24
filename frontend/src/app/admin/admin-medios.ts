@@ -176,7 +176,7 @@ export function cajaRecorteEnPixeles(
               (pointerup)="soltar($event)"
               (pointercancel)="soltar($event)"
             >
-              <img [src]="item.url" alt="" />
+              <img [src]="item.url" [alt]="'Recorte de ' + item.nombre_original" />
               <div
                 class="crop-caja"
                 [style.left.%]="crop().x * 100"

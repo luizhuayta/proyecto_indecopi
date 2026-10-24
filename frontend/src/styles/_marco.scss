@@ -1,0 +1,338 @@
+/* ========================================================
+   MARCO DEL PORTAL
+   --------------------------------------------------------
+   Cabecera, pie y contenedores del sitio público. Vive en
+   una sola hoja global para que todas las páginas del
+   portal —incluida la búsqueda— compartan exactamente el
+   mismo marco: hoy /buscar era un tercer sistema visual,
+   con otro color, sin cabecera y sin pie.
+
+   Se aplica sobre `.marco`, la raíz que envuelve a cada
+   página pública y que lleva los tokens del tema.
+   ======================================================== */
+
+.marco {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--font-cuerpo);
+}
+
+/* El color de los enlaces y su hover los fija la hoja global de estilos.
+   Aquí no se repiten: al repetirlos con mayor especificidad (.marco a) se
+   pisaba el color de texto de los botones, que sobre fondo verde se quedaba
+   verde sobre verde. */
+.marco :focus-visible {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 4px;
+}
+
+.marco button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.marco-ancho {
+  width: min(1200px, calc(100% - 3rem));
+  margin-inline: auto;
+}
+
+/* El marco se proyecta dentro del contenido: para que cabecera, contenido y
+   pie se apilen como en un flex normal, el contenedor no debe ser una caja. */
+app-marco-portal {
+  display: contents;
+}
+
+/* --------------------------------------------------------
+   1. Acceso directo al contenido
+   -------------------------------------------------------- */
+
+.saltar-contenido {
+  position: absolute;
+  top: -8rem;
+  left: 1.5rem;
+  padding: 1rem;
+  background: var(--color-fondo);
+  z-index: 10;
+
+  &:focus {
+    top: 1rem;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------
+   2. Cabecera
+   -------------------------------------------------------- */
+
+.cabecera {
+  border-top: 5px solid var(--color-marca);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.cabecera__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: 112px;
+  padding-block: 1.5rem;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  font-family: var(--font-titulos);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+
+  img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+}
+
+.cabecera nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem 1.5rem;
+}
+
+.cabecera nav a {
+  display: block;
+  padding-block: 0.75rem;
+  text-decoration: none;
+  text-underline-offset: 0.3em;
+}
+
+.cabecera nav a:hover,
+.cabecera nav a.activo {
+  text-decoration: underline;
+}
+
+.menu-control {
+  display: none;
+}
+
+.cabecera__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+/* --------------------------------------------------------
+   3. Buscador (cabecera y página de resultados)
+   -------------------------------------------------------- */
+
+.busqueda-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.busqueda-form__campo {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-borde-control, var(--color-secundario));
+  border-radius: var(--radio-campo, 4px);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font: inherit;
+}
+
+.busqueda-form__boton {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-primario);
+  border-radius: var(--radio-campo, 4px);
+  background: var(--color-primario);
+  color: var(--color-boton-texto, #fff);
+  font: inherit;
+  font-weight: 600;
+}
+
+.busqueda-cabecera .busqueda-form__campo {
+  width: 13rem;
+}
+
+.busqueda-pagina .busqueda-form__campo {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------
+   4. Pie
+   -------------------------------------------------------- */
+
+.pie {
+  margin-top: 4rem;
+  border-top: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  padding-block: 2.5rem 1.5rem;
+}
+
+.pie__contenido {
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.pie h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.pie__columna {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+}
+
+.pie__titulo {
+  font-size: 1rem;
+}
+
+.pie__columna ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.pie__columna a {
+  color: var(--color-texto);
+}
+
+.pie__columna a:hover {
+  color: var(--color-primario);
+}
+
+address {
+  font-style: normal;
+  overflow-wrap: anywhere;
+
+  p {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.pie__base {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  border-top: 1px solid var(--color-borde);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  font-size: 0.875rem;
+}
+
+/* --------------------------------------------------------
+   5. Título de página
+   -------------------------------------------------------- */
+
+.titulo-pagina {
+  padding-block: 3rem 1rem;
+}
+
+.titulo-h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  max-width: 28ch;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* El contenido de la página ocupa el espacio que sobra entre cabecera y pie. */
+.marco main {
+  flex: 1;
+}
+
+/* --------------------------------------------------------
+   6. Pantallas estrechas
+   -------------------------------------------------------- */
+
+@media (max-width: 800px) {
+  .cabecera__fila {
+    flex-wrap: wrap;
+    gap: 1rem;
+    min-height: 88px;
+  }
+
+  .marca {
+    flex: 1;
+    font-size: 1.25rem;
+
+    img {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  .menu-control {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 4px;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    min-height: 44px;
+  }
+
+  .cabecera__acciones {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .busqueda-cabecera .busqueda-form__campo {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .cabecera nav {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .cabecera nav.abierta {
+    display: flex;
+  }
+
+  .pie__contenido,
+  .pie__base {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .titulo-pagina {
+    padding-top: 2rem;
+  }
+}

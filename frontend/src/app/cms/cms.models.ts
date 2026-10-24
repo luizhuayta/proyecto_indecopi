@@ -1,5 +1,17 @@
 export type JsonMap = Record<string, unknown>;
 
+/**
+ * Indica si una ruta de campo es inválida.
+ *
+ * Una ruta con «[object Object]» viene de una plantilla mal enlazada: si
+ * deja pasar, escribe una clave basura en el borrador y el autoguardado la
+ * persiste. Se corta en seco para que un fallo de presentación no pueda
+ * corromper el contenido de la institución.
+ */
+export function rutaInvalida(path: string): boolean {
+  return path.includes('[object Object]');
+}
+
 export function getByPath(obj: unknown, path: string): unknown {
   if (!path) {
     return obj;

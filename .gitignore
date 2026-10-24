@@ -9,3 +9,5 @@ API/pruebas/temporal/
 .DS_Store
 .openchamber/
 .atl/
+# Auditoría de diseño: capturas y snapshots locales, no forman parte del código.
+.impeccable/

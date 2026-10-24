@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NgStyle } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../cms/auth.service';
 import { CmsContentService } from '../cms/cms-content.service';
 import { CmsEditorService } from '../cms/cms-editor.service';
 import { buscarMarcadores } from '../cms/cms.models';
+import { SitioPublicoService } from '../core/sitio-publico.service';
 
 /**
  * Marco del panel: navegación lateral, cabecera con las acciones Guardar y
@@ -34,9 +36,9 @@ export function tituloDeSeccion(url: string): string {
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgStyle],
   template: `
-    <div class="admin-shell">
+    <div class="admin-shell" [ngStyle]="sitio.tema()">
       <aside class="admin-nav">
         <div class="admin-nav__marca">Panel</div>
         <nav aria-label="Secciones del panel">
@@ -95,6 +97,8 @@ export class AdminShell implements OnInit, OnDestroy {
   auth = inject(AuthService);
   cms = inject(CmsContentService);
   editor = inject(CmsEditorService);
+  /** Apariencia publicada: el panel usa los mismos tokens que el sitio. */
+  sitio = inject(SitioPublicoService);
   private router = inject(Router);
   private sub?: Subscription;
 
@@ -117,6 +121,8 @@ export class AdminShell implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.ruta.set(this.router.url.split('?')[0]);
+    // El panel se pinta con la apariencia publicada por la institución.
+    void this.sitio.cargar();
     this.sub = this.router.events.subscribe((evento) => {
       if (!(evento instanceof NavigationEnd)) {
         return;

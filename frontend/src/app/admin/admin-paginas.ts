@@ -60,6 +60,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
           <tr>
             <th scope="col">Título</th>
             <th scope="col">Ruta</th>
+            <th scope="col">Estado</th>
             <th scope="col">Actualizada</th>
             <th scope="col"><span class="sr-only">Acciones</span></th>
           </tr>
@@ -69,6 +70,13 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
             <tr>
               <td>{{ pagina.titulo }}</td>
               <td>{{ pagina.ruta || '/' + pagina.slug }}</td>
+              <td>
+                @if (cms.hasDraft()[pagina.slug]) {
+                  <span class="admin-etiqueta">Cambios sin publicar</span>
+                } @else {
+                  <span class="admin-etiqueta admin-etiqueta--ok">Publicada</span>
+                }
+              </td>
               <td>{{ fecha(pagina.actualizado_en) }}</td>
               <td class="admin-tabla__acciones">
                 <a class="admin-btn admin-btn--fantasma" [routerLink]="['/admin/editor', pagina.slug]">

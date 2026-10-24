@@ -52,6 +52,9 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
           >
             Móvil
           </button>
+          <span class="editor__escala" aria-live="polite">
+            Vista previa al {{ escalaTexto() }}
+          </span>
         </div>
 
         <div class="editor__grupo">
@@ -142,6 +145,11 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
         display: flex;
         gap: var(--space-8, 0.5rem);
         align-items: center;
+      }
+      .editor__escala {
+        font-size: var(--texto-sm, 0.875rem);
+        color: var(--color-texto-suave);
+        white-space: nowrap;
       }
       .editor__cuerpo {
         display: grid;
@@ -240,6 +248,9 @@ export class PageEditor implements OnInit, OnDestroy {
     }
     return Math.min(1, ancho / this.deviceWidth());
   });
+
+  /** El factor de escala, en porcentaje: la vista previa se muestra encogida. */
+  readonly escalaTexto = computed(() => `${Math.round(this.escala() * 100)}%`);
 
   private sub?: Subscription;
 

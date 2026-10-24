@@ -6,7 +6,10 @@ import { blockLabel, pageBlocks } from '../block-registry';
 import type { CmsBlock } from '../block-registry';
 import { renderBloque } from './render-bloque';
 import { FormularioContacto } from '../../public/formulario-contacto';
+import { FormularioReclamo } from '../../public/formulario-reclamo';
 import { JsonMap } from '../cms.models';
+import { SitioPublicoService } from '../../core/sitio-publico.service';
+import { contieneTokens, resolverTokensEnBloque } from '../../core/tokens';
 
 /**
  * Renderiza los bloques de una página.
@@ -20,7 +23,7 @@ import { JsonMap } from '../cms.models';
 @Component({
   selector: 'app-cms-page-blocks',
   standalone: true,
-  imports: [FormularioContacto],
+  imports: [FormularioContacto, FormularioReclamo],
   template: `
     <div class="cms-bloques">
       @for (block of visibles(); track block.id) {
@@ -48,6 +51,12 @@ import { JsonMap } from '../cms.models';
           }
           @if (esFormulario(block)) {
             <app-formulario-contacto
+              [bloque]="block.props"
+              [csrf]="csrf"
+              [ruta]="ruta"
+            />
+          } @else if (esLibroReclamaciones(block)) {
+            <app-formulario-reclamo
               [bloque]="block.props"
               [csrf]="csrf"
               [ruta]="ruta"
@@ -129,6 +138,8 @@ export class CmsPageBlocks {
   private cms = inject(CmsContentService);
   private editor = inject(CmsEditorService);
   private sanitizer = inject(DomSanitizer);
+  /** Identidad publicada: la vista previa muestra los tokens ya resueltos. */
+  private sitio = inject(SitioPublicoService);
 
   @Input() slug = '';
   @Input() seleccionadoId = '';
@@ -142,6 +153,11 @@ export class CmsPageBlocks {
 
   esFormulario(block: CmsBlock): boolean {
     return block.type === 'contactForm';
+  }
+
+  /** El libro de reclamaciones lleva su propio formulario, no texto plano. */
+  esLibroReclamaciones(block: CmsBlock): boolean {
+    return block.type === 'claimsBook';
   }
 
   readonly bloques = computed(() => {
@@ -161,11 +177,29 @@ export class CmsPageBlocks {
   });
 
   html(block: CmsBlock): SafeHtml {
+    // La vista previa del editor recibe el contenido en crudo: los tokens de
+    // la institución se resuelven aquí para que se vea lo mismo que verá el
+    // visitante. El inspector sigue mostrando el texto con el token intacto,
+    // para que guardarlo no destruya la sustitución.
+    const bloque = this.bloqueParaVista(block);
     // El HTML lo genera el renderizador del catálogo: escapa los textos y solo
     // deja los embebidos validados por el servidor.
     return this.sanitizer.bypassSecurityTrustHtml(
-      renderBloque(block, { imageMeta: this.cms.imageMeta() }),
+      renderBloque(bloque, { imageMeta: this.cms.imageMeta() }),
     );
+  }
+
+  private bloqueParaVista(block: CmsBlock): CmsBlock {
+    const identidad = this.sitio.identidad();
+    if (identidad) {
+      return resolverTokensEnBloque(block, identidad);
+    }
+    if (contieneTokens(block)) {
+      // Todavía no se conoce la identidad: se pide una sola vez y la vista
+      // previa se vuelve a pintar cuando llegue.
+      void this.sitio.cargar();
+    }
+    return block;
   }
 
   nombre(type: string): string {

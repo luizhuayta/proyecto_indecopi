@@ -76,7 +76,7 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
               </td>
               <td>
                 <button type="button" class="admin-btn admin-btn--chico" (click)="ver(m)">
-                  {{ seleccionado()?.id === m.id ? 'Cerrando' : 'Ver' }}
+                  {{ seleccionado()?.id === m.id ? 'Cerrar' : 'Ver' }}
                 </button>
               </td>
             </tr>
@@ -85,57 +85,61 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
       </table>
     }
 
-    @if (seleccionado(); as m) {
-      <section class="admin-detalle" aria-label="Detalle del mensaje">
-        <h2 class="admin-titulo admin-titulo--chico">{{ m.asunto || '(sin asunto)' }}</h2>
-        <dl class="admin-datos">
-          <dt>Ticket</dt>
-          <dd>{{ m.ticket }}</dd>
-          <dt>De</dt>
-          <dd>{{ m.nombre }} &lt;{{ m.correo }}&gt;</dd>
-          @if (m.telefono) {
-            <dt>Teléfono</dt>
-            <dd>{{ m.telefono }}</dd>
+    <!-- La zona vive siempre en la página: así el lector de pantalla anuncia
+         el detalle cuando aparece, en vez de insertarlo en silencio. -->
+    <div class="admin-detalle-zona" aria-live="polite">
+      @if (seleccionado(); as m) {
+        <section class="admin-detalle" aria-label="Detalle del mensaje">
+          <h2 class="admin-titulo admin-titulo--chico">{{ m.asunto || '(sin asunto)' }}</h2>
+          <dl class="admin-datos">
+            <dt>Ticket</dt>
+            <dd>{{ m.ticket }}</dd>
+            <dt>De</dt>
+            <dd>{{ m.nombre }} &lt;{{ m.correo }}&gt;</dd>
+            @if (m.telefono) {
+              <dt>Teléfono</dt>
+              <dd>{{ m.telefono }}</dd>
+            }
+            <dt>Recibido</dt>
+            <dd>{{ m.creado_en | date: 'dd/MM/yyyy HH:mm' }}</dd>
+          </dl>
+          <p class="admin-mensaje">{{ m.mensaje }}</p>
+
+          @if (m.respuesta) {
+            <div class="admin-respuesta-actual">
+              <h3>Respuesta enviada</h3>
+              <p>{{ m.respuesta }}</p>
+              <p class="admin-subtitulo">
+                {{ m.notificado ? 'Se avisó a la institución.' : 'No se notificó a la institución.' }}
+              </p>
+            </div>
           }
-          <dt>Recibido</dt>
-          <dd>{{ m.creado_en | date: 'dd/MM/yyyy HH:mm' }}</dd>
-        </dl>
-        <p class="admin-mensaje">{{ m.mensaje }}</p>
 
-        @if (m.respuesta) {
-          <div class="admin-respuesta-actual">
-            <h3>Respuesta enviada</h3>
-            <p>{{ m.respuesta }}</p>
-            <p class="admin-subtitulo">
-              {{ m.notificado ? 'Se avisó a la institución.' : 'No se notificó a la institución.' }}
-            </p>
-          </div>
-        }
-
-        <form class="admin-form-respuesta" (ngSubmit)="responder()">
-          <div class="admin-campo">
-            <label for="respuesta-texto">Responder</label>
-            <textarea
-              id="respuesta-texto"
-              class="admin-control"
-              rows="5"
-              [(ngModel)]="textoRespuesta"
-              name="respuesta"
-              placeholder="Escribe aquí tu respuesta a la persona."
-            ></textarea>
-          </div>
-          <div class="admin-campo admin-campo--check">
-            <label>
-              <input type="checkbox" [(ngModel)]="notificar" name="notificar" />
-              Avisar a la institución por correo
-            </label>
-          </div>
-          <button type="submit" class="admin-btn admin-btn--primario" [disabled]="enviando()">
-            {{ enviando() ? 'Enviando…' : 'Enviar respuesta' }}
-          </button>
-        </form>
-      </section>
-    }
+          <form class="admin-form-respuesta" (ngSubmit)="responder()">
+            <div class="admin-campo">
+              <label for="respuesta-texto">Responder</label>
+              <textarea
+                id="respuesta-texto"
+                class="admin-control"
+                rows="5"
+                [(ngModel)]="textoRespuesta"
+                name="respuesta"
+                placeholder="Escribe aquí tu respuesta a la persona."
+              ></textarea>
+            </div>
+            <div class="admin-campo admin-campo--check">
+              <label>
+                <input type="checkbox" [(ngModel)]="notificar" name="notificar" />
+                Avisar a la institución por correo
+              </label>
+            </div>
+            <button type="submit" class="admin-btn admin-btn--primario" [disabled]="enviando()">
+              {{ enviando() ? 'Enviando…' : 'Enviar respuesta' }}
+            </button>
+          </form>
+        </section>
+      }
+    </div>
   `,
   styles: [
     `

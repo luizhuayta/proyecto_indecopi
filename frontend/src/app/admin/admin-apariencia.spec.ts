@@ -67,6 +67,10 @@ describe('AdminApariencia', () => {
     );
     publicar.flush({ contenido: APARIENCIA.contenido, version: 5 });
     await fixture.whenStable();
+    // Tras publicar, el panel vuelve a leer el tema publicado.
+    http.expectOne((r) => r.url === `${API_BASE}/publico/sitio`).flush({});
+    // La publicación termina cuando el tema nuevo está aplicado.
+    await new Promise((r) => setTimeout(r, 0));
     fixture.detectChanges();
 
     expect(component.status()).toBe('Publicado en el sitio.');
@@ -85,6 +89,9 @@ describe('AdminApariencia', () => {
     expect(publicar.request.method).toBe('POST');
     expect(publicar.request.body['version']).toBe(4);
     publicar.flush({ contenido: {}, version: 5 });
+    await fixture.whenStable();
+    // Tras publicar, el panel vuelve a leer el tema publicado.
+    http.expectOne((r) => r.url === `${API_BASE}/publico/sitio`).flush({});
     await enCurso;
     fixture.detectChanges();
 

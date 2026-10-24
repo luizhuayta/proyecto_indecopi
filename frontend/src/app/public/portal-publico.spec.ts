@@ -40,30 +40,45 @@ describe('PortalPublico', () => {
     TestBed.resetTestingModule();
   });
 
-  function responderPagina(ruta: string, titulo = 'Oferta académica'): void {
+  /** El sitio publicado llega por promesa: se espera a que se aplique. */
+  async function estabilizar(): Promise<void> {
+    await new Promise((r) => setTimeout(r, 0));
+    harness.detectChanges();
+  }
+
+  async function responderPagina(ruta: string, titulo = 'Oferta académica'): Promise<void> {
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
     const req = http.expectOne((r) => r.url === '/api/publico/pagina' && r.params.get('ruta') === ruta);
     req.flush({ titulo, contenido: { blocks: [makeBlock('richText', { body: '<p>Contenido publicado de prueba</p>' })] }, version: 3 });
-    harness.detectChanges();
+    await estabilizar();
   }
 
   it('muestra identidad, menu, contenido publicado, tema y título', async () => {
     await harness.navigateByUrl('/estudios/oferta');
-    responderPagina('/estudios/oferta');
+    await responderPagina('/estudios/oferta');
     const el: HTMLElement = harness.routeNativeElement!;
     expect(el.textContent).toContain('Instituto de ejemplo');
     expect(el.textContent).toContain('Contenido publicado de prueba');
     expect(el.querySelector('nav a')?.getAttribute('href')).toBe('/estudios/oferta');
-    expect(el.querySelector<HTMLElement>('.portal')?.style.getPropertyValue('--color-primario')).toBe('#315836');
+    expect(el.querySelector<HTMLElement>('.marco')?.style.getPropertyValue('--color-primario')).toBe('#315836');
     expect(TestBed.inject(Title).getTitle()).toBe('Oferta académica | Instituto de ejemplo');
     expect(el.querySelector('.saltar-contenido')?.getAttribute('href')).toBe('#contenido-principal');
+  });
+
+  it('el marco compartido está presente: cabecera y pie', async () => {
+    await harness.navigateByUrl('/estudios/oferta');
+    await responderPagina('/estudios/oferta');
+    const el: HTMLElement = harness.routeNativeElement!;
+    expect(el.querySelector('header.cabecera')).not.toBeNull();
+    expect(el.querySelector('footer.pie')).not.toBeNull();
+    expect(el.querySelector('footer.pie')?.textContent).toContain('Información institucional');
   });
 
   it('una ruta inexistente muestra 404 con salida al inicio, no redirige en silencio', async () => {
     await harness.navigateByUrl('/no-existe');
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
     http.expectOne((r) => r.url === '/api/publico/pagina').flush({}, { status: 404, statusText: 'Not Found' });
-    harness.detectChanges();
+    await estabilizar();
     expect(harness.routeNativeElement?.textContent).toContain('Página no encontrada');
     expect(harness.routeNativeElement?.querySelector('main a')?.getAttribute('href')).toBe('/');
   });
@@ -72,13 +87,13 @@ describe('PortalPublico', () => {
     await harness.navigateByUrl('/estudios/oferta');
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
     http.expectOne((r) => r.url === '/api/publico/pagina').flush({}, { status: 500, statusText: 'Server Error' });
-    harness.detectChanges();
+    await estabilizar();
     const texto = harness.routeNativeElement?.textContent ?? '';
     expect(texto).toContain('No se pudo cargar');
     expect(texto).toContain('El servidor no está disponible');
     expect(texto).not.toContain('No hay conexión');
     harness.routeNativeElement?.querySelector<HTMLButtonElement>('main button')?.click();
-    responderPagina('/estudios/oferta');
+    await responderPagina('/estudios/oferta');
     expect(harness.routeNativeElement?.textContent).toContain('Contenido publicado de prueba');
   });
 
@@ -86,23 +101,23 @@ describe('PortalPublico', () => {
     await harness.navigateByUrl('/estudios/oferta');
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
     http.expectOne((r) => r.url === '/api/publico/pagina').error(new ErrorEvent('sin red'));
-    harness.detectChanges();
+    await estabilizar();
     expect(harness.routeNativeElement?.textContent).toContain('No hay conexión con el servidor');
   });
 
   it('al navegar borra la página anterior y carga la ruta nueva', async () => {
     await harness.navigateByUrl('/uno');
-    responderPagina('/uno', 'Primera página');
+    await responderPagina('/uno', 'Primera página');
     await harness.navigateByUrl('/dos');
     harness.detectChanges();
     expect(harness.routeNativeElement?.textContent).not.toContain('Contenido publicado de prueba');
-    responderPagina('/dos', 'Segunda página');
+    await responderPagina('/dos', 'Segunda página');
     expect(TestBed.inject(Title).getTitle()).toBe('Segunda página | Instituto de ejemplo');
   });
 
   it('el buscador de la cabecera navega a /buscar con la consulta', async () => {
     await harness.navigateByUrl('/estudios/oferta');
-    responderPagina('/estudios/oferta');
+    await responderPagina('/estudios/oferta');
     const campo =
       harness.routeNativeElement!.querySelector<HTMLInputElement>('#busqueda-cabecera-campo')!;
     campo.value = 'oferta';
@@ -117,7 +132,7 @@ describe('PortalPublico', () => {
     http
       .expectOne((r) => r.url === '/api/publico/pagina')
       .flush({}, { status: 404, statusText: 'Not Found' });
-    harness.detectChanges();
+    await estabilizar();
     expect(harness.routeNativeElement?.textContent).toContain('Página no encontrada');
   });
 
@@ -137,7 +152,7 @@ describe('PortalPublico', () => {
       },
       version: 1,
     });
-    harness.detectChanges();
+    await estabilizar();
     const iframe = harness.routeNativeElement?.querySelector('iframe');
     expect(iframe?.getAttribute('src')).toBe('https://mapa.example.test/embed');
   });

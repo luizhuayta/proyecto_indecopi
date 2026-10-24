@@ -12,28 +12,45 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../nucleo/base_datos.php';
 require_once __DIR__ . '/../../nucleo/json.php';
+require_once __DIR__ . '/../identidad/servicio.php';
 
 /**
  * Texto plano de un contenido de bloques (todos los campos de texto).
+ *
+ * Solo se indexa el contenido de cada bloque. 'id' y 'type' son metadatos
+ * internos del constructor visual: indexarlos metía en los resultados cadenas
+ * como «b4 richText content» que no significan nada para quien busca.
+ *
+ * Los tokens de la institución se resuelven al indexar para que el resultado
+ * muestre el nombre real y no «{{institucion.nombre}}».
  */
 function textoPlanoDeContenido(array $contenido): string
 {
     $partes = [];
-    $recorrer = function (mixed $valor) use (&$recorrer, &$partes): void {
+    $recorrer = function (mixed $valor, string $clave = '') use (&$recorrer, &$partes): void {
+        // 'icon' guarda el nombre de un icono («bi-geo-alt»): es un identificador
+        // decorativo, no texto que un visitante quiera encontrar.
+        if ($clave === 'icon') {
+            return;
+        }
         if (is_string($valor)) {
-            $limpio = trim(strip_tags($valor));
+            $limpio = trim(strip_tags(resolverTokens($valor)));
             if ($limpio !== '') {
                 $partes[] = $limpio;
             }
             return;
         }
         if (is_array($valor)) {
-            foreach ($valor as $hijo) {
-                $recorrer($hijo);
+            foreach ($valor as $k => $hijo) {
+                $recorrer($hijo, is_string($k) ? $k : '');
             }
         }
     };
-    $recorrer($contenido['blocks'] ?? []);
+    foreach (($contenido['blocks'] ?? []) as $bloque) {
+        if (is_array($bloque)) {
+            $recorrer($bloque['props'] ?? []);
+        }
+    }
     return implode("\n", $partes);
 }
 

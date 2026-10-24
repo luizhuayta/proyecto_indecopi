@@ -384,6 +384,30 @@ function parrafo(valor: unknown): string {
   return hayTexto(valor) ? `<p>${escapeHtml(valor.trim())}</p>` : '';
 }
 
+/**
+ * Convierte en enlace el correo o el teléfono que aparezcan en un texto.
+ *
+ * El teléfono y el correo de la institución se muestran en tarjetas de
+ * contacto: si no son enlaces, el visitante no puede llamar ni escribir con
+ * un toque en el móvil.
+ */
+function parrafoConContacto(valor: unknown): string {
+  if (!hayTexto(valor)) {
+    return '';
+  }
+  const texto = escapeHtml(String(valor).trim());
+  const conEnlaces = texto
+    .replace(
+      /([\w.+-]+@[\w-]+\.[\w.-]+)/g,
+      '<a href="mailto:$1">$1</a>'
+    )
+    .replace(
+      /(\+?\d[\d\s().-]{7,}\d)/g,
+      '<a href="tel:$1">$1</a>'
+    );
+  return `<p>${conEnlaces}</p>`;
+}
+
 /** Botón de llamada a la acción: usa cta/button + ctaLink/link. */
 function renderBotonCta(props: JsonMap): string {
   const etiquetaBoton = texto(props, 'cta') || texto(props, 'button');
@@ -532,8 +556,10 @@ const serviceCardsEspecial: RenderEspecial = (props, opts) => {
 const contactCardsEspecial: RenderEspecial = (props) => {
   const tarjetas = listaDe(props['items'])
     .map((i) => {
-      const t = titulo(i['title'], 3);
-      const textoHtml = parrafo(i['text']);
+      // Nivel 2: cada tarjeta es una sección de primer nivel de la página,
+      // no un subapartado. Con H3 se saltaba un nivel de la jerarquía.
+      const t = titulo(i['title'], 2);
+      const textoHtml = parrafoConContacto(i['text']);
       return `<article class="tarjeta contacto">${t}${textoHtml}</article>`;
     })
     .join('');

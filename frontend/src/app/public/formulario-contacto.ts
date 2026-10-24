@@ -95,7 +95,7 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
       input, textarea {
         font: inherit;
         padding: 0.6rem 0.75rem;
-        border: 1px solid var(--color-borde);
+        border: 1px solid var(--color-borde-control, var(--color-secundario));
         border-radius: var(--radio-campo, 4px);
         background: var(--color-fondo);
         color: var(--color-texto);
@@ -105,7 +105,7 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
       .formulario__aviso {
         margin: 0;
         padding: 1rem;
-        border: 1px solid var(--color-borde);
+        border: 1px solid var(--color-borde-control, var(--color-secundario));
         border-radius: var(--radio-campo, 4px);
         background: var(--color-superficie);
       }

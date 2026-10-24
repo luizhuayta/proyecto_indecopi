@@ -4,6 +4,7 @@ import { CmsApiService } from '../cms/cms-api.service';
 import { getByPath, setByPath, JsonMap } from '../cms/cms.models';
 import { contraste, normalizarHex, sugerirContraste } from '../core/contraste';
 import { COLORES_DEFECTO, FONTS_DEFECTO } from '../core/tema';
+import { SitioPublicoService } from '../core/sitio-publico.service';
 
 interface CampoColor {
   key: string;
@@ -388,7 +389,7 @@ const CAMPOS_COLOR: CampoColor[] = [
         flex: 1;
         min-width: 0;
         padding: 0.4rem 0.5rem;
-        border: 1px solid var(--color-borde);
+        border: 1px solid var(--color-borde-control, var(--color-secundario));
         border-radius: var(--radio-campo, 4px);
         background: var(--color-superficie);
         color: var(--color-texto);
@@ -526,6 +527,8 @@ export class AdminApariencia implements OnInit {
   protected readonly CAMPOS_COLOR = CAMPOS_COLOR;
 
   private api = inject(CmsApiService);
+  /** Apariencia publicada, compartida con el marco del panel. */
+  private sitio = inject(SitioPublicoService);
 
   readonly contenido = signal<JsonMap>({});
   readonly version = signal(1);
@@ -670,6 +673,9 @@ export class AdminApariencia implements OnInit {
       const publicada = await this.api.publicarApariencia(res.version);
       this.contenido.set(publicada.contenido ?? this.contenido());
       this.version.set(publicada.version);
+      // El panel se pinta con la apariencia publicada: hay que recargarla para
+      // que el propio panel adopte el color nuevo.
+      await this.sitio.cargar();
       this.avisos.set(res.avisos ?? publicada.avisos ?? []);
       this.status.set('Publicado en el sitio.');
     } catch {

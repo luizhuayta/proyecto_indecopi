@@ -1,101 +1,41 @@
-<div class="portal" [ngStyle]="tema()">
-  <a class="saltar-contenido" href="#contenido-principal">Saltar al contenido</a>
-  <header class="cabecera">
-    <div class="portal-ancho cabecera__fila">
-      <a class="marca" routerLink="/" [attr.aria-label]="nombre() + ', inicio'">
-        @if (urlSegura(texto('logo_url')); as logo) {
-          <img [src]="logo" [alt]="texto('logo_alt') || nombre()" width="64" height="64" />
+<div class="marco" [ngStyle]="sitio.tema()">
+  <app-marco-portal>
+    <main id="contenido-principal" tabindex="-1" [attr.aria-busy]="estado() === 'cargando'">
+      @switch (estado()) {
+        @case ('cargando') {
+          <div class="marco-ancho estado" role="status">
+            <p>Cargando información de la institución…</p>
+          </div>
         }
-        <span>{{ nombre() }}</span>
-      </a>
-      @if ((sitio()?.menu ?? []).length > 0) {
-      <button class="menu-control" type="button" aria-controls="navegacion-principal"
-        [attr.aria-expanded]="menuAbierto()" (click)="menuAbierto.set(!menuAbierto())">Menú</button>
-      }
-      <div class="cabecera__acciones">
-        <form class="busqueda-cabecera" role="search" (ngSubmit)="buscarDesdeCabecera()">
-          <label class="sr-only" for="busqueda-cabecera-campo">Buscar en el sitio</label>
-          <input
-            id="busqueda-cabecera-campo"
-            class="busqueda-cabecera__campo"
-            type="search"
-            name="q"
-            autocomplete="off"
-            maxlength="120"
-            placeholder="Buscar en el sitio"
-            [(ngModel)]="consultaCabecera"
+        @case ('error') {
+          <section class="marco-ancho estado" aria-labelledby="titulo-error">
+            <h1 class="titulo-h1" id="titulo-error">No se pudo cargar el sitio</h1>
+            @if (causaError() === 'red') {
+              <p>No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.</p>
+            } @else {
+              <p>El servidor no está disponible en este momento. Inténtalo de nuevo en unos minutos.</p>
+            }
+            <button class="boton" type="button" (click)="reintentar()">Reintentar</button>
+          </section>
+        }
+        @case ('no-encontrada') {
+          <section class="marco-ancho estado" aria-labelledby="titulo-ausente">
+            <h1 class="titulo-h1" id="titulo-ausente">Página no encontrada</h1>
+            <p>El enlace puede haber cambiado o la información todavía no está publicada.</p>
+            <a class="boton" routerLink="/">Volver al inicio</a>
+          </section>
+        }
+        @case ('lista') {
+          <div class="marco-ancho titulo-pagina">
+            <h1 class="titulo-h1">{{ pagina()?.titulo }}</h1>
+          </div>
+          <app-cms-page-blocks
+            [documento]="pagina()!.contenido"
+            [csrf]="sitio.csrf()"
+            [ruta]="rutaActual()"
           />
-          <button class="busqueda-cabecera__boton" type="submit">Buscar</button>
-        </form>
-        <nav id="navegacion-principal" aria-label="Navegación principal" [class.abierta]="menuAbierto()">
-          @for (item of sitio()?.menu ?? []; track item.slug) {
-            <a [routerLink]="item.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page"
-              [routerLinkActiveOptions]="{ exact: true }" (click)="menuAbierto.set(false)">{{ item.titulo }}</a>
-          }
-        </nav>
-      </div>
-    </div>
-  </header>
-
-  <main id="contenido-principal" tabindex="-1" [attr.aria-busy]="estado() === 'cargando'">
-    @switch (estado()) {
-      @case ('cargando') {
-        <div class="portal-ancho estado" role="status"><p>Cargando información de la institución…</p></div>
-      }
-      @case ('error') {
-        <section class="portal-ancho estado" aria-labelledby="titulo-error">
-          <h1 id="titulo-error">No se pudo cargar el sitio</h1>
-          @if (causaError() === 'red') {
-            <p>No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.</p>
-          } @else {
-            <p>El servidor no está disponible en este momento. Inténtalo de nuevo en unos minutos.</p>
-          }
-          <button class="boton" type="button" (click)="reintentar()">Reintentar</button>
-        </section>
-      }
-      @case ('no-encontrada') {
-        <section class="portal-ancho estado" aria-labelledby="titulo-ausente">
-          <h1 id="titulo-ausente">Página no encontrada</h1>
-          <p>El enlace puede haber cambiado o la información todavía no está publicada.</p>
-          <a class="boton" routerLink="/">Volver al inicio</a>
-        </section>
-      }
-      @case ('lista') {
-        <div class="portal-ancho titulo-pagina"><h1>{{ pagina()?.titulo }}</h1></div>
-        <app-cms-page-blocks [documento]="pagina()!.contenido" [csrf]="sitio()?.csrf ?? ''" [ruta]="rutaActual()" />
-      }
-    }
-  </main>
-
-  <footer class="pie">
-    <div class="portal-ancho pie__contenido">
-      <section aria-label="Datos de la institución">
-        <h2>{{ nombre() }}</h2>
-        @if (sitio()?.identidad; as identidad) {
-          <address>
-            @if (identidad.direccion) { <p>{{ identidad.direccion }}</p> }
-            @if (identidad.ciudad) { <p>{{ identidad.ciudad }}</p> }
-            @if (texto('correo_contacto') || identidad.correo; as correo) {
-              <p><a [href]="'mailto:' + correo">{{ correo }}</a></p>
-            }
-            @if (texto('telefono_contacto') || identidad.telefono; as telefono) {
-              <p><a [href]="'tel:' + telefono">{{ telefono }}</a></p>
-            }
-          </address>
-          @if (identidad.ruc) { <p>RUC: {{ identidad.ruc }}</p> }
         }
-      </section>
-      @if (redes().length) {
-        <nav aria-label="Redes de la institución">
-          @for (red of redes(); track $index) {
-            <a [href]="urlSegura(red.url)">{{ red.nombre }}</a>
-          }
-        </nav>
       }
-    </div>
-    <div class="portal-ancho pie__base">
-      <p>{{ texto('pie_legal') }}</p>
-      <a routerLink="/admin/login">Acceso al panel</a>
-    </div>
-  </footer>
+    </main>
+  </app-marco-portal>
 </div>

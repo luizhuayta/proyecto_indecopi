@@ -37,7 +37,7 @@ import type { SchemaField } from '../cms/cms-schema';
       }
     </div>
 
-    <ng-template #recurse let-fields let-prefix>
+    <ng-template #recurse let-fields let-prefix="prefix">
       @for (field of fields; track field.path) {
         @let fullPath = prefix + '.' + field.path;
         @switch (field.type) {

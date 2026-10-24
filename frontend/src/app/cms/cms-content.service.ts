@@ -9,6 +9,7 @@ import {
   ImageMeta,
   JsonMap,
   getByPath,
+  rutaInvalida,
   setByPath,
 } from './cms.models';
 import { BLOCK_CATALOG, makeBlock, pageBlocks } from './block-registry';
@@ -82,6 +83,12 @@ export class CmsContentService {
   }
 
   set(path: string, value: unknown, scope: 'page' | 'site' = 'page'): void {
+    // Una ruta mal formada escribiría una clave basura en el borrador y el
+    // autoguardado la persistiría. Se corta en seco.
+    if (rutaInvalida(path)) {
+      console.warn('[CMS] Se ignoró una escritura con ruta de campo inválida:', path);
+      return;
+    }
     const slug = this.currentSlug();
     const before = this.get(path, scope);
     if (Object.is(before, value) || JSON.stringify(before) === JSON.stringify(value)) {

@@ -203,6 +203,13 @@
   gap: var(--space-24, 1.5rem);
 }
 
+/* El botón se ajusta a su texto: estirado hasta el ancho de la columna se
+   leía como una barra, no como una acción. */
+.hero .boton,
+.page-hero .boton {
+  align-self: flex-start;
+}
+
 .hero__slide {
   display: grid;
   gap: var(--space-12, 0.75rem);
@@ -396,14 +403,14 @@
 
 .admin-btn--primario {
   background: var(--color-primario);
-  color: #fff;
+  color: var(--color-boton-texto, #fff);
   border-color: var(--color-primario);
 }
 
 .admin-btn--primario:hover {
   background: var(--color-primario-fuerte, var(--color-primario));
   border-color: var(--color-primario-fuerte, var(--color-primario));
-  color: #fff;
+  color: var(--color-boton-texto-hover, var(--color-boton-texto, #fff));
 }
 
 .admin-btn--fantasma {
@@ -555,7 +562,7 @@
   height: 2rem;
   border-radius: 999px;
   background: var(--color-primario);
-  color: #fff;
+  color: var(--color-boton-texto, #fff);
   font-weight: 600;
   border: 0;
   cursor: pointer;
@@ -648,4 +655,11 @@
     border-right: 0;
     border-bottom: 1px solid var(--color-borde);
   }
+}
+
+/* El placeholder por defecto del navegador no alcanza 4.5:1 sobre la
+   superficie: se usa el color de texto suave, que sí lo alcanza. */
+::placeholder {
+  color: var(--color-texto-suave);
+  opacity: 1;
 }
