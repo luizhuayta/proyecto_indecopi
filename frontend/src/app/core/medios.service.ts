@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { CmsApiService, MedioItem, RecortarMedioBody } from '../cms/cms-api.service';
+import { CmsApiService, MedioItem, MedioVersionItem, RecortarMedioBody } from '../cms/cms-api.service';
 
 /**
  * Estado de la biblioteca de medios del panel: lista, subida, recorte y
@@ -90,8 +90,37 @@ export class MediosService {
     }
   }
 
-  /** Texto alternativo de un medio ('' cuando no hay). */
-  altDe(item: MedioItem): string {
+  /**
+   * Historial de versiones (recortes y restauraciones) de un medio.
+   * Devuelve null si la consulta falla.
+   */
+  async versiones(id: number): Promise<MedioVersionItem[] | null> {
+    this.error.set('');
+    try {
+      return await this.api.listarVersionesMedio(id);
+    } catch {
+      this.error.set('No se pudo cargar el historial de versiones.');
+      return null;
+    }
+  }
+
+  /**
+   * Restaura una versión de un medio (la original si versionId es null) y
+   * devuelve la nueva URL del archivo. El estado local de la lista no cambia:
+   * la URL del medio sigue siendo la misma.
+   */
+  async restaurar(id: number, versionId: number | null): Promise<string | null> {
+    this.error.set('');
+    try {
+      const res = await this.api.restaurarVersionMedio(id, versionId);
+      return res.url;
+    } catch {
+      this.error.set('No se pudo restaurar la versión.');
+      return null;
+    }
+  }
+
+  /** Texto alternativo de un medio ('' cuando no hay). */  altDe(item: MedioItem): string {
     return (item.alt ?? '').trim();
   }
 

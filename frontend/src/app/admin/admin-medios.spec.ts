@@ -119,6 +119,87 @@ describe('AdminMedios', () => {
 
     expect(component.medios.items().length).toBe(0);
   });
+
+  it('muestra el historial de versiones del medio seleccionado', async () => {
+    fixture.detectChanges();
+    http
+      .expectOne(`${API_BASE}/medios`)
+      .flush({
+        items: [
+          { id: 1, nombre_original: 'foto.png', url: '/media/foto.png', mime: 'image/png', tamano: 2048 },
+        ],
+      });
+    await vi.waitFor(() => expect(component.medios.items().length).toBe(1));
+    fixture.detectChanges();
+    component.abrir(1);
+    fixture.detectChanges();
+
+    const promesa = component.alternarVersiones();
+    const req = http.expectOne((r) => r.url === `${API_BASE}/medios/1/versiones` && r.method === 'GET');
+    req.flush({
+      items: [
+        {
+          id: 9,
+          url: '/media/v9.png',
+          mime: 'image/png',
+          tamano: 1024,
+          ancho: 600,
+          alto: 400,
+          motivo: 'recorte',
+          creado_en: '2026-10-20T10:00:00+00:00',
+        },
+      ],
+    });
+    await promesa;
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.ficha__versiones');
+    expect(panel).not.toBeNull();
+    expect(panel.textContent).toContain('recorte');
+    expect(panel.textContent).toContain('600 × 400');
+  });
+
+  it('restaurar una version pide confirmacion, llama al servidor y recarga el historial', async () => {
+    fixture.detectChanges();
+    http
+      .expectOne(`${API_BASE}/medios`)
+      .flush({
+        items: [
+          { id: 1, nombre_original: 'foto.png', url: '/media/foto.png', mime: 'image/png', tamano: 2048 },
+        ],
+      });
+    await vi.waitFor(() => expect(component.medios.items().length).toBe(1));
+    fixture.detectChanges();
+    component.abrir(1);
+    fixture.detectChanges();
+
+    const abrirHistorial = component.alternarVersiones();
+    http.expectOne((r) => r.url === `${API_BASE}/medios/1/versiones`).flush({
+      items: [
+        { id: 9, url: '/media/v9.png', mime: 'image/png', tamano: 1024, ancho: null, alto: null, motivo: 'recorte', creado_en: null },
+      ],
+    });
+    await abrirHistorial;
+
+    // Sin confirmación no se llama al servidor.
+    const cancelado = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    await component.restaurarVersion(9);
+    http.expectNone((r) => r.url === `${API_BASE}/medios/1/restaurar`);
+    cancelado.mockRestore();
+
+    const aceptado = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const promesa = component.restaurarVersion(9);
+    const post = http.expectOne((r) => r.url === `${API_BASE}/medios/1/restaurar` && r.method === 'POST');
+    expect(post.request.body).toEqual({ versionId: 9 });
+    post.flush({ url: '/media/foto.png', id: 1 });
+    await new Promise((r) => setTimeout(r, 0));
+    http.expectOne((r) => r.url === `${API_BASE}/medios/1/versiones`).flush({ items: [] });
+    await promesa;
+    aceptado.mockRestore();
+
+    expect(component.status()).toBe('Versión restaurada.');
+    expect(component.versiones()).toEqual([]);
+  });
 });
 
 describe('cajaRecorteEnPixeles', () => {

@@ -79,6 +79,23 @@ export interface ListarMediosResponse {
   items: MedioItem[];
 }
 
+/** Versión archivada de un medio (cada recorte o restauración guarda la anterior). */
+export interface MedioVersionItem {
+  id: number;
+  url: string;
+  mime: string;
+  tamano: number;
+  ancho: number | null;
+  alto: number | null;
+  motivo: string;
+  creado_en?: string | null;
+}
+
+export interface RestaurarMedioResult {
+  url: string;
+  id: number;
+}
+
 /** Mensaje de contacto recibido desde el sitio público. */
 export interface MensajeItem {
   id: number;
@@ -323,6 +340,24 @@ export class CmsApiService {
   recortarMedio(body: RecortarMedioBody): Promise<RecortarMedioResult> {
     return firstValueFrom(
       this.http.post<RecortarMedioResult>(`${API_BASE}/medios/recortar`, body)
+    );
+  }
+
+  listarVersionesMedio(id: number): Promise<MedioVersionItem[]> {
+    return firstValueFrom(
+      this.http.get<{ items: MedioVersionItem[] }>(`${API_BASE}/medios/${id}/versiones`)
+    ).then((res) => res.items ?? []);
+  }
+
+  /**
+   * Restaura una versión de un medio. Sin `versionId` restaura el original.
+   * El archivo actual queda archivado como una versión más.
+   */
+  restaurarVersionMedio(id: number, versionId: number | null): Promise<RestaurarMedioResult> {
+    return firstValueFrom(
+      this.http.post<RestaurarMedioResult>(`${API_BASE}/medios/${id}/restaurar`, {
+        versionId,
+      })
     );
   }
 }

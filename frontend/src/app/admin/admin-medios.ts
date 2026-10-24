@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { MediosService } from '../core/medios.service';
 import { CmsContentService } from '../cms/cms-content.service';
-import { MedioItem } from '../cms/cms-api.service';
+import { MedioItem, MedioVersionItem } from '../cms/cms-api.service';
 
 interface CropCaja {
   x: number;
@@ -213,8 +213,54 @@ export function cajaRecorteEnPixeles(
           } @else {
             <div class="ficha__acciones">
               <button type="button" class="admin-btn" (click)="cropMode.set(true)">Recortar</button>
+              <button type="button" class="admin-btn" (click)="alternarVersiones()" [disabled]="cargandoVersiones()">
+                {{ cargandoVersiones() ? 'Cargando…' : versiones() !== null ? 'Cerrar versiones' : 'Versiones' }}
+              </button>
               <button type="button" class="admin-btn admin-btn--peligro" (click)="eliminar()">Eliminar</button>
             </div>
+          }
+
+          @if (versiones(); as lista) {
+            <section class="ficha__versiones" aria-label="Historial de versiones">
+              <h3 class="ficha__versiones-titulo">Historial</h3>
+              @if (lista.length === 0) {
+                <p class="admin-vacio">Este archivo aún no tiene versiones archivadas.</p>
+              } @else {
+                <ul class="ficha__versiones-lista">
+                  @for (v of lista; track v.id) {
+                    <li>
+                      <img [src]="v.url" alt="" loading="lazy" />
+                      <div class="ficha__versiones-datos">
+                        <span class="ficha__versiones-motivo">{{ v.motivo }}</span>
+                        @if (v.creado_en) {
+                          <span>{{ fecha(v.creado_en) }}</span>
+                        }
+                        @if (v.ancho && v.alto) {
+                          <span>{{ v.ancho }} × {{ v.alto }}</span>
+                        }
+                        <span>{{ peso(v.tamano) }}</span>
+                      </div>
+                      <button
+                        type="button"
+                        class="admin-btn"
+                        (click)="restaurarVersion(v.id)"
+                        [disabled]="restaurandoId() !== null"
+                      >
+                        {{ restaurandoId() === v.id ? 'Restaurando…' : 'Restaurar' }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              <button
+                type="button"
+                class="admin-btn"
+                (click)="restaurarVersion(null)"
+                [disabled]="restaurandoId() !== null"
+              >
+                {{ restaurandoId() === 0 ? 'Restaurando…' : 'Restaurar original' }}
+              </button>
+            </section>
           }
         } @else {
           <p class="admin-vacio">Selecciona una imagen para ver sus datos y acciones.</p>
@@ -390,6 +436,50 @@ export function cajaRecorteEnPixeles(
         display: flex;
         gap: var(--space-8, 0.5rem);
       }
+      .ficha__versiones {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-8, 0.5rem);
+        padding-top: var(--space-8, 0.5rem);
+        border-top: 1px solid var(--color-borde, #d8dee5);
+      }
+      .ficha__versiones-titulo {
+        margin: 0;
+        font-size: var(--texto-sm, 0.875rem);
+        font-weight: 600;
+      }
+      .ficha__versiones-lista {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-8, 0.5rem);
+      }
+      .ficha__versiones-lista li {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        align-items: center;
+        gap: var(--space-8, 0.5rem);
+      }
+      .ficha__versiones-lista img {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid var(--color-borde, #d8dee5);
+      }
+      .ficha__versiones-datos {
+        display: flex;
+        flex-direction: column;
+        font-size: var(--texto-sm, 0.875rem);
+        color: var(--color-texto-suave);
+      }
+      .ficha__versiones-motivo {
+        font-weight: 600;
+        color: var(--color-texto);
+        text-transform: capitalize;
+      }
       .admin-error {
         margin: 0;
         font-size: var(--texto-sm, 0.875rem);
@@ -470,6 +560,10 @@ export class AdminMedios implements OnInit, OnDestroy {
   readonly preview = signal<VistaPrevia | null>(null);
   readonly copiado = signal(false);
   readonly status = signal('');
+  /** Historial de versiones del medio seleccionado (null = vista cerrada). */
+  readonly versiones = signal<MedioVersionItem[] | null>(null);
+  readonly cargandoVersiones = signal(false);
+  readonly restaurandoId = signal<number | null>(null);
 
   readonly seleccionado = computed<MedioItem | null>(
     () => this.medios.items().find((m) => m.id === this.seleccionadoId()) ?? null,
@@ -546,6 +640,44 @@ export class AdminMedios implements OnInit, OnDestroy {
     this.cropMode.set(false);
     this.crop.set({ ...CROP_INICIAL });
     this.copiado.set(false);
+    this.versiones.set(null);
+  }
+
+  /** Abre (o cierra) el historial de versiones del medio seleccionado. */
+  async alternarVersiones(): Promise<void> {
+    const item = this.seleccionado();
+    if (!item || this.cargandoVersiones()) {
+      return;
+    }
+    if (this.versiones() !== null) {
+      this.versiones.set(null);
+      return;
+    }
+    this.cargandoVersiones.set(true);
+    const items = await this.medios.versiones(item.id);
+    this.cargandoVersiones.set(false);
+    this.versiones.set(items ?? []);
+  }
+
+  /** Restaura una versión (o el original si versionId es null) y recarga el historial. */
+  async restaurarVersion(versionId: number | null): Promise<void> {
+    const item = this.seleccionado();
+    if (!item || this.restaurandoId() !== null) {
+      return;
+    }
+    const etiqueta = versionId === null ? 'la versión original' : `la versión #${versionId}`;
+    if (!window.confirm(`¿Restaurar ${etiqueta}? La imagen actual quedará guardada en el historial.`)) {
+      return;
+    }
+    this.restaurandoId.set(versionId ?? 0);
+    const url = await this.medios.restaurar(item.id, versionId);
+    this.restaurandoId.set(null);
+    if (url === null) {
+      return;
+    }
+    this.status.set('Versión restaurada.');
+    const items = await this.medios.versiones(item.id);
+    this.versiones.set(items ?? []);
   }
 
   esPendiente(item: MedioItem): boolean {
