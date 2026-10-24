@@ -29,7 +29,7 @@ declare(strict_types=1);
  *     plantilla-php81 php API/pruebas/purgar_huerfanos.php [ejecutar]
  *
  * (Sustituye `plibre_almacen` por el volumen o carpeta del host donde esté el
- * almacén real; véase docs/CONTINUIDAD.md, apéndice «Entorno».)
+ * almacén real: debe coincidir con ALMACEN_DIR del archivo .env.)
  */
 
 require_once __DIR__ . '/../src/nucleo/configuracion.php';
