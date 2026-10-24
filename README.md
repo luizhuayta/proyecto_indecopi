@@ -53,11 +53,20 @@ docker run --rm --network plibre_default -v "$PWD":/app -w /app \
   -e DB_HOST=plantilla_mariadb -e DB_PORT=3306 \
   plantilla-php81 php API/pruebas/ejecutar.php
 
+# Atajo si el contenedor del API ya está corriendo:
+docker exec plantilla_portal_api php /app/API/pruebas/ejecutar.php
+# Ojo: ejecutar "php API/pruebas/ejecutar.php" directamente en el host omite
+# las pruebas de base de datos si el PHP local no tiene la extensión pdo_mysql.
+
 # Frontend (Vitest)
 cd frontend && npm test
 
 # Tipos
 cd frontend && npx tsc -p tsconfig.app.json --noEmit
+
+# Prueba de humo end-to-end contra el API en vivo (requiere BD y contenedor
+# del API levantados; CLAVE_ADMIN es la contraseña del usuario admin):
+CLAVE_ADMIN=... ./tools/humo-e2e.sh
 ```
 
 ## Estructura

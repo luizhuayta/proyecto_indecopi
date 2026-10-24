@@ -73,10 +73,21 @@ describe('PortalPublico', () => {
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
     http.expectOne((r) => r.url === '/api/publico/pagina').flush({}, { status: 500, statusText: 'Server Error' });
     harness.detectChanges();
-    expect(harness.routeNativeElement?.textContent).toContain('No se pudo cargar');
+    const texto = harness.routeNativeElement?.textContent ?? '';
+    expect(texto).toContain('No se pudo cargar');
+    expect(texto).toContain('El servidor no está disponible');
+    expect(texto).not.toContain('No hay conexión');
     harness.routeNativeElement?.querySelector<HTMLButtonElement>('main button')?.click();
     responderPagina('/estudios/oferta');
     expect(harness.routeNativeElement?.textContent).toContain('Contenido publicado de prueba');
+  });
+
+  it('un fallo de red (status 0) muestra el mensaje de conexión', async () => {
+    await harness.navigateByUrl('/estudios/oferta');
+    http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
+    http.expectOne((r) => r.url === '/api/publico/pagina').error(new ErrorEvent('sin red'));
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.textContent).toContain('No hay conexión con el servidor');
   });
 
   it('al navegar borra la página anterior y carga la ruta nueva', async () => {

@@ -45,7 +45,11 @@
       @case ('error') {
         <section class="portal-ancho estado" aria-labelledby="titulo-error">
           <h1 id="titulo-error">No se pudo cargar el sitio</h1>
-          <p>El servidor no está disponible. Revisa tu conexión e inténtalo de nuevo.</p>
+          @if (causaError() === 'red') {
+            <p>No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.</p>
+          } @else {
+            <p>El servidor no está disponible en este momento. Inténtalo de nuevo en unos minutos.</p>
+          }
           <button class="boton" type="button" (click)="reintentar()">Reintentar</button>
         </section>
       }

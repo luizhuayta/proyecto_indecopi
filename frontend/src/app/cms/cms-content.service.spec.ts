@@ -95,7 +95,7 @@ describe('CmsContentService', () => {
 
     await promesa;
     expect(service.dirty()).toBe(false);
-    expect(service.pages()['inicio'].titulo).toBe('Nuevo título');
+    expect(service.pages()['inicio']['titulo']).toBe('Nuevo título');
     expect(service.versions()['inicio']).toBe(2);
   });
 });
