@@ -39,8 +39,9 @@ export class PortalPublico {
   readonly rutaActual = signal('/');
 
   constructor() {
-    // El título depende de la página y del nombre de la institución, que puede
-    // llegar después: el efecto vuelve a ejecutarse cuando cambie cualquiera.
+    // El título y las etiquetas para compartir dependen de la página y del
+    // nombre de la institución, que puede llegar después: el efecto vuelve a
+    // ejecutarse cuando cambie cualquiera.
     effect(() => {
       const estado = this.estado();
       if (estado === 'cargando') {
@@ -50,8 +51,11 @@ export class PortalPublico {
         this.title.setTitle('No se pudo cargar el sitio');
         return;
       }
-      const titulo = this.pagina()?.titulo || 'Página no encontrada';
-      this.title.setTitle(`${titulo} | ${this.sitio.nombre()}`);
+      const pagina = this.pagina();
+      const titulo = pagina?.titulo || 'Página no encontrada';
+      const nombre = this.sitio.nombre();
+      this.title.setTitle(`${titulo} | ${nombre}`);
+      this.ponerEtiquetasSociales(titulo, pagina?.descripcion ?? '');
     });
 
     combineLatest([this.route.url, this.recarga]).pipe(
@@ -111,5 +115,71 @@ export class PortalPublico {
 
   reintentar(): void {
     this.recarga.next(this.recarga.value + 1);
+  }
+
+  /**
+   * Etiquetas para compartir: description, canonical y Open Graph.
+   *
+   * Un enlace del portal se comparte por WhatsApp o por correo, y quien lo
+   * abre no ve la página: ve lo que dicen estas etiquetas. Sin ellas, el
+   * enlace sale con el nombre de la plantilla y sin imagen.
+   */
+  private ponerEtiquetasSociales(titulo: string, descripcion: string): void {
+    const nombre = this.sitio.nombre();
+    const url = this.urlCanonica();
+    const texto = descripcion || `${titulo} — ${nombre}`;
+    const imagen = this.imagenParaCompartir();
+
+    this.meta.updateTag({ name: 'description', content: texto });
+    this.meta.updateTag({ property: 'og:site_name', content: nombre });
+    this.meta.updateTag({ property: 'og:type', content: 'website' });
+    this.meta.updateTag({ property: 'og:title', content: titulo });
+    this.meta.updateTag({ property: 'og:description', content: texto });
+    this.meta.updateTag({ property: 'og:url', content: url });
+    this.meta.updateTag({ property: 'og:locale', content: 'es_PE' });
+    this.meta.updateTag({ name: 'twitter:card', content: imagen ? 'summary_large_image' : 'summary' });
+    this.meta.updateTag({ name: 'twitter:title', content: titulo });
+    this.meta.updateTag({ name: 'twitter:description', content: texto });
+    if (imagen) {
+      this.meta.updateTag({ property: 'og:image', content: imagen });
+      this.meta.updateTag({ name: 'twitter:image', content: imagen });
+    }
+    // La URL canónica evita que dos rutas de la misma página se indexen dos
+    // veces. Se actualiza la etiqueta en vez de duplicarla.
+    let canonica = this.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonica) {
+      canonica = this.document.createElement('link');
+      canonica.setAttribute('rel', 'canonical');
+      this.document.head.appendChild(canonica);
+    }
+    canonica.setAttribute('href', url);
+  }
+
+  /** URL absoluta de la página actual, con la ruta que el visitante ve. */
+  private urlCanonica(): string {
+    const origen = this.document.location?.origin ?? '';
+    const ruta = this.rutaActual() || '/';
+    return `${origen}${ruta === '/' ? '/' : ruta.replace(/\/$/, '')}`;
+  }
+
+  /**
+   * Imagen para la vista previa al compartir. La institución publica su
+   * logo; si no hay, se usa la primera imagen de la propia página.
+   */
+  private imagenParaCompartir(): string {
+    const logo = this.sitio.urlSegura(this.sitio.texto('logo_url'));
+    if (logo) {
+      return this.urlAbsoluta(logo);
+    }
+    return '';
+  }
+
+  /** Convierte una ruta del sitio en una URL absoluta, como piden los rastreadores. */
+  private urlAbsoluta(url: string): string {
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    const origen = this.document.location?.origin ?? '';
+    return `${origen}${url.startsWith('/') ? url : '/' + url}`;
   }
 }

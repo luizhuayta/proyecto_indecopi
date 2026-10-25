@@ -34,7 +34,11 @@ function textoPlanoDeContenido(array $contenido): string
             return;
         }
         if (is_string($valor)) {
-            $limpio = trim(strip_tags(resolverTokens($valor)));
+            // Un salto de línea o un cierre de párrafo se convierte en un
+            // espacio: si no, dos frases quedan pegadas («…de gestión.La
+            // matrícula…») y el texto no sirve ni para el índice ni para la
+            // descripción del portal.
+            $limpio = trim(strip_tags(preg_replace('#</(?:p|div|li|h[1-6])>|<br\s*/?>#i', ' ', resolverTokens($valor)) ?? ''));
             if ($limpio !== '') {
                 $partes[] = $limpio;
             }

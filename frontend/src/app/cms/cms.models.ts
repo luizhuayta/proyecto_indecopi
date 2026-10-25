@@ -162,6 +162,8 @@ export interface CmsDocResponse {
   schemaVersion?: number;
   slug?: string;
   titulo?: string;
+  /** Descripción para la etiqueta meta description, derivada del contenido. */
+  descripcion?: string;
   ruta?: string;
   mostrar_en_menu?: boolean;
   orden_menu?: number;

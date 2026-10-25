@@ -194,6 +194,17 @@
   text-underline-offset: 0.18em;
 }
 
+/* El resaltado de la búsqueda usa el color de la institución, no el amarillo
+   por defecto del navegador: el término tiene que destacar sin gritar.
+   Va en la hoja global y no en el componente porque el <mark> lo inserta el
+   saneador de Angular y no lleva el atributo de encapsulación. */
+mark {
+  background: color-mix(in srgb, var(--color-primario) 18%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding-inline: 0.1em;
+}
+
 .embebido {
   position: relative;
   aspect-ratio: 16 / 9;

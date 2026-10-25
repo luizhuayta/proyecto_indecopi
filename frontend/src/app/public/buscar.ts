@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { API_BASE, LOCALE } from '../cms/cms.models';
 import { SitioPublicoService } from '../core/sitio-publico.service';
 import { MarcoPortal } from './marco-portal';
+import { resaltar } from './resaltado';
 
 /** Un resultado de la búsqueda pública (GET /publico/buscar). */
 export interface ResultadoBusqueda {
@@ -87,8 +88,10 @@ type EstadoBusqueda = 'inicial' | 'cargando' | 'lista' | 'sin-resultados' | 'err
                     <ol class="buscar__lista">
                       @for (r of resultados(); track r.ruta) {
                         <li class="buscar__resultado">
-                          <h2 class="buscar__subtitulo"><a [routerLink]="r.ruta">{{ r.titulo }}</a></h2>
-                          <p>{{ r.fragmento }}</p>
+                          <h2 class="buscar__subtitulo">
+                            <a [routerLink]="r.ruta" [innerHTML]="resaltado(r.titulo, consulta())"></a>
+                          </h2>
+                          <p [innerHTML]="resaltado(r.fragmento, consulta())"></p>
                         </li>
                       }
                     </ol>
@@ -175,6 +178,9 @@ export class Buscar implements OnInit {
   readonly error = signal('');
 
   texto = '';
+
+  /** Marca los términos buscados en el título y el fragmento de un resultado. */
+  readonly resaltado = resaltar;
 
   ngOnInit(): void {
     // La cabecera y el pie se llenan con lo que la institución tiene publicado.
