@@ -52,6 +52,41 @@ describe('renderBloque', () => {
     expect(html).toContain('Postular ahora');
   });
 
+  it('la portada con foto se parte en dos columnas', () => {
+    const block = makeBlock('pageHero', {
+      title: 'Formación profesional',
+      text: 'Programas técnicos y de formación.',
+      cta: 'Ver oferta',
+      ctaLink: '/oferta',
+      image: '/api/medios/310',
+      imageAlt: 'Fachada del edificio principal',
+    });
+    const html = renderBloque(block);
+    expect(html).toContain('class="page-hero__columna"');
+    expect(html).toContain('class="page-hero__imagen"');
+    expect(html).toContain('src="/api/medios/310"');
+    expect(html).toContain('alt="Fachada del edificio principal"');
+  });
+
+  it('la portada sin foto se queda en una sola columna', () => {
+    const block = makeBlock('pageHero', { title: 'Formación profesional' });
+    const html = renderBloque(block);
+    expect(html).not.toContain('page-hero__imagen');
+    expect(html).not.toContain('page-hero__columna');
+  });
+
+  it('la etiqueta de un bloque de programas no es un encabezado', () => {
+    const block = makeBlock('serviceCards', {
+      subtitle: 'Programas',
+      title: 'Qué puedes estudiar aquí',
+      cards: [{ title: 'Programas técnicos', text: 'Computación y administración.' }],
+    });
+    const html = renderBloque(block);
+    // Como h3 antes del h2 invertiría la jerarquía de la página.
+    expect(html).not.toContain('<h3>Programas</h3>');
+    expect(html).toContain('<h2>Qué puedes estudiar aquí</h2>');
+  });
+
   it('un bloque de tipo desconocido no rompe el render', () => {
     const block: CmsBlock = {
       id: 'x',

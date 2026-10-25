@@ -260,6 +260,31 @@ mark {
   max-width: 60ch;
 }
 
+/* Con foto, la portada se parte en dos columnas: el texto a la izquierda y
+   la imagen a la derecha. La foto es la mitad del mensaje de la portada, no
+   un adorno debajo del texto. */
+.page-hero:has(.page-hero__imagen) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-48, 3rem);
+  align-items: center;
+  max-width: none;
+}
+
+.page-hero__columna {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12, 0.75rem);
+}
+
+.page-hero__imagen img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--shadow-md);
+}
+
 .page-hero__texto {
   font-size: var(--texto-lg, 1.125rem);
   color: var(--color-texto-suave);
@@ -334,6 +359,15 @@ mark {
   display: flex;
   flex-direction: column;
   gap: var(--space-8, 0.5rem);
+}
+
+/* Las fotos de la galería y de las tarjetas se recortan a la misma
+   proporción: si cada una conserva la suya, la retícula se ve descuadrada. */
+.galeria img,
+.servicios .tarjeta img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
 }
 
 .galeria img {
@@ -899,6 +933,11 @@ mark {
   .admin-nav {
     border-right: 0;
     border-bottom: 1px solid var(--color-borde);
+  }
+  /* La portada se apila: en una columna, la foto va debajo del texto. */
+  .page-hero:has(.page-hero__imagen) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-24, 1.5rem);
   }
 }
 

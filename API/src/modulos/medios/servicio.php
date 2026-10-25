@@ -372,7 +372,7 @@ function listarMedios(): array
     exigirSesion();
     $items = array_map(
         static fn (array $fila): array => respuestaMedioDesdeFila($fila),
-        mediosTodosBd()
+        mediosOriginalesBd()
     );
     return ['items' => $items];
 }

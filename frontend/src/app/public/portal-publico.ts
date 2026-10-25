@@ -111,6 +111,14 @@ export class PortalPublico {
         .querySelector<HTMLLinkElement>('link[rel="icon"]')
         ?.setAttribute('href', favicon || '/favicon.ico');
     });
+
+    // La barra del navegador en móvil toma el color de la institución.
+    effect(() => {
+      const primario = this.sitio.texto('color_primario');
+      if (/^#(?:[a-f\d]{3}|[a-f\d]{6})$/i.test(primario)) {
+        this.meta.updateTag({ name: 'theme-color', content: primario });
+      }
+    });
   }
 
   reintentar(): void {

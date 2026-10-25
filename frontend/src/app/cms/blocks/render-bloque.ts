@@ -453,7 +453,14 @@ const pageHeroEspecial: RenderEspecial = (props, opts) => {
     ? `<p class="page-hero__texto">${escapeHtml((props['text'] as string).trim())}</p>`
     : '';
   const img = renderImagen(props, 'image', opts);
-  return `<div class="page-hero">${badge}${t}${textoHtml}${renderBotonCta(props)}${img}</div>`;
+  const boton = renderBotonCta(props);
+  // Con foto, la portada se parte en dos: el texto a un lado y la imagen al
+  // otro. Sin foto, el texto ocupa el ancho y ya está.
+  const interior = img
+    ? `<div class="page-hero__columna">${badge}${t}${textoHtml}${boton}</div>` +
+      `<div class="page-hero__imagen">${img}</div>`
+    : `${badge}${t}${textoHtml}${boton}`;
+  return `<div class="page-hero">${interior}</div>`;
 };
 
 const ctaEspecial: RenderEspecial = (props) => {
@@ -535,7 +542,9 @@ const teamEspecial: RenderEspecial = (props, opts) => {
 };
 
 const reasonsEspecial: RenderEspecial = (props, opts) => {
-  const subtitle = titulo(props['subtitle'], 3);
+  // La etiqueta es un antetítulo, no un encabezado: como h3 antes del h2
+  // invierte la jerarquía de la página.
+  const subtitle = etiqueta(props['subtitle']);
   const t = titulo(props['title']);
   const motivos = listaDe(props['items'])
     .map((i) => {
@@ -549,7 +558,9 @@ const reasonsEspecial: RenderEspecial = (props, opts) => {
 };
 
 const serviceCardsEspecial: RenderEspecial = (props, opts) => {
-  const subtitle = titulo(props['subtitle'], 3);
+  // La etiqueta es un antetítulo, no un encabezado: como h3 antes del h2
+  // invierte la jerarquía de la página.
+  const subtitle = etiqueta(props['subtitle']);
   const t = titulo(props['title']);
   const tarjetas = listaDe(props['cards'])
     .map((i) => {

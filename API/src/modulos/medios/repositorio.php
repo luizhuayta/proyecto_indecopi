@@ -110,6 +110,22 @@ function mediosTodosBd(): array
 }
 
 /**
+ * Medios originales: los que no son variantes ni recortes de otro.
+ *
+ * La biblioteca lista solo estos. Las variantes se guardan como filas hijas
+ * y se ofrecen dentro de su original, así que listarlas también hacía que
+ * cada foto apareciera tres veces en la rejilla.
+ */
+function mediosOriginalesBd(): array
+{
+    $stmt = conexion()->prepare(
+        'SELECT ' . columnasMedio() . ' FROM medios WHERE padre_id IS NULL ORDER BY id DESC'
+    );
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+/**
  * Medios cuyo padre es `$padreId` (variantes o recortes).
  */
 function mediosHijasBd(int $padreId): array
