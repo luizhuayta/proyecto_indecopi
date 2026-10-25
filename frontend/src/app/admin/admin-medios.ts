@@ -2,6 +2,8 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, 
 import { MediosService } from '../core/medios.service';
 import { CmsContentService } from '../cms/cms-content.service';
 import { MedioItem, MedioVersionItem } from '../cms/cms-api.service';
+import { DialogoService } from './dialogo.service';
+import { EstadoVacio } from './estado-vacio';
 
 interface CropCaja {
   x: number;
@@ -53,6 +55,7 @@ export function cajaRecorteEnPixeles(
 @Component({
   selector: 'app-admin-medios',
   standalone: true,
+  imports: [EstadoVacio],
   template: `
     <header>
       <h1 class="admin-titulo">Medios</h1>
@@ -104,7 +107,12 @@ export function cajaRecorteEnPixeles(
         @if (medios.loading()) {
           <p class="admin-vacio">Cargando los medios…</p>
         } @else if (medios.items().length === 0) {
-          <p class="admin-vacio">Aún no hay imágenes. Sube la primera para empezar.</p>
+          <!-- Sin botón: la zona de subida de arriba ya ofrece esa acción. -->
+          <app-estado-vacio
+            icono="imagenes"
+            titulo="Todavía no hay imágenes"
+            mensaje="Sube la primera imagen para empezar a usarla en las páginas del sitio."
+          />
         } @else {
           <ul class="miniaturas">
             @for (item of medios.items(); track item.id) {
@@ -224,7 +232,11 @@ export function cajaRecorteEnPixeles(
             <section class="ficha__versiones" aria-label="Historial de versiones">
               <h3 class="ficha__versiones-titulo">Historial</h3>
               @if (lista.length === 0) {
-                <p class="admin-vacio">Este archivo aún no tiene versiones archivadas.</p>
+                <app-estado-vacio
+                  icono="versiones"
+                  titulo="Sin versiones archivadas"
+                  mensaje="Cuando se recorte o reemplace esta imagen, las versiones anteriores se guardarán aquí."
+                />
               } @else {
                 <ul class="ficha__versiones-lista">
                   @for (v of lista; track v.id) {
@@ -263,7 +275,11 @@ export function cajaRecorteEnPixeles(
             </section>
           }
         } @else {
-          <p class="admin-vacio">Selecciona una imagen para ver sus datos y acciones.</p>
+          <app-estado-vacio
+            icono="imagenes"
+            titulo="Ninguna imagen seleccionada"
+            mensaje="Elige una imagen de la biblioteca para ver sus datos, recortarla o ver su historial."
+          />
         }
       </aside>
     </div>
@@ -560,6 +576,7 @@ export function cajaRecorteEnPixeles(
 export class AdminMedios implements OnInit, OnDestroy {
   medios = inject(MediosService);
   private cms = inject(CmsContentService);
+  private dialogo = inject(DialogoService);
 
   readonly seleccionadoId = signal<number | null>(null);
   readonly cropMode = signal(false);
@@ -674,7 +691,12 @@ export class AdminMedios implements OnInit, OnDestroy {
       return;
     }
     const etiqueta = versionId === null ? 'la versión original' : `la versión #${versionId}`;
-    if (!window.confirm(`¿Restaurar ${etiqueta}? La imagen actual quedará guardada en el historial.`)) {
+    const seguir = await this.dialogo.confirmar({
+      titulo: 'Restaurar esta versión',
+      mensaje: `Se restaurará ${etiqueta}. La imagen actual quedará guardada en el historial, así que nada se pierde.`,
+      textoConfirmar: 'Restaurar',
+    });
+    if (!seguir) {
       return;
     }
     this.restaurandoId.set(versionId ?? 0);
@@ -712,10 +734,15 @@ export class AdminMedios implements OnInit, OnDestroy {
       return;
     }
     const enUso = this.estaEnUso(item);
-    const mensaje = enUso
-      ? `Este archivo se usa en alguna página. ¿Eliminarlo de todos modos?`
-      : `¿Eliminar «${item.nombre_original}»? Esta acción no se puede deshacer.`;
-    if (!window.confirm(mensaje)) {
+    const seguir = await this.dialogo.confirmar({
+      titulo: enUso ? 'Eliminar un archivo en uso' : 'Eliminar este archivo',
+      mensaje: enUso
+        ? `«${item.nombre_original}» se usa en alguna página. Si lo eliminas, también desaparecerá de allí.`
+        : `«${item.nombre_original}» se eliminará del sitio. Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Eliminar',
+      peligro: true,
+    });
+    if (!seguir) {
       return;
     }
     try {

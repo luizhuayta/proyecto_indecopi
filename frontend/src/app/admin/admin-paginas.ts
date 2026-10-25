@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CmsContentService } from '../cms/cms-content.service';
 import { PAGE_TEMPLATES } from '../cms/block-registry';
+import { DialogoService } from './dialogo.service';
+import { EstadoVacio } from './estado-vacio';
 
 /**
  * Listado de páginas del sitio, con alta de página nueva y acciones para
@@ -11,7 +13,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
 @Component({
   selector: 'app-admin-paginas',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, EstadoVacio],
   template: `
     <header>
       <h1 class="admin-titulo">Páginas</h1>
@@ -22,6 +24,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
       <div class="admin-campo">
         <label for="nueva-titulo">Título de la página</label>
         <input
+          #nuevoTitulo
           id="nueva-titulo"
           class="admin-control"
           type="text"
@@ -53,7 +56,13 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
     }
 
     @if (cms.pageList().length === 0) {
-      <p class="admin-vacio">Aún no hay páginas. Crea la primera para empezar.</p>
+      <app-estado-vacio
+        icono="paginas"
+        titulo="Todavía no hay páginas"
+        mensaje="Crea la primera página y empieza a llenar el sitio con contenido."
+        textoAccion="Crear la primera página"
+        (accion)="enfocarAlta()"
+      />
     } @else {
       <table class="admin-tabla">
         <thead>
@@ -85,7 +94,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
                 <button
                   type="button"
                   class="admin-btn admin-btn--fantasma admin-btn--peligro"
-                  (click)="eliminar(pagina.slug)"
+                  (click)="eliminar(pagina.slug, pagina.titulo)"
                 >
                   Eliminar
                 </button>
@@ -150,7 +159,15 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
 })
 export class AdminPaginas implements OnInit {
   cms = inject(CmsContentService);
+  private dialogo = inject(DialogoService);
   private router = inject(Router);
+
+  @ViewChild('nuevoTitulo') private nuevoTitulo?: ElementRef<HTMLInputElement>;
+
+  /** El estado vacío ofrece crear la primera página: el foco va al campo. */
+  enfocarAlta(): void {
+    this.nuevoTitulo?.nativeElement.focus();
+  }
 
   readonly titulo = signal('');
   readonly plantilla = signal('blank');
@@ -194,8 +211,15 @@ export class AdminPaginas implements OnInit {
     }
   }
 
-  async eliminar(slug: string): Promise<void> {
-    if (!confirm('¿Eliminar esta página? Esta acción no se puede deshacer.')) {
+  async eliminar(slug: string, titulo = ''): Promise<void> {
+    const nombre = titulo || slug;
+    const seguir = await this.dialogo.confirmar({
+      titulo: 'Eliminar esta página',
+      mensaje: `«${nombre}» desaparecerá del sitio. Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Eliminar',
+      peligro: true,
+    });
+    if (!seguir) {
       return;
     }
     this.error.set('');

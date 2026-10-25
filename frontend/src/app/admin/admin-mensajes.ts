@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
+import { EstadoVacio } from './estado-vacio';
 
 /**
  * Bandeja de mensajes del panel: filtros por tipo y estado, lista con los
@@ -11,7 +12,7 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
 @Component({
   selector: 'app-admin-mensajes',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, EstadoVacio],
   template: `
     <header>
       <h1 class="admin-titulo">Mensajes</h1>
@@ -49,7 +50,13 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
     @if (cargando()) {
       <p class="admin-vacio">Cargando mensajes…</p>
     } @else if (mensajes().length === 0) {
-      <p class="admin-vacio">No hay mensajes con estos filtros.</p>
+      <app-estado-vacio
+        icono="mensajes"
+        titulo="No hay mensajes con estos filtros"
+        mensaje="Prueba con otra combinación, o limpia los filtros para ver todo lo que ha llegado."
+        textoAccion="Limpiar filtros"
+        (accion)="limpiarFiltros()"
+      />
     } @else {
       <table class="admin-tabla">
         <thead>
@@ -228,6 +235,13 @@ export class AdminMensajes implements OnInit {
   notificar = true;
 
   readonly total = computed(() => this.mensajes().length);
+
+  /** El estado vacío ofrece limpiar los filtros: vuelve a listar todo. */
+  limpiarFiltros(): void {
+    this.filtroTipo = '';
+    this.filtroEstado = '';
+    void this.cargar();
+  }
 
   ngOnInit(): void {
     this.cargar();

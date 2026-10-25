@@ -76,5 +76,8 @@ export function temaPublico(apariencia: JsonMap): Record<string, string> {
   Object.assign(tema, sombras(colores['color_primario']));
   tema['--color-boton-texto'] = contraste('#ffffff', colores['color_primario']) >= 4.5 ? '#ffffff' : '#000000';
   tema['--color-boton-texto-hover'] = contraste('#ffffff', colores['color_primario_fuerte']) >= 4.5 ? '#ffffff' : '#000000';
+  // El botón destructivo del diálogo va relleno con el color de aviso: el
+  // texto tiene que ser legible sobre él, no sobre el fondo de la página.
+  tema['--color-acento-texto'] = contraste('#ffffff', colores['color_acento']) >= 4.5 ? '#ffffff' : '#000000';
   return tema;
 }

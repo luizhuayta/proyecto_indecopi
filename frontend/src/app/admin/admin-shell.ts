@@ -7,6 +7,7 @@ import { CmsContentService } from '../cms/cms-content.service';
 import { CmsEditorService } from '../cms/cms-editor.service';
 import { buscarMarcadores } from '../cms/cms.models';
 import { SitioPublicoService } from '../core/sitio-publico.service';
+import { DialogoService } from './dialogo.service';
 
 /**
  * Marco del panel: navegación lateral, cabecera con las acciones Guardar y
@@ -99,6 +100,7 @@ export class AdminShell implements OnInit, OnDestroy {
   editor = inject(CmsEditorService);
   /** Apariencia publicada: el panel usa los mismos tokens que el sitio. */
   sitio = inject(SitioPublicoService);
+  private dialogo = inject(DialogoService);
   private router = inject(Router);
   private sub?: Subscription;
 
@@ -163,9 +165,11 @@ export class AdminShell implements OnInit, OnDestroy {
   async publish(): Promise<void> {
     const marcadores = buscarMarcadores(this.cms.activeContent());
     if (marcadores.length > 0) {
-      const seguir = confirm(
-        `Quedan marcadores sin sustituir: ${marcadores.length}. ¿Publicar de todos modos?`,
-      );
+      const seguir = await this.dialogo.confirmar({
+        titulo: 'Publicar con marcadores sin sustituir',
+        mensaje: `Quedan ${marcadores.length} ${marcadores.length === 1 ? 'marcador' : 'marcadores'} sin sustituir. Si publicas ahora, el texto del marcador se publicará tal cual.`,
+        textoConfirmar: 'Publicar de todos modos',
+      });
       if (!seguir) {
         return;
       }

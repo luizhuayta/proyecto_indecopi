@@ -5,6 +5,7 @@ import { CmsContentService } from '../cms/cms-content.service';
 import { CmsEditorService } from '../cms/cms-editor.service';
 import { BLOCK_CATALOG, blockLabel, pageBlocks } from '../cms/block-registry';
 import type { SchemaField } from '../cms/cms-schema';
+import { EstadoVacio } from './estado-vacio';
 
 /**
  * Panel de campos del bloque seleccionado. Muestra los campos que declara el
@@ -15,7 +16,7 @@ import type { SchemaField } from '../cms/cms-schema';
 @Component({
   selector: 'app-cms-inspector',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EstadoVacio],
   template: `
     <div class="inspector">
       @if (block(); as b) {
@@ -33,7 +34,11 @@ import type { SchemaField } from '../cms/cms-schema';
           [ngTemplateOutletContext]="{ $implicit: schema(), prefix: prefix() }"
         ></ng-container>
       } @else {
-        <p class="inspector__vacio">Selecciona un bloque de la vista previa para editar sus campos.</p>
+        <app-estado-vacio
+          icono="bloque"
+          titulo="Ningún bloque seleccionado"
+          mensaje="Haz clic en un bloque de la vista previa para editar sus campos aquí."
+        />
       }
     </div>
 
@@ -220,10 +225,6 @@ import type { SchemaField } from '../cms/cms-schema';
       .inspector__tipo {
         color: var(--color-texto-suave);
         font-size: var(--texto-sm, 0.875rem);
-        margin: 0;
-      }
-      .inspector__vacio {
-        color: var(--color-texto-suave);
         margin: 0;
       }
       .campo {

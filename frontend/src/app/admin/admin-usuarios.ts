@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../cms/auth.service';
 import { CmsApiService, UsuarioItem } from '../cms/cms-api.service';
+import { EstadoVacio } from './estado-vacio';
 
 /** Mensaje del servidor cuando rechaza una operación; si no hay, el genérico. */
 function mensajeDeError(err: unknown, porDefecto: string): string {
@@ -18,7 +19,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, EstadoVacio],
   template: `
     <header>
       <h1 class="admin-titulo">Usuarios</h1>
@@ -77,7 +78,11 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
     @if (cargando()) {
       <p class="admin-vacio">Cargando usuarios…</p>
     } @else if (usuarios().length === 0) {
-      <p class="admin-vacio">Todavía no hay usuarios.</p>
+      <app-estado-vacio
+        icono="usuarios"
+        titulo="Todavía no hay usuarios"
+        mensaje="Crea la primera cuenta para que alguien pueda entrar al panel y administrar el sitio."
+      />
     } @else {
       <table class="admin-tabla">
         <caption class="sr-only">Cuentas del panel</caption>

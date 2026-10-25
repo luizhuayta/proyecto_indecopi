@@ -12,6 +12,7 @@ import { CmsContentService } from '../cms/cms-content.service';
 import { CmsApiService } from '../cms/cms-api.service';
 import { CmsHistoryService } from '../cms/cms-history.service';
 import { API_BASE } from '../cms/cms.models';
+import { DialogoService } from './dialogo.service';
 
 getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
 
@@ -19,6 +20,7 @@ describe('AdminMedios', () => {
   let fixture: ComponentFixture<AdminMedios>;
   let component: AdminMedios;
   let http: HttpTestingController;
+  let dialogo: DialogoService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -33,6 +35,7 @@ describe('AdminMedios', () => {
       ],
     });
     http = TestBed.inject(HttpTestingController);
+    dialogo = TestBed.inject(DialogoService);
     fixture = TestBed.createComponent(AdminMedios);
     component = fixture.componentInstance;
   });
@@ -101,15 +104,18 @@ describe('AdminMedios', () => {
     fixture.detectChanges();
 
     // Sin confirmación: no se llama al servidor.
-    const cancelado = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const cancelado = vi.spyOn(dialogo, 'confirmar').mockResolvedValue(false);
     await component.eliminar();
     http.expectNone((r) => r.method === 'DELETE');
     expect(component.medios.items().length).toBe(1);
     cancelado.mockRestore();
 
     // Con confirmación: se elimina.
-    const aceptado = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const aceptado = vi.spyOn(dialogo, 'confirmar').mockResolvedValue(true);
     const promesa = component.eliminar();
+    // La confirmación se resuelve en una microtarea: el servidor se llama
+    // después de ese turno.
+    await new Promise((r) => setTimeout(r, 0));
     const del = http.expectOne(
       (r) => r.url === `${API_BASE}/medios/1` && r.method === 'DELETE',
     );
@@ -182,13 +188,14 @@ describe('AdminMedios', () => {
     await abrirHistorial;
 
     // Sin confirmación no se llama al servidor.
-    const cancelado = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const cancelado = vi.spyOn(dialogo, 'confirmar').mockResolvedValue(false);
     await component.restaurarVersion(9);
     http.expectNone((r) => r.url === `${API_BASE}/medios/1/restaurar`);
     cancelado.mockRestore();
 
-    const aceptado = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const aceptado = vi.spyOn(dialogo, 'confirmar').mockResolvedValue(true);
     const promesa = component.restaurarVersion(9);
+    await new Promise((r) => setTimeout(r, 0));
     const post = http.expectOne((r) => r.url === `${API_BASE}/medios/1/restaurar` && r.method === 'POST');
     expect(post.request.body).toEqual({ versionId: 9 });
     post.flush({ url: '/media/foto.png', id: 1 });
