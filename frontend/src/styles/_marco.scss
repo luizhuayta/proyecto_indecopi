@@ -159,6 +159,13 @@ app-marco-portal {
   background: var(--color-fondo);
   color: var(--color-texto);
   font: inherit;
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.busqueda-form__campo:focus-visible {
+  border-color: var(--color-primario);
 }
 
 .busqueda-form__boton {
@@ -170,6 +177,18 @@ app-marco-portal {
   color: var(--color-boton-texto, #fff);
   font: inherit;
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color var(--transicion),
+    border-color var(--transicion),
+    box-shadow var(--transicion);
+}
+
+.busqueda-form__boton:hover {
+  background: var(--color-primario-fuerte, var(--color-primario));
+  border-color: var(--color-primario-fuerte, var(--color-primario));
+  color: var(--color-boton-texto-hover, #fff);
+  box-shadow: var(--shadow-md);
 }
 
 .busqueda-cabecera .busqueda-form__campo {
@@ -300,6 +319,15 @@ address {
     background: var(--color-fondo);
     color: var(--color-texto);
     min-height: 44px;
+    box-shadow: var(--shadow-sm);
+    transition:
+      border-color var(--transicion),
+      box-shadow var(--transicion);
+  }
+
+  .menu-control:hover {
+    border-color: var(--color-primario);
+    box-shadow: var(--shadow-md);
   }
 
   .cabecera__acciones {

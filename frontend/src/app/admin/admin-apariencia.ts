@@ -357,6 +357,7 @@ const CAMPOS_COLOR: CampoColor[] = [
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-tarjeta, 6px);
         padding: var(--space-16, 1rem);
+        box-shadow: var(--shadow-sm);
       }
       .apariencia__seccion h2 {
         margin: 0;

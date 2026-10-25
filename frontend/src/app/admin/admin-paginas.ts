@@ -121,6 +121,7 @@ import { PAGE_TEMPLATES } from '../cms/block-registry';
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-tarjeta, 6px);
         background: var(--color-superficie);
+        box-shadow: var(--shadow-sm);
       }
       .admin-alta .admin-campo {
         flex: 1 1 12rem;

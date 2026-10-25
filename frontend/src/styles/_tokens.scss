@@ -56,8 +56,21 @@
   --radio-tarjeta: 18px; /* tarjetas, paneles y la banda destacada */
   --radio-boton: 999px; /* solo el botón principal: es el punto de más peso */
 
-  /* Una sola sombra, sutil, solo para elementos elevados de verdad. */
-  --shadow-md: 0 6px 18px rgba(13, 42, 80, 0.12), 0 2px 4px rgba(13, 42, 80, 0.06);
+  /* Sombras: escala corta de elevación. Van teñidas con el color de la
+     institución, para que no se vean grises sucias sobre superficies de
+     color. Tres niveles, no uno: lo que flota más, proyecta más.
+     Estos son los valores de reserva; los del color publicado los calcula
+     temaPublico() y llegan por estilo en línea. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-primario) 14%, transparent);
+  --shadow-md:
+    0 4px 12px -2px color-mix(in srgb, var(--color-primario) 18%, transparent),
+    0 1px 3px -1px color-mix(in srgb, var(--color-primario) 12%, transparent);
+  --shadow-lg:
+    0 14px 32px -8px color-mix(in srgb, var(--color-primario) 24%, transparent),
+    0 4px 10px -4px color-mix(in srgb, var(--color-primario) 14%, transparent);
+
+  /* Movimiento: una sola duración para todo lo que reacciona al puntero. */
+  --transicion: 180ms ease;
 }
 
 

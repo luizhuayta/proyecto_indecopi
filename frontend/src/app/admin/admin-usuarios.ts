@@ -165,6 +165,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-tarjeta);
         background: var(--color-superficie);
+        box-shadow: var(--shadow-sm);
       }
       .admin-form-alta {
         display: grid;

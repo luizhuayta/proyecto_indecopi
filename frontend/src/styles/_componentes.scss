@@ -61,12 +61,19 @@
   font-weight: 600;
   text-decoration: none;
   border: 1px solid var(--color-primario);
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color var(--transicion),
+    border-color var(--transicion),
+    box-shadow var(--transicion),
+    color var(--transicion);
 }
 
 .boton:hover {
   background: var(--color-primario-fuerte, var(--color-primario));
   border-color: var(--color-primario-fuerte, var(--color-primario));
   color: var(--color-boton-texto-hover, #fff);
+  box-shadow: var(--shadow-md);
 }
 
 .boton:focus-visible {
@@ -115,14 +122,23 @@
   background: var(--color-fondo);
   text-decoration: none;
   color: var(--color-texto);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transicion),
+    box-shadow var(--transicion),
+    border-color var(--transicion);
+}
+
+/* La tarjeta que lleva a otro sitio se levanta al pasar por encima: es la
+   única pista de que se puede pulsar. */
+.tarjeta--enlace:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primario);
+  box-shadow: var(--shadow-md);
 }
 
 .tarjeta h3 {
   margin: 0;
-}
-
-.tarjeta--enlace:hover {
-  border-color: var(--color-secundario);
 }
 
 .tarjeta img {
@@ -185,6 +201,7 @@
   overflow: hidden;
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-tarjeta);
+  box-shadow: var(--shadow-sm);
 }
 
 .embebido iframe {
@@ -246,11 +263,12 @@
   border: 1px solid var(--color-linea-suave);
   border-radius: var(--radio-tarjeta);
   background: var(--color-lavado);
+  box-shadow: var(--shadow-sm);
 }
 
 /* La banda: el bloque de más peso de la portada. Superficie y borde teñidos
    con el color de la institución, para que se lea como un aviso y no como
-   otra tarjeta más. */
+   otra tarjeta más. Es lo más alto de la jerarquía: por eso proyecta más. */
 .banda {
   display: flex;
   flex-direction: column;
@@ -260,6 +278,7 @@
   border: 1px solid var(--color-linea-suave);
   border-radius: var(--radio-tarjeta);
   background: var(--color-lavado);
+  box-shadow: var(--shadow-md);
 }
 
 .banda__etiqueta {
@@ -291,6 +310,7 @@
   border: 1px solid var(--color-linea-suave);
   border-radius: var(--radio-tarjeta);
   background: var(--color-lavado);
+  box-shadow: var(--shadow-sm);
 }
 
 .estadistica p {
@@ -359,6 +379,11 @@
   text-decoration: none;
   cursor: pointer;
   border: 1px solid transparent;
+  transition:
+    background-color var(--transicion),
+    border-color var(--transicion),
+    box-shadow var(--transicion),
+    color var(--transicion);
 }
 
 .public-btn:focus-visible {
@@ -370,21 +395,25 @@
   background: var(--color-primario);
   color: #fff;
   border-radius: var(--radio-boton);
+  box-shadow: var(--shadow-sm);
 }
 
 .public-btn--primario:hover {
   background: var(--color-primario-fuerte, var(--color-primario));
   color: #fff;
+  box-shadow: var(--shadow-md);
 }
 
 .public-btn--secundario {
   background: var(--color-superficie);
   color: var(--color-texto);
   border-color: var(--color-borde);
+  box-shadow: var(--shadow-sm);
 }
 
 .public-btn--secundario:hover {
   border-color: var(--color-secundario);
+  box-shadow: var(--shadow-md);
 }
 
 .public-btn--fantasma {
@@ -424,10 +453,17 @@
   color: var(--color-texto);
   font: inherit;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color var(--transicion),
+    border-color var(--transicion),
+    box-shadow var(--transicion),
+    color var(--transicion);
 }
 
 .admin-btn:hover {
   border-color: var(--color-secundario);
+  box-shadow: var(--shadow-md);
 }
 
 .admin-btn:focus-visible {
@@ -451,6 +487,7 @@
   background: var(--color-primario-fuerte, var(--color-primario));
   border-color: var(--color-primario-fuerte, var(--color-primario));
   color: var(--color-boton-texto-hover, var(--color-boton-texto, #fff));
+  box-shadow: var(--shadow-md);
 }
 
 .admin-btn--fantasma {
@@ -469,6 +506,9 @@
   background: var(--color-superficie);
   color: var(--color-texto);
   font: inherit;
+  transition:
+    border-color var(--transicion),
+    background-color var(--transicion);
 }
 
 .admin-control:focus-visible {
@@ -543,6 +583,9 @@
   border-radius: var(--radio-campo);
   text-decoration: none;
   color: var(--color-texto);
+  transition:
+    background-color var(--transicion),
+    color var(--transicion);
 }
 
 .admin-nav a:hover {
@@ -657,7 +700,7 @@
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-tarjeta);
   background: var(--color-superficie);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .login__titulo {
@@ -681,6 +724,12 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  /* Sin movimiento: la sombra sigue diciendo qué está por encima de qué,
+     pero nada se desplaza bajo el puntero. */
+  .tarjeta--enlace:hover {
+    transform: none;
   }
 }
 

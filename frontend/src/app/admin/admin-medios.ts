@@ -372,9 +372,16 @@ export function cajaRecorteEnPixeles(
         font: inherit;
         color: var(--color-texto);
         width: 100%;
+        box-shadow: var(--shadow-sm);
+        transition:
+          border-color var(--transicion),
+          box-shadow var(--transicion),
+          transform var(--transicion);
       }
       .miniatura:hover {
         border-color: var(--color-secundario);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
       }
       .miniatura--seleccionada {
         outline: 2px solid var(--color-primario);
@@ -404,6 +411,7 @@ export function cajaRecorteEnPixeles(
         border-radius: var(--radio-tarjeta, 6px);
         padding: var(--space-16, 1rem);
         background: var(--color-superficie);
+        box-shadow: var(--shadow-sm);
       }
       .ficha__imagen {
         border-radius: var(--radio-campo, 4px);

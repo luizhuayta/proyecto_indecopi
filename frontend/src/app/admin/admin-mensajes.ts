@@ -165,6 +165,7 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-tarjeta);
         background: var(--color-superficie);
+        box-shadow: var(--shadow-sm);
       }
       .admin-datos {
         display: grid;

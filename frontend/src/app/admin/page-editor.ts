@@ -168,6 +168,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
         border-radius: var(--radio-tarjeta, 6px);
         overflow: auto;
         min-height: 20rem;
+        box-shadow: var(--shadow-sm);
       }
       .editor__preview-inner {
         margin: 0 auto;
@@ -178,6 +179,7 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
         border-radius: var(--radio-tarjeta, 6px);
         padding: var(--space-16, 1rem);
         background: var(--color-superficie);
+        box-shadow: var(--shadow-sm);
       }
       .admin-btn {
         border: 1px solid var(--color-borde);

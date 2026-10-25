@@ -13,6 +13,25 @@ export const FONTS_DEFECTO: Record<string, string> = {
   tipografia_cuerpo: "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
 };
 
+/**
+ * Escala de elevación: tres niveles de sombra, teñidos con el color que publica
+ * la institución, para que no se vean grises sucias sobre una superficie de
+ * color.
+ *
+ * Van aquí y no en el CSS por el mismo motivo que --color-lavado: dentro de
+ * una custom property, un var(--color-primario) se resuelve donde se declara
+ * (en :root, con el color por defecto), no donde se usa.
+ */
+function sombras(primario: string): Record<string, string> {
+  const tinte = (porcentaje: number): string =>
+    `color-mix(in srgb, ${primario} ${porcentaje}%, transparent)`;
+  return {
+    '--shadow-sm': `0 1px 2px ${tinte(14)}`,
+    '--shadow-md': `0 4px 12px -2px ${tinte(18)}, 0 1px 3px -1px ${tinte(12)}`,
+    '--shadow-lg': `0 14px 32px -8px ${tinte(24)}, 0 4px 10px -4px ${tinte(14)}`,
+  };
+}
+
 export function temaPublico(apariencia: JsonMap): Record<string, string> {
   const colores = { ...COLORES_DEFECTO };
   for (const clave of Object.keys(colores)) {
@@ -54,6 +73,7 @@ export function temaPublico(apariencia: JsonMap): Record<string, string> {
     `color-mix(in srgb, ${colores['color_primario']} 7%, ${colores['color_fondo']})`;
   tema['--color-linea-suave'] =
     `color-mix(in srgb, ${colores['color_primario']} 14%, ${colores['color_fondo']})`;
+  Object.assign(tema, sombras(colores['color_primario']));
   tema['--color-boton-texto'] = contraste('#ffffff', colores['color_primario']) >= 4.5 ? '#ffffff' : '#000000';
   tema['--color-boton-texto-hover'] = contraste('#ffffff', colores['color_primario_fuerte']) >= 4.5 ? '#ffffff' : '#000000';
   return tema;
