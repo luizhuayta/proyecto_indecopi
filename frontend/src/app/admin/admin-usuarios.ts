@@ -163,7 +163,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
       .admin-alta {
         padding: 1.25rem;
         border: 1px solid var(--color-borde);
-        border-radius: 6px;
+        border-radius: var(--radio-tarjeta);
         background: var(--color-superficie);
       }
       .admin-form-alta {
@@ -186,7 +186,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
         margin-left: 0.35rem;
         padding: 0.15rem 0.5rem;
         border: 1px solid var(--color-borde);
-        border-radius: 3px;
+        border-radius: var(--radio-campo);
         font-size: 0.875rem;
         font-weight: 400;
       }

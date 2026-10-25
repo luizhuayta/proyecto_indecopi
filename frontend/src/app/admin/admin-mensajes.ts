@@ -163,7 +163,7 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
         margin-top: 2rem;
         padding: 1.5rem;
         border: 1px solid var(--color-borde);
-        border-radius: 6px;
+        border-radius: var(--radio-tarjeta);
         background: var(--color-superficie);
       }
       .admin-datos {
@@ -195,7 +195,7 @@ import { CmsApiService, MensajeItem } from '../cms/cms-api.service';
       .admin-etiqueta {
         padding: 0.15rem 0.5rem;
         border: 1px solid var(--color-borde);
-        border-radius: 3px;
+        border-radius: var(--radio-campo);
         font-size: 0.875rem;
       }
       .admin-etiqueta--ok {

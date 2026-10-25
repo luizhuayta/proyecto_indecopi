@@ -23,6 +23,11 @@
   --color-borde: #d8dee5; /* bordes y separadores */
   --color-borde-control: #5a6b80; /* borde de campos: 5.04:1, siempre >= 3:1 */
 
+  /* Superficies suaves. Se derivan del color que publica la institución, así
+     que siguen al color elegido sin que nadie tenga que recalcular nada. */
+  --color-lavado: color-mix(in srgb, var(--color-primario) 7%, var(--color-fondo));
+  --color-linea-suave: color-mix(in srgb, var(--color-primario) 14%, var(--color-fondo));
+
   /* Tipografía: display serif (Source Serif 4) y cuerpo (IBM Plex Sans). */
   --font-titulos: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-cuerpo: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -46,17 +51,12 @@
   --space-48: 48px;
   --space-64: 64px;
 
-  /* Radios por jerarquía (no un radio único) */
-  --radio-campo: 4px; /* campos y botones */
-  --radio-tarjeta: 6px; /* tarjetas */
-  --radio-avatar: 999px; /* solo la foto de persona */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* Radios por jerarquía (no un radio único en todo) */
+  --radio-campo: 10px; /* campos y botones secundarios */
+  --radio-tarjeta: 18px; /* tarjetas, paneles y la banda destacada */
+  --radio-boton: 999px; /* solo el botón principal: es el punto de más peso */
 
-  /* Sombras: una sola, sutil, solo para elementos elevados. */
-  --shadow-sm: 0 1px 2px rgba(13, 42, 80, 0.08);
+  /* Una sola sombra, sutil, solo para elementos elevados de verdad. */
   --shadow-md: 0 6px 18px rgba(13, 42, 80, 0.12), 0 2px 4px rgba(13, 42, 80, 0.06);
 }
 

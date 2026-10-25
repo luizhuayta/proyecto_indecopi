@@ -29,6 +29,7 @@ const TIPOS_CON_PLANTILLA = new Set([
   'hero',
   'pageHero',
   'cta',
+  'admision',
   'stats',
   'gallery',
   'map',
@@ -461,6 +462,23 @@ const ctaEspecial: RenderEspecial = (props) => {
   return `<div class="cta">${t}${textoHtml}${renderBotonCta(props)}</div>`;
 };
 
+/**
+ * Banda de admisión: lo que más pesa en la portada. Anuncia el proceso
+ * abierto con la fecha que importa y la acción para participar. Se tiñe con el
+ * color de la institución, de modo que se distingue del resto sin inventar
+ * un color propio.
+ */
+const admisionEspecial: RenderEspecial = (props) => {
+  const etiqueta = texto(props, 'label');
+  const cuerpo = [
+    etiqueta ? `<p class="banda__etiqueta">${escapeHtml(etiqueta.trim())}</p>` : '',
+    titulo(texto(props, 'fecha'), 2),
+    parrafo(props['text']),
+    renderBotonCta(props),
+  ].join('');
+  return `<div class="banda">${cuerpo}</div>`;
+};
+
 const statsEspecial: RenderEspecial = (props) => {
   const items = listaDe(props['items'])
     .map((i) => {
@@ -570,6 +588,7 @@ const PLANTILLAS_ESPECIFICAS: Record<string, RenderEspecial> = {
   hero: heroEspecial,
   pageHero: pageHeroEspecial,
   cta: ctaEspecial,
+  admision: admisionEspecial,
   stats: statsEspecial,
   gallery: galleryEspecial,
   map: mapEspecial,

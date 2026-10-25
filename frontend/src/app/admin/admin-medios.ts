@@ -466,7 +466,7 @@ export function cajaRecorteEnPixeles(
         width: 48px;
         height: 48px;
         object-fit: cover;
-        border-radius: 4px;
+        border-radius: var(--radio-campo);
         border: 1px solid var(--color-borde, #d8dee5);
       }
       .ficha__versiones-datos {

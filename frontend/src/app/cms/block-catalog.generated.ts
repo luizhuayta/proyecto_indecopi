@@ -553,6 +553,47 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       "text": ""
     }
   },
+  "admision": {
+    "type": "admision",
+    "label": "Banda de admisión",
+    "icon": "bi-calendar-event",
+    "category": "Portada",
+    "description": "Anuncia un proceso abierto: la fecha que importa y la acción para participar.",
+    "schema": [
+      {
+        "path": "label",
+        "type": "text",
+        "label": "Encabezado"
+      },
+      {
+        "path": "fecha",
+        "type": "text",
+        "label": "Fecha clave"
+      },
+      {
+        "path": "text",
+        "type": "area",
+        "label": "Texto"
+      },
+      {
+        "path": "button",
+        "type": "text",
+        "label": "Botón"
+      },
+      {
+        "path": "link",
+        "type": "link",
+        "label": "Enlace"
+      }
+    ],
+    "defaults": {
+      "label": "Proceso de admisión 2026",
+      "fecha": "Cierre de postulación: 15 de diciembre",
+      "text": "Presenta tu postulación en línea y recibe la confirmación al instante.",
+      "button": "Postular ahora",
+      "link": "/admision"
+    }
+  },
   "serviceCards": {
     "type": "serviceCards",
     "label": "Listado con enlaces",

@@ -2,9 +2,10 @@
 """Siembra el contenido de demostración del portal.
 
 Añade el formulario de contacto a la página /contacto, crea la página del
-Libro de Reclamaciones con su formulario y reindexa la búsqueda.
+Libro de Reclamaciones con su formulario, coloca la banda de admisión en la
+portada y reindexa la búsqueda.
 
-Uso:  python3 tools/sembrar-contacto.py
+Uso:  python3 tools/sembrar-demo.py
 Variables de entorno opcionales: API, USUARIO, CLAVE.
 """
 
@@ -164,7 +165,29 @@ def main() -> None:
     )
     print("· libro-de-reclamaciones publicado")
 
-    # --- 3. Reindexar la búsqueda ---------------------------------------------
+    # --- 3. Banda de admisión en la portada ----------------------------------
+    documento = pedir("GET", "/paginas/inicio")
+    contenido = documento.get("contenido") or {}
+    bloques = contenido.get("blocks") or []
+    if not any(b.get("type") == "admision" for b in bloques):
+        bloques.insert(
+            min(1, len(bloques)),
+            bloque("admision", "admision-1", {
+                    "label": "Proceso de admisión 2026",
+                    "fecha": "Cierre de postulación: 15 de diciembre",
+                    "text": (
+                        "Presenta tu postulación en línea y recibe la "
+                        "confirmación al instante."
+                    ),
+                    "button": "Postular ahora",
+                    "link": "/admision",
+            }),
+        )
+        contenido["blocks"] = bloques
+    guardar_y_publicar("inicio", contenido, documento.get("version", 1), token)
+    print("· /inicio: banda de admisión publicada")
+
+    # --- 4. Reindexar la búsqueda ---------------------------------------------
     os.system(
         "docker run --rm --network plibre_default -v \"$PWD\":/app -w /app "
         "-e DB_HOST=plantilla_mariadb -e DB_PORT=3306 "

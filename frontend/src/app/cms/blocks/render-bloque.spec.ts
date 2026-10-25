@@ -36,6 +36,22 @@ describe('renderBloque', () => {
     expect(html).toContain('{{institucion.nombre}}');
   });
 
+  it('la banda de admision muestra el encabezado, la fecha y la accion', () => {
+    const block = makeBlock('admision', {
+      label: 'Proceso de admisión 2026',
+      fecha: 'Cierre de postulación: 15 de diciembre',
+      text: 'Presenta tu postulación en línea.',
+      button: 'Postular ahora',
+      link: '/admision',
+    });
+    const html = renderBloque(block);
+    expect(html).toContain('class="banda"');
+    expect(html).toContain('Proceso de admisión 2026');
+    expect(html).toContain('<h2>Cierre de postulación: 15 de diciembre</h2>');
+    expect(html).toContain('href="/admision"');
+    expect(html).toContain('Postular ahora');
+  });
+
   it('un bloque de tipo desconocido no rompe el render', () => {
     const block: CmsBlock = {
       id: 'x',

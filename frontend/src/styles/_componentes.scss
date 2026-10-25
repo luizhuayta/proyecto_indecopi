@@ -50,10 +50,12 @@
    2. Botones y enlaces
    -------------------------------------------------------- */
 
+/* El botón principal es el punto de más peso de la página: por eso es
+   píldora. Los secundarios usan el radio de campo, para que no compitan. */
 .boton {
   display: inline-block;
   padding: 0.6rem 1.25rem;
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-boton);
   background: var(--color-primario);
   color: var(--color-boton-texto, #fff);
   font-weight: 600;
@@ -108,8 +110,8 @@
   flex-direction: column;
   gap: var(--space-8, 0.5rem);
   padding: var(--space-16, 1rem);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta, 6px);
+  border: 1px solid var(--color-linea-suave);
+  border-radius: var(--radio-tarjeta);
   background: var(--color-fondo);
   text-decoration: none;
   color: var(--color-texto);
@@ -124,7 +126,7 @@
 }
 
 .tarjeta img {
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-campo);
 }
 
 .lista {
@@ -182,7 +184,7 @@
   margin-block: var(--space-16, 1rem);
   overflow: hidden;
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta, 6px);
+  border-radius: var(--radio-tarjeta);
 }
 
 .embebido iframe {
@@ -216,7 +218,7 @@
 }
 
 .hero__slide img {
-  border-radius: var(--radio-tarjeta, 6px);
+  border-radius: var(--radio-tarjeta);
 }
 
 .hero__subtitulo {
@@ -241,9 +243,44 @@
   gap: var(--space-12, 0.75rem);
   align-items: flex-start;
   padding: var(--space-24, 1.5rem);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta, 6px);
-  background: var(--color-superficie);
+  border: 1px solid var(--color-linea-suave);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-lavado);
+}
+
+/* La banda: el bloque de más peso de la portada. Superficie y borde teñidos
+   con el color de la institución, para que se lea como un aviso y no como
+   otra tarjeta más. */
+.banda {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12, 0.75rem);
+  padding: var(--space-24, 1.5rem) var(--space-32, 2rem);
+  border: 1px solid var(--color-linea-suave);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-lavado);
+}
+
+.banda__etiqueta {
+  margin: 0;
+  font-size: var(--texto-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--color-primario);
+}
+
+.banda h2 {
+  font-size: var(--texto-2xl, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+.banda p {
+  margin: 0;
+  max-width: 60ch;
 }
 
 .estadistica {
@@ -251,8 +288,9 @@
   flex-direction: column;
   gap: var(--space-4, 0.25rem);
   padding: var(--space-16, 1rem);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta, 6px);
+  border: 1px solid var(--color-linea-suave);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-lavado);
 }
 
 .estadistica p {
@@ -268,7 +306,7 @@
 }
 
 .galeria img {
-  border-radius: var(--radio-tarjeta, 6px);
+  border-radius: var(--radio-tarjeta);
 }
 
 .galeria figcaption {
@@ -315,7 +353,7 @@
   justify-content: center;
   gap: var(--space-8, 0.5rem);
   padding: 0.6rem 1.25rem;
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-campo);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
@@ -331,6 +369,7 @@
 .public-btn--primario {
   background: var(--color-primario);
   color: #fff;
+  border-radius: var(--radio-boton);
 }
 
 .public-btn--primario:hover {
@@ -380,7 +419,7 @@
   gap: var(--space-8, 0.5rem);
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-campo);
   background: var(--color-superficie);
   color: var(--color-texto);
   font: inherit;
@@ -405,6 +444,7 @@
   background: var(--color-primario);
   color: var(--color-boton-texto, #fff);
   border-color: var(--color-primario);
+  border-radius: var(--radio-boton);
 }
 
 .admin-btn--primario:hover {
@@ -424,8 +464,8 @@
 .admin-control {
   width: 100%;
   padding: 0.5rem 0.625rem;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-campo, 4px);
+  border: 1px solid var(--color-borde-control);
+  border-radius: var(--radio-campo);
   background: var(--color-superficie);
   color: var(--color-texto);
   font: inherit;
@@ -448,7 +488,7 @@
 
 .admin-banner {
   padding: var(--space-8, 0.5rem) var(--space-16, 1rem);
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-campo);
   font-size: var(--texto-sm, 0.875rem);
 }
 
@@ -500,7 +540,7 @@
 .admin-nav__pronto {
   display: block;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radio-campo, 4px);
+  border-radius: var(--radio-campo);
   text-decoration: none;
   color: var(--color-texto);
 }
@@ -615,7 +655,7 @@
   gap: var(--space-16, 1rem);
   padding: var(--space-24, 1.5rem);
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta, 6px);
+  border-radius: var(--radio-tarjeta);
   background: var(--color-superficie);
   box-shadow: var(--shadow-md);
 }

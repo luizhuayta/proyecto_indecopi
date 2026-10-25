@@ -47,6 +47,13 @@ export function temaPublico(apariencia: JsonMap): Record<string, string> {
   }
   tema['--color-marca'] = marca;
   tema['--color-primario-suave'] = colores['color_primario_fuerte'];
+  // Las superficies suaves se teñen con el color publicado. Van aquí y no en
+  // el CSS porque, dentro de una custom property, un var(--color-primario) se
+  // resuelve donde se declara: en :root, con el color por defecto.
+  tema['--color-lavado'] =
+    `color-mix(in srgb, ${colores['color_primario']} 7%, ${colores['color_fondo']})`;
+  tema['--color-linea-suave'] =
+    `color-mix(in srgb, ${colores['color_primario']} 14%, ${colores['color_fondo']})`;
   tema['--color-boton-texto'] = contraste('#ffffff', colores['color_primario']) >= 4.5 ? '#ffffff' : '#000000';
   tema['--color-boton-texto-hover'] = contraste('#ffffff', colores['color_primario_fuerte']) >= 4.5 ? '#ffffff' : '#000000';
   return tema;
