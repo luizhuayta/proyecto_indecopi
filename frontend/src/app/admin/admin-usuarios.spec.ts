@@ -136,4 +136,40 @@ describe('AdminUsuarios', () => {
 
     expect(harness.routeNativeElement!.textContent).toContain('Desactivada');
   });
+
+  it('el selector de rol ofrece Secretaría y la envía al crear la cuenta', async () => {
+    const el: HTMLElement = harness.routeNativeElement!;
+    const opciones = [...el.querySelectorAll<HTMLOptionElement>('#nuevo-rol option')].map(
+      (o) => [o.value, o.textContent!.trim()],
+    );
+    expect(opciones).toEqual([
+      ['editor', 'Editor'],
+      ['admin', 'Administrador'],
+      ['secretaria', 'Secretaría'],
+    ]);
+    // El selector por usuario también la ofrece.
+    expect(
+      el.querySelector<HTMLOptionElement>('#rol-2 option[value="secretaria"]')!.textContent,
+    ).toContain('Secretaría');
+
+    escribir('#nuevo-usuario', 'secre');
+    escribir('#nuevo-contrasena', 'clave-segura');
+    const rol = el.querySelector<HTMLSelectElement>('#nuevo-rol')!;
+    rol.value = 'secretaria';
+    rol.dispatchEvent(new Event('change'));
+    harness.detectChanges();
+
+    el.querySelector<HTMLFormElement>('.admin-form-alta')!.dispatchEvent(new Event('submit'));
+
+    const req = http.expectOne((r) => r.url === '/api/auth/usuarios' && r.method === 'POST');
+    expect(req.request.body).toEqual({
+      usuario: 'secre',
+      contrasena: 'clave-segura',
+      rol: 'secretaria',
+    });
+    req.flush({ ok: true, item: { id: 3, usuario: 'secre', rol: 'secretaria', activo: true } });
+    await recargar();
+
+    expect(el.textContent).toContain('Usuario secre creado');
+  });
 });

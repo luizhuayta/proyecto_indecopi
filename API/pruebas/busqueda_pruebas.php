@@ -70,3 +70,34 @@ probar('la busqueda limita los resultados', function () {
     $r = buscar('', 'es', 3);
     afirmar(count($r) <= 3, 'debe respetar el límite');
 });
+
+probar('cambiar ruta o titulo actualiza el indice y borrar la pagina lo limpia', function () {
+    $pdo = conexion();
+    $pdo->beginTransaction();
+    try {
+        $admin = usuarioAdminPaginas();
+        fijarSesionDePrueba($admin);
+        $slug = 'meta-busca-' . bin2hex(random_bytes(4));
+        $rutaVieja = '/' . $slug;
+        $rutaNueva = '/nueva-' . $slug;
+        crearPagina(['titulo' => 'Título viejo', 'slug' => $slug, 'ruta' => $rutaVieja], $admin);
+        guardarBorrador($slug, 'es', contenidoPrueba('texto unico de busqueda'), 1);
+        publicarPagina($slug, 'es', 2);
+
+        $antes = array_column(buscar('texto unico de busqueda', 'es'), 'ruta');
+        afirmar(in_array($rutaVieja, $antes, true), 'debe encontrar la ruta publicada');
+
+        actualizarMetaPagina($slug, ['titulo' => 'Título nuevo', 'ruta' => $rutaNueva]);
+
+        $despues = buscar('texto unico de busqueda', 'es');
+        $rutas = array_column($despues, 'ruta');
+        afirmar(!in_array($rutaVieja, $rutas, true), 'la ruta vieja debe salir del índice');
+        afirmar(in_array($rutaNueva, $rutas, true), 'la ruta nueva debe entrar al índice');
+        afirmar(($despues[0]['titulo'] ?? '') === 'Título nuevo', 'el título debe actualizarse');
+
+        eliminarPagina($slug);
+        afirmar(count(buscar('texto unico de busqueda', 'es')) === 0, 'al borrar no debe quedar nada');
+    } finally {
+        $pdo->rollBack();
+    }
+});

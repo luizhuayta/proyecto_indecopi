@@ -1,0 +1,61 @@
+<section class="hero">
+  <div class="hero-slides">
+    @for (img of heroImages(); track img.src; let i = $index) {
+      @if (i === 0 || primeraResuelta()) {
+        <img
+          [appSrc]="img.src"
+          [alt]="img.alt"
+          class="hero-bg"
+          [class.active]="i === currentHeroIndex()"
+          loading="eager"
+          decoding="async"
+          [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+          (load)="imagenCargada(img.src)"
+          (error)="imagenFallida(img.src)"
+        />
+      }
+    }
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="hero-stage">
+    <div class="hero-content">
+      <h1>{{ info().legalCategory }}</h1>
+      <p>{{ info().tagline }}</p>
+    </div>
+
+    <div class="buttons-section">
+      <div class="buttons-container">
+        <a routerLink="/programas" class="btn-card carreras">
+          <div class="icon">
+            <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+          </div>
+          <span>Carreras</span>
+        </a>
+
+        <a routerLink="/licenciamiento" class="btn-card licencia">
+          <div class="licencia-inner">
+            <div class="front">
+              <div class="icon">
+                <i class="fas fa-award" aria-hidden="true"></i>
+              </div>
+              <span>Licenciamiento</span>
+            </div>
+            <div class="licencia-popup">
+              <img
+                [appSrc]="copy().licensingImage.src"
+                [alt]="copy().licensingImage.alt"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+              />
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+
+  </div>
+</section>

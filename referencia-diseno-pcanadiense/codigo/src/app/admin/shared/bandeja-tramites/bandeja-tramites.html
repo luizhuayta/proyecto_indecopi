@@ -1,0 +1,199 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ titulo() }}</h1>
+      @if (descripcion()) {
+        <p class="page-sub">{{ descripcion() }}</p>
+      }
+    </div>
+    <div class="page-header-actions">
+      @if (pendientes()) {
+        <span class="badge badge-borrador">{{ pendientes() }} sin atender</span>
+      }
+      <button type="button" class="btn-ghost" [disabled]="cargando()" (click)="recargar()">
+        <i class="fa fa-rotate"></i> Actualizar
+      </button>
+    </div>
+  </header>
+
+  <ng-content />
+
+  <div class="admin-tabs" role="group" aria-label="Filtrar solicitudes por estado">
+    <button
+      type="button"
+      class="admin-tab"
+      [class.active]="filtro() === 'todos'"
+      [attr.aria-pressed]="filtro() === 'todos'"
+      (click)="filtro.set('todos')"
+    >
+      Todos ({{ items().length }})
+    </button>
+    @for (estado of estados(); track estado) {
+      <button
+        type="button"
+        class="admin-tab"
+        [class.active]="filtro() === estado"
+        [attr.aria-pressed]="filtro() === estado"
+        (click)="filtro.set(estado)"
+      >
+        {{ etiquetaEstado(estado) }}
+      </button>
+    }
+  </div>
+
+  <div class="admin-card tramites-scroll" role="region" [attr.aria-label]="'Listado de ' + titulo()" tabindex="0">
+    @if (cargando()) {
+      <p class="form-hint" role="status" aria-live="polite">Cargando solicitudes…</p>
+    } @else if (error()) {
+      <div class="empty-state">
+        <p>{{ error() }}</p>
+        <button type="button" class="btn-ghost" (click)="recargar()">Reintentar</button>
+      </div>
+    } @else {
+      <table class="admin-table">
+        <thead>
+          <tr>
+            @for (columna of columnas(); track columna.campo) {
+              <th scope="col">{{ columna.label }}</th>
+            }
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tramite of visibles(); track tramite.id) {
+            <tr>
+              @for (columna of columnas(); track columna.campo) {
+                <td>
+                  @if (columna.campo === 'estado') {
+                    <span [class]="claseEstado(tramite.estado)">{{
+                      etiquetaEstado(tramite.estado)
+                    }}</span>
+                  } @else {
+                    {{ valor(tramite, columna.campo) }}
+                  }
+                </td>
+              }
+              <td class="td-actions">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  (click)="abrir(tramite)"
+                  [attr.aria-label]="'Ver detalle de ' + tramite.codigo"
+                >
+                  <i class="fa fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="columnas().length + 1">No hay solicitudes en este filtro.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
+
+<app-dialog
+  [open]="!!abierto()"
+  title="Detalle de la solicitud"
+  [showFooter]="false"
+  [disableClose]="guardando()"
+  (openChange)="cerrarDetalle($event)"
+>
+  @if (abierto(); as tramite) {
+    <div class="tramite-resumen">
+      <span class="tramite-resumen-icono" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+      <div class="tramite-resumen-texto">
+        <span class="tramite-resumen-etiqueta">Código de solicitud</span>
+        <strong class="tramite-codigo">{{ tramite.codigo }}</strong>
+        <span class="tramite-fecha"><i class="fa-regular fa-calendar" aria-hidden="true"></i> Recibido el {{ fecha(tramite.submittedAt) }}</span>
+      </div>
+    </div>
+
+    <div class="tramite-seccion-titulo"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Información de la solicitud</div>
+    <div class="form-grid tramite-detalle-grid">
+      @for (campo of detalle(); track campo.campo) {
+        <div
+          class="form-row tramite-dato"
+          [class.span-2]="campo.campo === 'mensaje' || campo.campo === 'detalleReclamo'"
+        >
+          <label><span class="tramite-dato-icono"><i class="fa-solid" [class]="iconoDetalle(campo.campo, campo.label)" aria-hidden="true"></i></span> {{ campo.label }}</label>
+          @if (esArchivoDelApi(valor(tramite, campo.campo))) {
+            <button
+              type="button"
+              class="btn-ghost"
+              (click)="abrirAdjunto(valor(tramite, campo.campo))"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Abrir adjunto
+            </button>
+          } @else if (esEnlace(valor(tramite, campo.campo))) {
+            <a
+              class="btn-ghost"
+              [href]="urlAbsoluta(valor(tramite, campo.campo))"
+              target="_blank"
+              rel="noopener"
+            >
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Abrir enlace
+            </a>
+          } @else {
+            <p>{{ valor(tramite, campo.campo) }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    @if (!soloLectura() && guardar()) {
+      <div class="tramite-seccion-titulo"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Gestión de la solicitud</div>
+      <div class="form-grid tramite-gestion-grid">
+        <div class="form-row">
+          <label for="tramite-estado">Estado de la solicitud</label>
+          <select id="tramite-estado" [disabled]="guardando()" [value]="estadoEditado()" (change)="estadoEditado.set($any($event.target).value)">
+            @for (estado of estados(); track estado) {
+              <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-row span-2 tramite-observacion">
+          <label for="tramite-observacion"><span class="tramite-observacion-icono" aria-hidden="true"><i class="fa-solid fa-comment-dots"></i></span>{{ etiquetaRespuesta() }}</label>
+          <textarea
+            id="tramite-observacion"
+            class="tramite-observacion-texto"
+            rows="6"
+            [value]="respuestaEditada()"
+            [disabled]="guardando()"
+            (input)="respuestaEditada.set($any($event.target).value)"
+            placeholder="Escribe aquí la observación o respuesta del expediente…"
+            aria-describedby="tramite-observacion-ayuda"
+          ></textarea>
+          <p id="tramite-observacion-ayuda" class="tramite-observacion-ayuda">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>La observación se guarda en el expediente. Solo se enviará al solicitante si seleccionas la opción de notificación.</span>
+          </p>
+        </div>
+        <div class="form-row span-2">
+          <label class="check-inline">
+            <input
+              type="checkbox"
+              [checked]="notificar()"
+              [disabled]="guardando() || !correoDe(tramite)"
+              (change)="notificar.set($any($event.target).checked)"
+            />
+            @if (correoDe(tramite); as correo) {
+              <span>Enviar esta respuesta a {{ correo }}</span>
+            } @else {
+              <span>El solicitante no dejó un correo de contacto</span>
+            }
+          </label>
+        </div>
+      </div>
+      <div class="save-bar">
+        <button type="button" class="btn-cancel" [disabled]="guardando()" (click)="cerrarDetalle(false)">Cerrar</button>
+        <button type="button" class="btn-save" [disabled]="guardando() || !hayCambios()" (click)="aplicar()">
+          {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+    }
+  }
+</app-dialog>

@@ -11,6 +11,10 @@ declare(strict_types=1);
  * Uso: php API/pruebas/ejecutar.php
  */
 
+// La salida se guarda hasta el final: así las pruebas que abren sesión no
+// encuentran las cabeceras ya enviadas por los mensajes OK/FAIL.
+ob_start();
+
 $GLOBALS['__pruebas'] = [];
 $GLOBALS['__ultimo_error_codigo'] = null;
 
@@ -91,5 +95,7 @@ foreach ($GLOBALS['__pruebas'] as $prueba) {
 }
 
 echo "\n{$total} pruebas, {$fallos} fallos, {$omitidas} omitidas.\n";
+
+ob_end_flush();
 
 exit($fallos === 0 ? 0 : 1);

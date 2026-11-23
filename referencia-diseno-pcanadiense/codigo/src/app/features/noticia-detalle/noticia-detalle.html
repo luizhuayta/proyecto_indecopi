@@ -1,0 +1,66 @@
+<div class="detalle-wrapper">
+  @if (item(); as noticia) {
+    <section class="news-hero">
+      <div class="news-hero__inner">
+        <nav class="news-breadcrumb" aria-label="Ruta de navegación">
+          <a routerLink="/">Inicio</a><span>›</span><a routerLink="/noticias">Noticias</a><span>›</span><span class="current">{{ noticia.title }}</span>
+        </nav>
+        <div class="news-hero__grid">
+          <div class="news-hero__intro">
+            <span class="featured-pill"><i class="fa-solid fa-star" aria-hidden="true"></i> NOTICIA DESTACADA</span>
+            <h1>{{ noticia.title }}</h1>
+            <div class="hero-meta">
+              <time [attr.datetime]="noticia.createdAt"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ formatFecha(noticia.createdAt) }}</time>
+              <span><i class="fa-solid fa-tag" aria-hidden="true"></i> {{ noticia.categoryLabel }}</span>
+            </div>
+          </div>
+          <button type="button" class="hero-main-image" (click)="viewerOpen.set(true)" aria-label="Ampliar imagen de la noticia">
+            <img [appSrc]="noticia.image" [alt]="noticia.imageAlt" />
+            <span class="image-expand"><i class="fa-solid fa-expand" aria-hidden="true"></i></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="news-content-layout">
+      <article class="contenido-card">
+        <div class="meta-info">
+          <time [attr.datetime]="noticia.createdAt"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ formatFecha(noticia.createdAt) }}</time>
+          <app-badge variant="accent">{{ noticia.categoryLabel }}</app-badge>
+        </div>
+        <h2>{{ noticia.title }}</h2>
+        <div class="title-accent"></div>
+        <div class="det-content__html" [innerHTML]="cuerpo(noticia)"></div>
+        <div class="share-section">
+          <strong>Compartir:</strong>
+          <a [href]="facebookUrl(shareUrl())" target="_blank" rel="noopener noreferrer" aria-label="Compartir en Facebook" class="share-facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+          <a [href]="xUrl(shareUrl(), noticia.title)" target="_blank" rel="noopener noreferrer" aria-label="Compartir en X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>
+          <a [href]="whatsappUrl(shareUrl(), noticia.title)" target="_blank" rel="noopener noreferrer" aria-label="Compartir en WhatsApp" class="share-whatsapp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>
+          <button type="button" class="share-copy" (click)="copyLink()" aria-label="Copiar enlace de la noticia" title="Copiar enlace"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+          @if (linkCopied()) { <span class="copied-message" role="status">Enlace copiado</span> }
+        </div>
+      </article>
+
+      @if (related().length > 0) {
+        <aside class="otras-noticias">
+          <div class="otras-heading"><h2>Otras noticias</h2><a routerLink="/noticias">Ver todas <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="otras-list">
+            @for (otra of related(); track otra.id) {
+              <a [routerLink]="['/noticias', otra.id]" class="otra-card">
+                <img [appSrc]="otra.image" [alt]="otra.imageAlt" />
+                <div class="otra-card__info"><h3>{{ otra.title }}</h3><time [attr.datetime]="otra.createdAt"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ formatFecha(otra.createdAt) }}</time></div>
+                <i class="fa-solid fa-chevron-right otra-arrow" aria-hidden="true"></i>
+              </a>
+            }
+          </div>
+        </aside>
+      }
+    </div>
+    @if (viewerOpen()) {
+      <div class="image-viewer" (click)="viewerOpen.set(false)" role="presentation">
+        <img [appSrc]="noticia.image" [alt]="noticia.imageAlt" (click)="$event.stopPropagation()" />
+        <button type="button" class="close-viewer" (click)="viewerOpen.set(false)" aria-label="Cerrar imagen"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    }
+  }
+</div>

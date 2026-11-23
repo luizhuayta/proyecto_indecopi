@@ -1,0 +1,5 @@
+# Solo el frontal entra por HTTP. El resto son archivos que incluye PHP
+# (configuración, módulos, esquema y pruebas) y no deben servirse por ruta.
+<FilesMatch "^(?!entrada\.php$).*$">
+  Require all denied
+</FilesMatch>

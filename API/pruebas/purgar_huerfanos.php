@@ -22,14 +22,10 @@ declare(strict_types=1);
  * montado en la ruta de `ALMACEN_DIR`, o la comprobación `is_file` no verá los
  * binarios y purgaría filas válidas):
  *
- *   docker run --rm --network plibre_default \
- *     -v "$PWD":/app \
- *     -v plibre_almacen:/tmp/opencode/plibre-almacen \
- *     -w /app -e DB_HOST=plantilla_mariadb -e DB_PORT=3306 \
- *     plantilla-php81 php API/pruebas/purgar_huerfanos.php [ejecutar]
+ *   docker exec plantilla_portal_api php /app/API/pruebas/purgar_huerfanos.php [ejecutar]
  *
- * (Sustituye `plibre_almacen` por el volumen o carpeta del host donde esté el
- * almacén real: debe coincidir con ALMACEN_DIR del archivo .env.)
+ * El contenedor del API ya monta el almacén en `ALMACEN_DIR`. Desde el host,
+ * usa el volumen o la carpeta reales y pasa el mismo `ALMACEN_DIR`.
  */
 
 require_once __DIR__ . '/../src/nucleo/configuracion.php';

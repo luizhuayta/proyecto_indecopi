@@ -11,11 +11,27 @@ import { Router } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AdminCuenta } from './admin-cuenta';
 import { AuthService } from '../cms/auth.service';
+import { PreferenciasPanel } from './preferencias-panel';
 
 @Component({ template: '' })
 class LoginFalso {}
 
 getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
+
+// El jsdom de vitest no expone localStorage (el global de Node queda
+// undefined): se siembra uno en memoria para probar la persistencia.
+const memoria = new Map<string, string>();
+const almacen = {
+  getItem: (k: string) => (memoria.has(k) ? memoria.get(k)! : null),
+  setItem: (k: string, v: string) => void memoria.set(k, String(v)),
+  removeItem: (k: string) => void memoria.delete(k),
+  clear: () => memoria.clear(),
+};
+Object.defineProperty(globalThis, 'localStorage', {
+  value: almacen,
+  configurable: true,
+  writable: true,
+});
 
 describe('AdminCuenta', () => {
   let http: HttpTestingController;
@@ -37,6 +53,7 @@ describe('AdminCuenta', () => {
   }
 
   beforeEach(async () => {
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -91,6 +108,18 @@ describe('AdminCuenta', () => {
     expect(router.url).toBe('/admin/login');
     expect(auth.username()).toBeNull();
     expect(auth.csrfToken()).toBe('');
+  });
+
+  it('elegir una paleta la aplica al panel y la recuerda en este navegador', () => {
+    const el: HTMLElement = harness.routeNativeElement!;
+    const radios = el.querySelectorAll<HTMLInputElement>('input[name="paleta-panel"]');
+    expect(radios).toHaveLength(5);
+    expect(el.querySelector<HTMLInputElement>('input[value="rojo"]')!.checked).toBe(true);
+    const azul = el.querySelector<HTMLInputElement>('input[value="azul"]')!;
+    azul.click();
+    harness.detectChanges();
+    expect(TestBed.inject(PreferenciasPanel).paleta()).toBe('azul');
+    expect(localStorage.getItem('admin-paleta')).toBe('azul');
   });
 
   it('muestra el mensaje del servidor cuando la contraseña actual no es correcta', async () => {

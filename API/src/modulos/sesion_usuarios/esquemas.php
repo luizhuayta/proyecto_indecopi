@@ -18,7 +18,7 @@ function esquemasSesionUsuarios(): array
         'usuario_nuevo' => [
             'usuario' => ['requerido'],
             'contrasena' => ['requerido', 'longitud_min', 8],
-            'rol' => ['enum', ['admin', 'editor']],
+            'rol' => ['enum', ['admin', 'editor', 'secretaria']],
         ],
         'cambio_contrasena' => [
             'contrasena_actual' => ['requerido'],

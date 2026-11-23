@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { CmsApiService, MedioItem, MedioVersionItem, RecortarMedioBody } from '../cms/cms-api.service';
 
 /**
@@ -15,9 +15,6 @@ export class MediosService {
   readonly loaded = signal(false);
   readonly uploading = signal(false);
   readonly error = signal('');
-
-  /** Medios cuyo texto alternativo está vacío (el servidor lo exige). */
-  readonly pendientes = computed(() => this.items().filter((m) => !this.altDe(m)));
 
   async listar(): Promise<MedioItem[]> {
     this.loading.set(true);
@@ -80,7 +77,6 @@ export class MediosService {
         mime: origen.mime,
         tamano: 0,
         creado_en: new Date().toISOString(),
-        alt: '',
       };
       this.items.update((list) => [item, ...list]);
       return item;
@@ -120,14 +116,4 @@ export class MediosService {
     }
   }
 
-  /** Texto alternativo de un medio ('' cuando no hay). */  altDe(item: MedioItem): string {
-    return (item.alt ?? '').trim();
   }
-
-  /** Establece el texto alternativo en el estado local de la biblioteca. */
-  setAlt(id: number, alt: string): void {
-    this.items.update((list) =>
-      list.map((m) => (m.id === id ? { ...m, alt: alt.trim() } : m))
-    );
-  }
-}

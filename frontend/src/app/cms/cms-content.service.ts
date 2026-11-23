@@ -6,6 +6,7 @@ import {
   CmsDocResponse,
   CmsMenuItem,
   CmsPageSummary,
+  CmsRevision,
   ImageMeta,
   JsonMap,
   getByPath,
@@ -254,6 +255,25 @@ export class CmsContentService {
     this.dirtyFields.set(new Set());
   }
 
+  async listarRevisiones(slug: string): Promise<CmsRevision[]> {
+    return this.api.listarRevisiones(slug);
+  }
+
+  /**
+   * Restaura una revisión como borrador y deja el documento en el estado que
+   * devolvió el servidor. La restauración no publica: el usuario decide.
+   */
+  async restaurarRevision(slug: string, id: number): Promise<void> {
+    const version = this.versions()[slug] ?? 1;
+    const res = await this.api.restaurarRevision(slug, id, version);
+    this.writeRoot(slug, res.contenido ?? {});
+    this.versions.update((map) => ({ ...map, [slug]: res.version }));
+    this.hasDraft.update((map) => ({ ...map, [slug]: true }));
+    this.dirty.set(false);
+    this.conflict.set('');
+    this.dirtyFields.set(new Set());
+  }
+
   async listPages(): Promise<CmsPageSummary[]> {
     const catalog = await this.api.getPaginas();
     this.pageList.set(catalog.paginas);
@@ -275,6 +295,8 @@ export class CmsContentService {
     if (res.contenido) {
       this.writeRoot(res.pagina.slug, res.contenido);
       this.versions.update((map) => ({ ...map, [res.pagina.slug]: res.version }));
+      // La página nace con borrador y sin contenido publicado.
+      this.hasDraft.update((map) => ({ ...map, [res.pagina.slug]: true }));
     }
     return res.pagina;
   }
@@ -303,11 +325,30 @@ export class CmsContentService {
     const catalog = await this.api.getPaginas();
     this.pageList.set(catalog.paginas);
     this.menuItems.set(catalog.menu);
-    if (res.pagina.slug !== slug && this.pages()[slug]) {
-      const next = { ...this.pages() };
-      next[res.pagina.slug] = next[slug];
-      delete next[slug];
-      this.pages.set(next);
+    if (res.pagina.slug !== slug) {
+      if (this.pages()[slug]) {
+        const next = { ...this.pages() };
+        next[res.pagina.slug] = next[slug];
+        delete next[slug];
+        this.pages.set(next);
+      }
+      this.hasDraft.update((map) => {
+        const next = { ...map };
+        next[res.pagina.slug] = next[slug] ?? false;
+        delete next[slug];
+        return next;
+      });
+      this.versions.update((map) => {
+        const next = { ...map };
+        if (next[slug] !== undefined) {
+          next[res.pagina.slug] = next[slug];
+          delete next[slug];
+        }
+        return next;
+      });
+      if (this.currentSlug() === slug) {
+        this.currentSlug.set(res.pagina.slug);
+      }
     }
     return res.pagina;
   }

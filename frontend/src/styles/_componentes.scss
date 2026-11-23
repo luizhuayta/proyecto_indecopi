@@ -66,7 +66,8 @@
     background-color var(--transicion),
     border-color var(--transicion),
     box-shadow var(--transicion),
-    color var(--transicion);
+    color var(--transicion),
+    transform var(--transicion);
 }
 
 .boton:hover {
@@ -74,11 +75,59 @@
   border-color: var(--color-primario-fuerte, var(--color-primario));
   color: var(--color-boton-texto-hover, #fff);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .boton:focus-visible {
   outline: 2px solid var(--color-primario);
   outline-offset: 2px;
+}
+
+/* Variantes del diseño institucional. El acento en relleno es el color de
+   acción (franja, botones principales); su texto lo decide temaPublico(). */
+.boton--acento {
+  background: var(--color-acento-relleno, var(--color-acento));
+  border-color: var(--color-acento-relleno, var(--color-acento));
+  color: var(--color-sobre-acento, #fff);
+}
+.boton--acento:hover {
+  background: color-mix(in srgb, var(--color-acento-relleno, var(--color-acento)) 88%, #000);
+  border-color: color-mix(in srgb, var(--color-acento-relleno, var(--color-acento)) 88%, #000);
+  color: var(--color-sobre-acento, #fff);
+}
+.boton--contorno {
+  background: transparent;
+  border: 2px solid currentColor;
+  color: var(--color-primario);
+}
+.boton--contorno:hover {
+  background: var(--color-lavado);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+/* Contorno sobre fondo oscuro (héroes): hereda el color del texto del héroe. */
+.boton--claro {
+  background: color-mix(in srgb, var(--color-primario-fuerte) 55%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  color: inherit;
+  backdrop-filter: blur(5px);
+}
+.boton--acento,
+.boton--contorno,
+.boton--claro {
+  border-radius: var(--radio-campo);
+  transition: transform var(--transicion), box-shadow var(--transicion), background-color var(--transicion);
+}
+.boton--acento:hover,
+.boton--claro:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .boton:hover,
+  .boton--acento:hover,
+  .boton--contorno:hover,
+  .boton--claro:hover { transform: none; }
 }
 
 .enlace {
@@ -89,6 +138,13 @@
 
 .enlace:hover {
   color: var(--color-acento);
+}
+
+.icono {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  vertical-align: -0.2em;
 }
 
 /* --------------------------------------------------------
@@ -102,10 +158,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.rejilla--stats {
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 .rejilla--galeria {
@@ -124,17 +176,18 @@
   color: var(--color-texto);
   box-shadow: var(--shadow-sm);
   transition:
-    transform var(--transicion),
-    box-shadow var(--transicion),
+    transform var(--transicion-elevacion),
+    box-shadow var(--transicion-elevacion),
     border-color var(--transicion);
 }
 
 /* La tarjeta que lleva a otro sitio se levanta al pasar por encima: es la
-   única pista de que se puede pulsar. */
+   única pista de que se puede pulsar. El borde no llega al primario puro:
+   bastan un tinte y la sombra grande para que la elevación se lea fina. */
 .tarjeta--enlace:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-primario);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-primario) 40%, var(--color-linea-suave));
+  box-shadow: var(--shadow-lg);
 }
 
 .tarjeta h3 {
@@ -142,7 +195,7 @@
 }
 
 .tarjeta img {
-  border-radius: var(--radio-campo);
+  border-radius: var(--radio-media);
 }
 
 .lista {
@@ -161,16 +214,8 @@
 }
 
 /* --------------------------------------------------------
-   4. Dato y texto enriquecido
+   4. Texto enriquecido
    -------------------------------------------------------- */
-
-.dato {
-  font-family: var(--font-cuerpo, sans-serif);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--texto-xl, 1.5rem);
-  font-weight: 600;
-  color: var(--color-primario);
-}
 
 .contenido-rico {
   line-height: 1.6;
@@ -227,67 +272,370 @@ mark {
    5. Plantillas específicas
    -------------------------------------------------------- */
 
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24, 1.5rem);
+/* Banner de portada a todo el ancho: foto a sangre con velo del color
+   estructural de la institución y el texto a la izquierda. */
+.bloque--hero {
+  padding-block: 0;
 }
 
-/* El botón se ajusta a su texto: estirado hasta el ancho de la columna se
-   leía como una barra, no como una acción. */
-.hero .boton,
-.page-hero .boton {
-  align-self: flex-start;
+.bloque--hero .bloque__contenido {
+  width: 100%;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: clamp(26rem, 62vh, 32.5rem);
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-primario-fuerte);
+  color: var(--color-boton-texto-hover, #fff);
 }
 
 .hero__slide {
+  grid-area: 1 / 1 / 3 / 2;
   display: grid;
-  gap: var(--space-12, 0.75rem);
+  align-content: center;
+  padding: clamp(3.5rem, 7vw, 4.75rem) clamp(1.25rem, 6vw, 6rem) 10rem;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.hero__slide--activa {
+  opacity: 1;
+  z-index: 1;
 }
 
 .hero__slide img {
-  border-radius: var(--radio-tarjeta);
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.hero__slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-primario-fuerte) 62%, transparent) 0%,
+      transparent 26%
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-primario-fuerte) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-primario-fuerte) 66%, transparent) 30%,
+      color-mix(in srgb, var(--color-primario-fuerte) 30%, transparent) 50%,
+      transparent 78%
+    );
+}
+
+.hero__texto {
+  max-width: 37.5rem;
+}
+
+.hero .bloque__tag {
+  display: inline-block;
+  margin-bottom: 1.1rem;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: var(--radio-pill);
+  background: color-mix(in srgb, var(--color-primario-fuerte) 35%, transparent);
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+.hero h2 {
+  margin: 0;
+  max-width: 18ch;
+  color: inherit;
+  font-family: var(--font-titulos);
+  font-size: clamp(2.25rem, 3.4vw, 3.35rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  text-shadow: 0 2px 12px color-mix(in srgb, #000 25%, transparent);
+}
+
+.hero__pie {
+  grid-area: 2 / 1;
+  z-index: 2;
+  display: grid;
+  gap: 1.5rem;
+  padding: 0 clamp(1.25rem, 6vw, 6rem) clamp(2.5rem, 5vw, 3.25rem);
+  pointer-events: none;
+}
+
+.hero__pie > * {
+  pointer-events: auto;
 }
 
 .hero__subtitulo {
-  max-width: 60ch;
+  margin: 0;
+  max-width: 32rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.45;
+  text-shadow: 0 2px 8px color-mix(in srgb, #000 30%, transparent);
+}
+
+.hero__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hero__botones .boton {
+  min-height: 3.5rem;
+  padding: 0.85rem 1.4rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.hero__controles {
+  position: absolute;
+  right: clamp(1rem, 4vw, 3rem);
+  bottom: 1.25rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hero__pausa {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primario-fuerte) 55%, transparent);
+  color: inherit;
+  backdrop-filter: blur(6px);
+  transition: background-color var(--transicion);
+}
+
+.hero__pausa:hover {
+  background: color-mix(in srgb, var(--color-primario-fuerte) 75%, transparent);
+}
+
+/* El mismo botón muestra «reproducir» cuando está en pausa. */
+.hero__icono-reproducir,
+.hero__pausa[aria-pressed='true'] .hero__icono-pausa {
+  display: none;
+}
+
+.hero__pausa[aria-pressed='true'] .hero__icono-reproducir {
+  display: block;
+}
+
+.hero__punto {
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  transition: width var(--transicion), background-color var(--transicion);
+}
+
+.hero__punto[aria-current='true'] {
+  width: 1.6rem;
+  background: currentColor;
+}
+
+/* Área táctil mínima de 24 px sin agrandar el punto visible. */
+.hero__punto {
+  position: relative;
+}
+.hero__punto::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem;
+}
+
+.marco .hero :focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+  .hero__slide {
+    padding: 4rem 1.25rem 12rem;
+  }
+  .hero__slide::after {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-primario-fuerte) 88%, transparent),
+      color-mix(in srgb, var(--color-primario-fuerte) 55%, transparent)
+    );
+  }
+  .hero__botones .boton {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__slide,
+  .hero__punto {
+    transition: none;
+  }
+}
+
+/* Portada de página: banda a todo el ancho con el color estructural, título
+   centrado, aro decorativo y trama de puntos. Con foto, dos columnas. */
+.bloque--pageHero,
+.bloque--listingHero {
+  padding-block: 0;
+}
+
+.bloque--pageHero .bloque__contenido,
+.bloque--listingHero .bloque__contenido {
+  width: 100%;
 }
 
 .page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--space-12, 0.75rem);
-  max-width: 60ch;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 17.8rem;
+  padding: 2.75rem max(1.5rem, calc((100% - 1100px) / 2)) 2.4rem;
+  text-align: center;
+  background: linear-gradient(
+    112deg,
+    var(--color-primario-fuerte) 0%,
+    var(--color-primario) 65%,
+    color-mix(in srgb, var(--color-primario) 80%, #fff) 100%
+  );
+  color: var(--color-boton-texto-hover, #fff);
 }
 
-/* Con foto, la portada se parte en dos columnas: el texto a la izquierda y
-   la imagen a la derecha. La foto es la mitad del mensaje de la portada, no
-   un adorno debajo del texto. */
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 0 90%, color-mix(in srgb, #000 30%, transparent), transparent 48%),
+    radial-gradient(color-mix(in srgb, currentColor 30%, transparent) 2px, transparent 2.5px) 0 0 / 17px 17px;
+  /* Los puntos solo asoman en las esquinas, como en el diseño original. */
+  mask-image: radial-gradient(circle at 8% 25%, #000 0 7rem, transparent 7.5rem),
+    radial-gradient(circle at 92% 80%, #000 0 7rem, transparent 7.5rem);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  top: -7.5rem;
+  right: -4.7rem;
+  z-index: -1;
+  width: 18.75rem;
+  height: 18.75rem;
+  border: 3rem solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.page-hero .bloque__tag {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--color-fondo);
+  color: var(--color-primario);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-hero h2,
+.page-hero h1 {
+  margin: 0;
+  color: inherit;
+  font-size: clamp(2.3rem, 4.1vw, 4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.page-hero__texto {
+  max-width: 57.5rem;
+  margin: 0;
+  color: inherit;
+  font-size: clamp(0.95rem, 1.4vw, 1.18rem);
+  line-height: 1.65;
+  opacity: 0.94;
+}
+
+.page-hero__texto::after,
+.page-hero > h2:last-child::after,
+.page-hero > h1:last-child::after {
+  content: '';
+  display: block;
+  width: 5.1rem;
+  height: 6px;
+  margin: 1.25rem auto 0;
+  border-radius: 999px;
+  background: var(--color-acento-relleno, var(--color-acento));
+}
+
+.page-hero .boton {
+  align-self: center;
+}
+
 .page-hero:has(.page-hero__imagen) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-48, 3rem);
+  gap: 3rem;
   align-items: center;
-  max-width: none;
+  text-align: left;
 }
 
 .page-hero__columna {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-12, 0.75rem);
+  gap: 0.75rem;
+}
+
+.page-hero:has(.page-hero__imagen) .page-hero__texto::after {
+  margin-left: 0;
+}
+
+.page-hero:has(.page-hero__imagen) .boton {
+  align-self: flex-start;
 }
 
 .page-hero__imagen img {
   width: 100%;
   height: auto;
   border-radius: var(--radio-tarjeta);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
-.page-hero__texto {
-  font-size: var(--texto-lg, 1.125rem);
-  color: var(--color-texto-suave);
+@media (max-width: 768px) {
+  .page-hero { min-height: 14rem; padding-block: 2.2rem; }
+  .page-hero:has(.page-hero__imagen) { grid-template-columns: 1fr; }
+  .page-hero::before { display: none; }
 }
 
 .cta {
@@ -298,13 +646,18 @@ mark {
   padding: var(--space-24, 1.5rem);
   border: 1px solid var(--color-linea-suave);
   border-radius: var(--radio-tarjeta);
-  background: var(--color-lavado);
+  background: linear-gradient(
+    150deg,
+    var(--color-lavado) 0%,
+    color-mix(in srgb, var(--color-lavado) 55%, var(--color-fondo)) 100%
+  );
   box-shadow: var(--shadow-sm);
 }
 
 /* La banda: el bloque de más peso de la portada. Superficie y borde teñidos
    con el color de la institución, para que se lea como un aviso y no como
-   otra tarjeta más. Es lo más alto de la jerarquía: por eso proyecta más. */
+   otra tarjeta más. Es lo más alto de la jerarquía: por eso proyecta más y
+   lleva el filo de acento que marca la acción. */
 .banda {
   display: flex;
   flex-direction: column;
@@ -312,8 +665,13 @@ mark {
   gap: var(--space-12, 0.75rem);
   padding: var(--space-24, 1.5rem) var(--space-32, 2rem);
   border: 1px solid var(--color-linea-suave);
+  border-left: 4px solid var(--color-acento-relleno, var(--color-acento));
   border-radius: var(--radio-tarjeta);
-  background: var(--color-lavado);
+  background: linear-gradient(
+    150deg,
+    var(--color-lavado) 0%,
+    color-mix(in srgb, var(--color-lavado) 55%, var(--color-fondo)) 100%
+  );
   box-shadow: var(--shadow-md);
 }
 
@@ -338,20 +696,391 @@ mark {
   max-width: 60ch;
 }
 
+/* Banda de cifras: a todo el ancho, sobre el color estructural, con una
+   trama de puntos tenue. Cada cifra es una placa translúcida. */
+.bloque--stats {
+  position: relative;
+  overflow: hidden;
+  padding-block: 2.5rem 2.9rem;
+  background:
+    radial-gradient(
+      60% 120% at 88% 0%,
+      color-mix(in srgb, var(--color-acento-relleno, var(--color-acento)) 14%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      112deg,
+      var(--color-primario-fuerte) 0%,
+      color-mix(in srgb, var(--color-primario-fuerte) 55%, var(--color-primario)) 55%,
+      var(--color-primario) 100%
+    );
+  color: var(--color-boton-texto-hover, #fff);
+}
+
+.bloque--stats::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(color-mix(in srgb, currentColor 9%, transparent) 1px, transparent 1.3px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, transparent, #000 38%, #000 72%, transparent);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.cifras {
+  position: relative;
+  text-align: center;
+}
+
+.cifras .bloque__tag {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: var(--radio-pill);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cifras h2 {
+  margin: 0.4rem 0 1.6rem;
+  color: inherit;
+  font-size: clamp(1.65rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-align: center;
+}
+
+.cifras .rejilla--stats {
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 1rem;
+  text-align: center;
+}
+
 .estadistica {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4, 0.25rem);
-  padding: var(--space-16, 1rem);
-  border: 1px solid var(--color-linea-suave);
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 9.9rem;
+  padding: 1.4rem 0.75rem 1.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-radius: var(--radio-tarjeta);
-  background: var(--color-lavado);
-  box-shadow: var(--shadow-sm);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, currentColor 11%, transparent) 0%,
+      color-mix(in srgb, currentColor 6%, transparent) 100%
+    );
+  box-shadow:
+    inset 0 1px color-mix(in srgb, currentColor 13%, transparent),
+    0 10px 22px -14px color-mix(in srgb, #000 30%, transparent);
+  transition:
+    transform var(--transicion-elevacion),
+    background-color var(--transicion),
+    border-color var(--transicion),
+    box-shadow var(--transicion-elevacion);
+}
+
+.estadistica:hover {
+  transform: translateY(-4px);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border-color: color-mix(in srgb, currentColor 38%, transparent);
+  box-shadow:
+    inset 0 1px color-mix(in srgb, currentColor 16%, transparent),
+    0 18px 32px -16px color-mix(in srgb, #000 38%, transparent);
+}
+
+.estadistica__icono {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--radio-media);
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.estadistica .dato {
+  font-size: clamp(2rem, 2.7vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 .estadistica p {
   margin: 0;
+  color: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.45;
+  opacity: 0.92;
+  text-wrap: balance;
+}
+
+@media (max-width: 620px) {
+  .cifras .rejilla--stats { grid-template-columns: repeat(2, 1fr); }
+  .estadistica:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .estadistica, .estadistica:hover { transform: none; transition: none; }
+}
+
+/* Accesos institucionales: los atajos que más busca el visitante, agrupados.
+   El grupo destacado usa tarjetas con descripción; el resto, filas compactas. */
+.accesos h2 {
+  margin-bottom: 1.75rem;
+  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-primario);
+}
+
+.accesos__grupo {
+  margin: 2rem 0 0.9rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-primario);
+  border-radius: 2px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primario);
+}
+
+.accesos__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accesos__lista--destacada {
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.acceso {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-texto) 11%, transparent);
+  border-radius: var(--radio-media);
+  background: var(--color-fondo);
+  color: var(--color-primario);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion-elevacion),
+    transform var(--transicion-elevacion);
+}
+
+.acceso:hover {
+  border-color: color-mix(in srgb, var(--color-primario) 36%, var(--color-linea-suave));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+/* El icono va en una placa teñida, como en el diseño de referencia: la fila
+   se lee de un vistazo y el conjunto se ve más trabajado. */
+.acceso__icono {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 10px;
+  background: var(--color-lavado);
+  color: var(--color-primario);
+  transition: background-color var(--transicion);
+}
+
+.acceso:hover .acceso__icono {
+  background: color-mix(in srgb, var(--color-primario) 15%, var(--color-fondo));
+}
+
+.accesos__lista--destacada .acceso {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-height: 8.25rem;
+  padding: 1.25rem;
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--shadow-sm);
+}
+
+.accesos__lista--destacada .acceso__icono {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.6rem;
+  border-radius: var(--radio-campo);
+  background: var(--color-lavado);
+}
+
+.acceso__titulo {
+  color: var(--color-texto);
+}
+
+.accesos__lista--destacada .acceso__titulo {
+  font-size: 0.88rem;
+}
+
+.acceso__texto {
   color: var(--color-texto-suave);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acceso:hover { transform: none; }
+}
+
+/* «Otros servicios»: tarjetas grandes con foto arriba, título y enlace con flecha. */
+.servicios .bloque__tag {
+  color: var(--color-primario);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.servicios h2 {
+  margin-bottom: 1.5rem;
+  font-size: clamp(1.9rem, 2.7vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--color-primario);
+}
+
+.servicios .rejilla {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1.25rem;
+}
+
+.servicios .tarjeta {
+  overflow: hidden;
+  padding: 0 0 1.25rem;
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--shadow-md);
+}
+
+/* Las tarjetas de servicio son enlaces: heredan la elevación de
+   .tarjeta--enlace y la llevan un punto más allá por su tamaño. */
+.servicios .tarjeta:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.servicios .tarjeta img {
+  width: 100%;
+  height: 13.5rem;
+  margin-bottom: 0.5rem;
+  object-fit: cover;
+  transition: transform 0.5s var(--easing-suave, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.servicios .tarjeta:hover img {
+  transform: scale(1.04);
+}
+
+.servicios .tarjeta > :not(img) {
+  margin-inline: 1.25rem;
+}
+
+.servicios .tarjeta h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-primario);
+}
+
+.servicios .tarjeta .enlace::after {
+  content: ' →';
+}
+
+/* Marquesina de logos: se detiene al pasar el cursor o con foco, y queda
+   quieta (en rejilla) si el visitante pide menos movimiento. */
+.entidades {
+  text-align: center;
+}
+
+.entidades h2 {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 800;
+  color: var(--color-primario);
+}
+
+.entidades__pista {
+  display: flex;
+  overflow: hidden;
+  margin-top: 1.5rem;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.entidades__lista {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: 0;
+  padding: 0 1.25rem;
+  list-style: none;
+}
+
+.entidades__pista[data-marquesina] .entidades__lista {
+  flex: none;
+  flex-wrap: nowrap;
+  padding-right: 2.5rem;
+  animation: entidades-desplazar 40s linear infinite;
+}
+
+.entidades__pista[data-marquesina]:hover .entidades__lista,
+.entidades__pista[data-marquesina]:focus-within .entidades__lista {
+  animation-play-state: paused;
+}
+
+.entidades__logo {
+  display: grid;
+  place-items: center;
+  height: 4.5rem;
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition: filter var(--transicion), opacity var(--transicion);
+}
+
+.entidades__logo:hover,
+.entidades__logo:focus-visible {
+  filter: none;
+  opacity: 1;
+}
+
+.entidades__logo img {
+  width: auto;
+  max-width: 10rem;
+  max-height: 4.5rem;
+  object-fit: contain;
+}
+
+@keyframes entidades-desplazar {
+  to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entidades__pista[data-marquesina] .entidades__lista { animation: none; flex-wrap: wrap; }
+  .entidades__pista[data-marquesina] .entidades__lista[aria-hidden='true'] { display: none; }
+  .servicios .tarjeta:hover img { transform: none; }
 }
 
 .galeria figure {
@@ -361,10 +1090,9 @@ mark {
   gap: var(--space-8, 0.5rem);
 }
 
-/* Las fotos de la galería y de las tarjetas se recortan a la misma
-   proporción: si cada una conserva la suya, la retícula se ve descuadrada. */
-.galeria img,
-.servicios .tarjeta img {
+/* Las fotos de la galería se recortan a la misma proporción: si cada una
+   conserva la suya, la retícula se ve descuadrada. */
+.galeria img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
@@ -396,6 +1124,9 @@ mark {
   width: 6rem;
   height: 6rem;
   object-fit: cover;
+  /* Aro fino del color de la institución: la foto se separa de la tarjeta
+     sin una línea dura. */
+  box-shadow: 0 0 0 3px var(--color-fondo), 0 0 0 5px var(--color-linea-suave);
 }
 
 .cargo {
@@ -428,7 +1159,8 @@ mark {
     background-color var(--transicion),
     border-color var(--transicion),
     box-shadow var(--transicion),
-    color var(--transicion);
+    color var(--transicion),
+    transform var(--transicion);
 }
 
 .public-btn:focus-visible {
@@ -447,6 +1179,7 @@ mark {
   background: var(--color-primario-fuerte, var(--color-primario));
   color: #fff;
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .public-btn--secundario {
@@ -459,6 +1192,7 @@ mark {
 .public-btn--secundario:hover {
   border-color: var(--color-secundario);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .public-btn--fantasma {
@@ -470,12 +1204,24 @@ mark {
   color: var(--color-acento);
 }
 
-.public-reveal {
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.4s ease var(--reveal-delay, 0ms),
-    transform 0.4s ease var(--reveal-delay, 0ms);
+/* El estado oculto solo existe con scripting y sin preferencia de menos
+   movimiento: sin JS, o pidiendo calma, el contenido se ve siempre. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .public-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  /* El primer bloque de la página (casi siempre el héroe) ya está a la vista
+     al cargar: si esperara a la animación, la portada parpadearía. */
+  .cms-bloques > .bloque-host:first-child.public-reveal {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .public-reveal.is-in {
@@ -487,107 +1233,174 @@ mark {
    7. Panel de administración
    -------------------------------------------------------- */
 
-.admin-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8, 0.5rem);
-  padding: 0.45rem 0.85rem;
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-campo);
-  background: var(--color-superficie);
-  color: var(--color-texto);
-  font: inherit;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition:
-    background-color var(--transicion),
-    border-color var(--transicion),
-    box-shadow var(--transicion),
-    color var(--transicion);
-}
-
-.admin-btn:hover {
-  border-color: var(--color-secundario);
-  box-shadow: var(--shadow-md);
-}
-
-.admin-btn:focus-visible {
+/* Foco uniforme del panel: un solo aro primario con aire para cualquier
+   control que aún no tenga su propio estilo de foco (los que sí lo tienen
+   vienen después y ganan por especificidad u orden). */
+.admin-shell :focus-visible,
+.login :focus-visible {
   outline: 2px solid var(--color-primario);
   outline-offset: 2px;
 }
 
-.admin-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.55rem 1.05rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-campo);
+  background: var(--color-fondo);
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transicion),
+    background-color var(--transicion),
+    box-shadow var(--transicion),
+    color var(--transicion),
+    transform var(--transicion);
 }
+.admin-btn:hover { background: var(--color-superficie); color: var(--color-texto); transform: translateY(-1px); }
+.admin-btn:active { transform: none; }
+.admin-btn:focus-visible { outline: 2px solid var(--color-primario); outline-offset: 2px; }
+.admin-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; }
 
 .admin-btn--primario {
   background: var(--color-primario);
-  color: var(--color-boton-texto, #fff);
   border-color: var(--color-primario);
-  border-radius: var(--radio-boton);
+  color: var(--color-boton-texto, #fff);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primario) 20%, transparent);
 }
-
-.admin-btn--primario:hover {
-  background: var(--color-primario-fuerte, var(--color-primario));
-  border-color: var(--color-primario-fuerte, var(--color-primario));
-  color: var(--color-boton-texto-hover, var(--color-boton-texto, #fff));
-  box-shadow: var(--shadow-md);
+.admin-btn--primario:hover:not(:disabled) {
+  background: var(--color-primario-fuerte);
+  border-color: var(--color-primario-fuerte);
+  color: var(--color-boton-texto-hover, #fff);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primario) 26%, transparent);
 }
-
-.admin-btn--fantasma {
-  background: transparent;
-}
-
-.admin-btn--peligro {
+.admin-btn--fantasma { background: transparent; border-color: transparent; box-shadow: none; }
+.admin-btn--fantasma:hover { border-color: var(--color-borde); box-shadow: none; }
+.admin-btn--peligro { color: var(--color-acento); }
+/* El botón destructivo avisa también en el hover: fondo teñido de acento,
+   no el gris neutro de un botón más. */
+.admin-btn--peligro:hover {
   color: var(--color-acento);
+  border-color: color-mix(in srgb, var(--color-acento) 35%, var(--color-borde));
+  background: color-mix(in srgb, var(--color-acento) 7%, var(--color-fondo));
 }
 
 .admin-control {
   width: 100%;
-  padding: 0.5rem 0.625rem;
-  border: 1px solid var(--color-borde-control);
+  min-height: 2.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-borde);
   border-radius: var(--radio-campo);
-  background: var(--color-superficie);
+  background: var(--color-fondo);
   color: var(--color-texto);
   font: inherit;
   transition:
     border-color var(--transicion),
-    background-color var(--transicion);
+    box-shadow var(--transicion);
 }
-
+.admin-control:hover:not(:disabled) { border-color: var(--color-borde-control); }
 .admin-control:focus-visible {
-  outline: 2px solid var(--color-primario);
-  outline-offset: 2px;
+  border-color: var(--color-primario);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primario) 16%, transparent);
 }
+textarea.admin-control { min-height: 6rem; resize: vertical; }
 
-.admin-campo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4, 0.25rem);
-}
-
-.admin-campo label {
-  font-size: var(--texto-sm, 0.875rem);
-}
+.admin-campo { display: flex; flex-direction: column; gap: 0.4rem; }
+.admin-campo label { font-size: 0.82rem; font-weight: 700; color: var(--color-texto); line-height: 1.4; }
 
 .admin-banner {
-  padding: var(--space-8, 0.5rem) var(--space-16, 1rem);
+  padding: 0.75rem 1rem;
   border-radius: var(--radio-campo);
-  font-size: var(--texto-sm, 0.875rem);
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.45;
 }
-
 .admin-banner--error {
-  background: color-mix(in srgb, var(--color-acento) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-acento) 40%, transparent);
+  border-left: 4px solid var(--color-acento);
+  background: color-mix(in srgb, var(--color-acento) 8%, var(--color-fondo));
   color: var(--color-texto);
-  border: 1px solid var(--color-acento);
+}
+.admin-banner--ok {
+  border: 1px solid color-mix(in srgb, var(--color-primario) 30%, transparent);
+  border-left: 4px solid var(--color-primario);
+  background: var(--color-lavado);
+  color: var(--color-texto);
 }
 
-.admin-banner--ok {
-  background: color-mix(in srgb, var(--color-primario) 10%, transparent);
-  color: var(--color-texto);
-  border: 1px solid var(--color-primario);
+/* Estado en píldora: publicado (primario), borrador (acento). */
+.admin-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pill);
+  background: var(--color-superficie);
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
+.admin-etiqueta--ok {
+  border-color: transparent;
+  background: var(--color-lavado);
+  color: var(--color-primario);
+}
+.admin-etiqueta--borrador {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-acento) 12%, var(--color-fondo));
+  color: var(--color-acento);
+}
+
+/* Tarjeta y encabezado de pantalla (patrón de todas las secciones del panel).
+   La sombra sale de la escala del tema, no de un valor fijo: en modo oscuro
+   se mantiene negra en vez de convertirse en un halo claro. */
+.admin-tarjeta {
+  border: 1px solid var(--color-borde);
+  border-radius: 16px;
+  background: var(--color-fondo);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem 1.6rem;
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion-elevacion),
+    transform var(--transicion-elevacion);
+}
+.admin-tarjeta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.admin-tarjeta:focus-within { border-color: var(--color-linea-suave); }
+
+.admin-encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1.4rem 1.5rem;
+  border: 1px solid var(--color-linea-suave);
+  border-left: 4px solid var(--color-primario);
+  border-radius: 16px;
+  background: linear-gradient(
+    150deg,
+    var(--color-lavado) 0%,
+    color-mix(in srgb, var(--color-lavado) 55%, var(--color-fondo)) 100%
+  );
+  box-shadow: var(--shadow-sm);
+}
+.admin-encabezado__titulo { margin: 0 0 0.3rem; font-size: clamp(1.45rem, 2vw, 1.75rem); font-weight: 750; letter-spacing: -0.02em; }
+.admin-encabezado__texto { margin: 0; max-width: 72ch; color: var(--color-texto-suave); font-size: 0.86rem; line-height: 1.55; }
+.admin-encabezado__acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 /* --------------------------------------------------------
    8. Diálogo de confirmación y estados vacíos
@@ -734,171 +1547,653 @@ mark {
    9. Marco del panel (shell, listado, acceso)
    -------------------------------------------------------- */
 
+/* Paletas del panel (las de Peruano Canadiense). Se eligen en «Mi cuenta» y
+   solo afectan al panel. !important porque el tema del sitio llega como
+   estilo en línea en .admin-shell; la vista previa del editor y la de
+   Apariencia vuelven a declarar el tema en línea y siguen fieles al sitio. */
+.admin-shell[data-paleta='rojo']     { --pal: #b91c2b; --pal-fuerte: #991827; --pal-suave: #fce9ec; --pal-linea: #f0d7da; }
+.admin-shell[data-paleta='azul']     { --pal: #24476b; --pal-fuerte: #183550; --pal-suave: #eaf1f8; --pal-linea: #cadce9; }
+.admin-shell[data-paleta='celeste']  { --pal: #1c75ad; --pal-fuerte: #155b88; --pal-suave: #e9f5fc; --pal-linea: #c8e3f3; }
+.admin-shell[data-paleta='naranja']  { --pal: #c2510f; --pal-fuerte: #a8430a; --pal-suave: #fff0e6; --pal-linea: #f8d3bb; }
+.admin-shell[data-paleta='amarillo'] { --pal: #8f6700; --pal-fuerte: #795700; --pal-suave: #fff7cc; --pal-linea: #eadb8e; }
+
+.admin-shell[data-paleta] {
+  --color-marca: var(--pal) !important;
+  --color-primario: var(--pal) !important;
+  --color-primario-fuerte: var(--pal-fuerte) !important;
+  --color-boton-texto: #fff !important;
+  --color-boton-texto-hover: #fff !important;
+  --color-lavado: var(--pal-suave) !important;
+  --color-linea-suave: var(--pal-linea) !important;
+  --color-acento-relleno: var(--pal) !important;
+}
+
+/* Modo oscuro del panel. El tema de la institución llega como estilo en
+   línea en .admin-shell; !important es la única forma de que una hoja lo
+   supere. La vista previa del editor y la de Apariencia vuelven a declarar
+   el tema en línea, así que siguen mostrando el sitio tal como es. */
+.admin-shell[data-modo='oscuro'] {
+  color-scheme: dark;
+  --color-fondo: #141d2a !important;
+  --color-superficie: #202b3b !important;
+  --color-borde: #364456 !important;
+  --color-borde-control: #6b7d94 !important;
+  --color-texto: #edf2fa !important;
+  --color-texto-suave: #a8b7cb !important;
+  --color-primario: color-mix(in srgb, var(--color-marca) 45%, #fff) !important;
+  --color-primario-fuerte: color-mix(in srgb, var(--color-marca) 30%, #fff) !important;
+  --color-boton-texto: #0b1220 !important;
+  --color-boton-texto-hover: #0b1220 !important;
+  --color-lavado: #263447 !important;
+  --color-linea-suave: #3b4b60 !important;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3) !important;
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.28) !important;
+  --shadow-lg: 0 14px 32px rgb(0 0 0 / 0.35) !important;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+}
+
 .admin-shell {
+  --nav-ancho: 16.25rem;
   display: grid;
-  grid-template-columns: 14rem 1fr;
+  grid-template-columns: var(--nav-ancho) minmax(0, 1fr);
   min-height: 100vh;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  transition: grid-template-columns 0.18s ease;
 }
+.admin-shell--plegado { --nav-ancho: 4.6rem; }
 
+/* Riel oscuro derivado del color de la institución: siempre lo bastante
+   oscuro para texto blanco, sea cual sea el primario elegido. */
 .admin-nav {
-  background: var(--color-superficie);
-  border-right: 1px solid var(--color-borde);
-  padding: var(--space-16, 1rem);
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-16, 1rem);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-marca) 22%, #232838) 0%,
+    color-mix(in srgb, var(--color-marca) 12%, #151a26) 100%
+  );
+  color: #fff;
+  box-shadow: 4px 0 24px rgb(17 24 39 / 0.1);
 }
-
 .admin-nav__marca {
-  font-family: var(--font-titulos, serif);
-  font-weight: 600;
-  font-size: var(--texto-lg, 1.125rem);
-  color: var(--color-texto);
-}
-
-.admin-nav nav {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4, 0.25rem);
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.35rem 1.1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
 }
+.admin-nav__sello {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--color-marca);
+  color: var(--color-boton-texto, #fff);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-marca) 35%, transparent);
+}
+.admin-nav__nombre { display: grid; min-width: 0; }
+.admin-nav__nombre strong { font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.admin-nav__nombre small { overflow: hidden; color: rgb(255 255 255 / 0.62); font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
+.admin-nav nav { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; padding: 1rem 0.6rem; overflow-y: auto; scrollbar-width: thin; }
 
-.admin-nav a,
-.admin-nav__pronto {
-  display: block;
-  padding: 0.5rem 0.75rem;
+/* Buscador de secciones sobre el menú: filtra las entradas al teclear. */
+.admin-nav__buscar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0.9rem 0.6rem 0;
+}
+.admin-nav__buscar > .icono {
+  position: absolute;
+  left: 0.65rem;
+  width: 0.95rem;
+  color: rgb(255 255 255 / 0.5);
+  pointer-events: none;
+}
+.admin-nav__busqueda {
+  width: 100%;
+  padding: 0.55rem 1.9rem 0.55rem 2rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
   border-radius: var(--radio-campo);
-  text-decoration: none;
-  color: var(--color-texto);
-  transition:
-    background-color var(--transicion),
-    color var(--transicion);
+  background: rgb(255 255 255 / 0.07);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
 }
-
-.admin-nav a:hover {
-  background: var(--color-superficie);
-  color: var(--color-primario);
+.admin-nav__busqueda::placeholder { color: rgb(255 255 255 / 0.45); opacity: 1; }
+.admin-nav__busqueda:focus-visible { outline: 2px solid #fff; outline-offset: -1px; }
+.admin-nav__limpiar {
+  position: absolute;
+  right: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgb(255 255 255 / 0.6);
+  cursor: pointer;
 }
+.admin-nav__limpiar:hover { background: rgb(255 255 255 / 0.12); color: #fff; }
+.admin-nav__limpiar .icono { width: 0.85rem; }
+.admin-nav__vacio { margin: 0.4rem 0.85rem; color: rgb(255 255 255 / 0.55); font-size: 0.78rem; }
 
-.admin-nav a.activo {
-  background: color-mix(in srgb, var(--color-primario) 10%, transparent);
-  color: var(--color-primario);
-  font-weight: 600;
+.admin-nav__grupo {
+  margin: 0.9rem 0.75rem 0.3rem;
+  color: rgb(255 255 255 / 0.4);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
-
-.admin-nav a:focus-visible {
-  outline: 2px solid var(--color-primario);
-  outline-offset: 2px;
-}
-
-.admin-nav__pronto {
-  color: var(--color-texto-suave);
-  cursor: default;
-}
-
-.admin-shell__principal {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.admin-cabecera {
+/* Rótulo-botón que pliega su grupo: ocupa todo el ancho y el chevron
+   señala abajo (abierto) o a la derecha (plegado). */
+.admin-nav__grupo-boton {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-16, 1rem);
-  padding: var(--space-12, 0.75rem) var(--space-24, 1.5rem);
-  border-bottom: 1px solid var(--color-borde);
-  background: var(--color-fondo);
-}
-
-.admin-cabecera__titulo {
-  font-family: var(--font-titulos, serif);
-  font-weight: 600;
-  font-size: var(--texto-lg, 1.125rem);
-}
-
-.admin-cabecera__acciones {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8, 0.5rem);
-}
-
-.admin-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  background: var(--color-primario);
-  color: var(--color-boton-texto, #fff);
-  font-weight: 600;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
   border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
   cursor: pointer;
 }
-
-.admin-avatar:focus-visible {
-  outline: 2px solid var(--color-primario);
-  outline-offset: 2px;
-}
-
-.admin-contenido {
-  flex: 1;
-  padding: var(--space-24, 1.5rem);
+.admin-nav__grupo-boton:hover { color: rgb(255 255 255 / 0.7); }
+.admin-nav__grupo-boton:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.admin-nav__grupo-boton .icono { width: 0.75rem; transition: transform 0.18s ease; }
+.admin-nav__grupo-boton[aria-expanded='true'] .icono { transform: rotate(90deg); }
+.admin-nav a {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-16, 1rem);
-  min-width: 0;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radio-campo);
+  color: rgb(255 255 255 / 0.76);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
-
-.admin-tabla {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
+.admin-nav a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 2px 2px 0;
+  background: var(--color-acento-relleno, var(--color-marca));
+  transform: translateY(-50%);
+  transition: height 0.2s ease;
 }
-
-.admin-tabla th,
-.admin-tabla td {
-  text-align: left;
-  padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--color-borde);
-}
-
-.admin-tabla th {
+.admin-nav a:hover { background: rgb(255 255 255 / 0.08); color: #fff; }
+.admin-nav a:hover::before { height: 60%; }
+.admin-nav a.activo {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
   font-weight: 600;
-  color: var(--color-texto-suave);
-  font-size: var(--texto-sm, 0.875rem);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
+.admin-nav a.activo::before { height: 70%; }
+.admin-nav a:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.admin-nav a .icono { color: rgb(255 255 255 / 0.6); }
+.admin-nav a:hover .icono,
+.admin-nav a.activo .icono { color: currentColor; }
+/* El rótulo cede el ancho sobrante a la píldora: con textos largos
+   («Reportes de accesibilidad») se recorta con puntos suspensivos en
+   vez de empujar la píldora fuera de la barra. */
+.admin-nav a > span:not(.admin-nav__badge) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Píldora de pendientes de cada bandeja (solo se pinta con conteo > 0). */
+.admin-nav__badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: var(--radio-pill);
+  background: var(--color-acento-relleno, var(--color-marca));
+  color: var(--color-sobre-acento, #fff);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+.admin-nav__pie { display: grid; gap: 0.2rem; padding: 0.75rem 0.6rem 1rem; border-top: 1px solid rgb(255 255 255 / 0.1); }
 
-.login {
-  min-height: 100vh;
+.admin-shell--plegado .admin-nav__nombre,
+.admin-shell--plegado .admin-nav a span:not(.admin-nav__badge),
+.admin-shell--plegado .admin-nav__grupo span,
+.admin-shell--plegado .admin-nav__buscar,
+.admin-shell--plegado .admin-nav__grupo-boton { display: none; }
+/* En el riel plegado la píldora queda como mini-contador sobre el icono. */
+.admin-shell--plegado .admin-nav__badge {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  font-size: 0.56rem;
+}
+.admin-shell--plegado .admin-nav a,
+.admin-shell--plegado .admin-nav__marca { justify-content: center; }
+.admin-shell--plegado .admin-nav__grupo { height: 1px; margin: 0.6rem 1rem; background: rgb(255 255 255 / 0.14); }
+
+.admin-velo { display: none; }
+
+.admin-shell__principal { display: flex; flex-direction: column; min-width: 0; }
+
+.admin-cabecera {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4.75rem;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid var(--color-borde);
+  /* Topbar de cristal: el contenido se difumina al pasar debajo, como en el
+     referente, pero con el tinte del tema en vez de un blanco fijo. */
+  background: color-mix(in srgb, var(--color-fondo) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.admin-cabecera__izquierda { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+.admin-cabecera__antetitulo {
+  margin: 0 0 0.2rem;
+  color: var(--color-texto-suave);
+  font-size: 0.61rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.admin-cabecera__antetitulo span { color: var(--color-acento); }
+.admin-cabecera__titulo { margin: 0; font-family: var(--font-titulos); font-size: 1.05rem; font-weight: 800; letter-spacing: -0.025em; }
+.admin-cabecera__fecha { margin: 0; color: var(--color-texto-suave); font-size: 0.72rem; text-transform: capitalize; }
+.admin-cabecera__acciones { display: flex; align-items: center; gap: 0.6rem; }
+
+.admin-plegar,
+.admin-modo {
   display: grid;
   place-items: center;
-  padding: var(--space-24, 1.5rem);
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-campo);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  cursor: pointer;
+  transition: background-color var(--transicion), border-color var(--transicion), color var(--transicion);
+}
+.admin-plegar:hover,
+.admin-modo:hover { background: var(--color-superficie); border-color: var(--color-borde-control); }
+
+.admin-sesion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pill);
+  color: var(--color-texto-suave);
+  font-size: 0.69rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.admin-sesion__punto { width: 7px; height: 7px; border-radius: 50%; background: #159a61; box-shadow: 0 0 0 3px rgb(21 154 97 / 0.12); }
+
+/* Píldora de pendientes junto a «Sesión activa»: total sin atender, enlace
+   al tablero. Solo se pinta cuando hay algo que atender. */
+.admin-pendientes {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--color-primario);
+  border-radius: var(--radio-pill);
+  background: var(--color-lavado);
+  color: var(--color-primario);
+  font-size: 0.69rem;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.admin-pendientes:hover { color: var(--color-primario-fuerte); border-color: var(--color-primario-fuerte); }
+.admin-pendientes .icono { width: 0.9rem; }
+
+.admin-usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.9rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pill);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicion), border-color var(--transicion);
+}
+.admin-usuario:hover,
+.admin-usuario[aria-expanded='true'] { background: var(--color-superficie); border-color: var(--color-primario); }
+.admin-avatar {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--color-texto);
+  color: var(--color-fondo);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+.admin-usuario__datos { display: grid; gap: 0.15rem; line-height: 1.15; }
+.admin-usuario__nombre { max-width: 13rem; overflow: hidden; font-size: 0.8rem; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.admin-usuario__rol { color: var(--color-texto-suave); font-size: 0.69rem; }
+
+/* Menú de cuenta del avatar: "Mi cuenta" y "Cerrar sesión" como acciones
+   nombradas, cada una con su target de 44px. */
+.admin-cuenta-menu-wrap {
+  position: relative;
 }
 
-.login__tarjeta {
-  width: min(24rem, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16, 1rem);
-  padding: var(--space-24, 1.5rem);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-tarjeta);
+.admin-cuenta-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 50;
+  display: grid;
+  min-width: 12rem;
+  padding: 0.3rem;
   background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 14px;
   box-shadow: var(--shadow-lg);
 }
 
-.login__titulo {
-  font-family: var(--font-titulos, serif);
-  font-weight: 600;
-  margin: 0;
+.admin-cuenta-menu a,
+.admin-cuenta-menu button {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: var(--radio-campo);
+  background: none;
+  font: inherit;
+  color: var(--color-texto);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.login form {
+.admin-cuenta-menu a:hover,
+.admin-cuenta-menu button:hover,
+.admin-cuenta-menu a:focus-visible,
+.admin-cuenta-menu button:focus-visible {
+  background: var(--color-fondo);
+  outline: none;
+}
+
+.admin-herramientas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid var(--color-borde);
+  background: color-mix(in srgb, var(--color-superficie) 60%, var(--color-fondo));
+}
+.admin-miga { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 0.75rem; font-weight: 700; }
+.admin-miga a { color: var(--color-texto-suave); text-decoration: none; }
+.admin-miga a:hover { color: var(--color-primario); }
+.admin-miga .icono { width: 0.8rem; opacity: 0.55; }
+.admin-herramientas__acciones { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.admin-herramienta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.2rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radio-pill);
+  background: transparent;
+  color: var(--color-texto-suave);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--transicion), border-color var(--transicion), color var(--transicion);
+}
+.admin-herramienta:hover { border-color: var(--color-borde); background: var(--color-fondo); color: var(--color-texto); }
+.admin-guia-boton,
+.admin-guia-boton.activo { background: var(--color-lavado); color: var(--color-primario); }
+.admin-guia-boton.activo { border-color: var(--color-primario); }
+
+.admin-guia {
+  margin: 1rem 1.5rem 0;
+  padding: 1.3rem 1.5rem;
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-primario);
+  border-radius: 14px;
+  background: var(--color-fondo);
+  color: var(--color-texto-suave);
+  box-shadow: var(--shadow-sm);
+  animation: admin-entra 0.2s ease both;
+}
+.admin-guia__cabecera { display: flex; justify-content: space-between; gap: 1rem; }
+.admin-guia__antetitulo { margin: 0 0 0.3rem; color: var(--color-primario); font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.admin-guia h2 { margin: 0 0 0.4rem; color: var(--color-texto); font-size: 1.1rem; font-weight: 800; }
+.admin-guia p { margin: 0; max-width: 75ch; font-size: 0.82rem; line-height: 1.65; }
+.admin-guia ol { display: grid; gap: 0.5rem; margin: 1rem 0 0; padding-left: 1.3rem; font-size: 0.8rem; line-height: 1.6; }
+.admin-guia li::marker { color: var(--color-primario); font-weight: 800; }
+
+.admin-contenido {
+  flex: 1;
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+  padding: 1.75rem 2rem 2.5rem;
+  animation: admin-entra 0.22s ease both;
+}
+
+@keyframes admin-entra {
+  from { opacity: 0; transform: translateY(5px); }
+}
+
+@media (max-width: 1150px) {
+  .admin-sesion { display: none; }
+}
+
+@media (max-width: 900px) {
+  .admin-shell,
+  .admin-shell--plegado { grid-template-columns: minmax(0, 1fr); }
+  .admin-nav {
+    position: fixed;
+    left: 0;
+    z-index: 60;
+    width: 16.25rem;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .admin-shell--nav-abierta .admin-nav { transform: none; }
+  .admin-shell--plegado .admin-nav__nombre,
+  .admin-shell--plegado .admin-nav a span,
+  .admin-shell--plegado .admin-nav__grupo span,
+  .admin-shell--plegado .admin-nav__buscar,
+  .admin-shell--plegado .admin-nav__grupo-boton { display: revert; }
+  /* En el cajón móvil la píldora vuelve a su sitio, al final de la entrada. */
+  .admin-shell--plegado .admin-nav__badge {
+    position: static;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.4rem;
+    font-size: 0.66rem;
+  }
+  .admin-shell--nav-abierta .admin-velo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgb(20 24 34 / 0.45);
+  }
+}
+
+@media (max-width: 680px) {
+  .admin-cabecera { padding-inline: 0.75rem; }
+  .admin-usuario__datos,
+  .admin-cabecera__fecha { display: none; }
+  .admin-herramientas { padding-inline: 0.75rem; }
+  .admin-contenido { padding: 1.25rem 1rem 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell, .admin-nav, .admin-nav a, .admin-nav a::before,
+  .admin-nav__grupo-boton .icono,
+  .admin-control, .admin-tabla tbody tr { transition: none; }
+  .admin-guia, .admin-contenido { animation: none; }
+}
+
+.admin-tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--color-borde);
+  border-radius: 16px;
+  background: var(--color-fondo);
+  box-shadow: var(--shadow-md);
+}
+.admin-tabla { width: 100%; border-collapse: collapse; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.admin-tabla th,
+.admin-tabla td { padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--color-borde); text-align: left; vertical-align: middle; }
+.admin-tabla th {
+  background: var(--color-superficie);
+  border-bottom-color: var(--color-linea-suave);
+  color: var(--color-texto-suave);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.admin-tabla tbody tr { transition: background-color var(--transicion); }
+.admin-tabla tbody tr:nth-child(even) { background: color-mix(in srgb, var(--color-superficie) 45%, var(--color-fondo)); }
+.admin-tabla tbody tr:hover { background: var(--color-lavado); }
+/* La fila bajo el puntero se marca también con una pestaña de color en su
+   primera celda: dos pistas (relleno y borde) mejor que una. */
+.admin-tabla tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-primario);
+}
+.admin-tabla tbody tr:last-child td { border-bottom: 0; }
+
+/* Acceso al panel: panel de marca a un lado, tarjeta del formulario al otro. */
+.login {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100dvh;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+}
+.login__marca {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: var(--space-12, 0.75rem);
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.75rem, 4vw, 3.5rem);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 85% at 15% 12%, transparent 0%, color-mix(in srgb, #000 35%, transparent) 100%),
+    linear-gradient(158deg, var(--color-primario-fuerte) 0%, var(--color-primario) 55%, color-mix(in srgb, var(--color-acento-relleno, var(--color-acento)) 55%, var(--color-primario)) 100%);
+  color: var(--color-boton-texto-hover, #fff);
+}
+.login__sello { display: flex; align-items: center; gap: 1rem; }
+.login__sello img,
+.login__sello > span {
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 0.6rem;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--color-primario);
+  font-size: 1.5rem;
+  font-weight: 800;
+  object-fit: contain;
+  box-shadow: 0 12px 30px -14px rgb(20 18 30 / 0.55);
+}
+.login__sello p { display: grid; gap: 0.15rem; margin: 0; font-size: 0.82rem; opacity: 0.85; }
+.login__sello strong { font-size: 1.15rem; opacity: 1; }
+.login__nombre { margin: 0; max-width: 16ch; font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.15rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.025em; text-wrap: balance; }
+.login__ciudad { margin: 0.6rem 0 0; font-size: 0.8rem; opacity: 0.75; }
+.login__principal { display: grid; place-items: center; padding: clamp(1.75rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem); }
+.login__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  width: min(100%, 24rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--color-borde);
+  border-radius: 20px;
+  background: var(--color-fondo);
+  box-shadow:
+    0 30px 70px -34px color-mix(in srgb, var(--color-texto) 42%, transparent),
+    0 12px 28px -20px color-mix(in srgb, var(--color-texto) 28%, transparent);
+  animation: login-sube 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.login__titulo { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.login form { display: grid; gap: 1rem; }
+.login__entrar { width: 100%; }
+.login__pie { margin: 0; color: var(--color-texto-suave); font-size: 0.72rem; }
+
+@keyframes login-sube { from { opacity: 0; transform: translateY(14px); } }
+
+@media (max-width: 880px) {
+  .login { grid-template-columns: 1fr; }
+  .login__marca { min-height: 34dvh; justify-content: flex-end; }
+  .login__lema { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login__tarjeta { animation: none; }
 }
 
 /* --------------------------------------------------------
@@ -914,7 +2209,37 @@ mark {
 
   /* Sin movimiento: la sombra sigue diciendo qué está por encima de qué,
      pero nada se desplaza bajo el puntero. */
-  .tarjeta--enlace:hover {
+  .tarjeta--enlace:hover,
+  .servicios .tarjeta:hover,
+  .noticia-tarjeta:hover,
+  .admin-tarjeta:hover,
+  .public-btn:hover,
+  .admin-btn:hover {
+    transform: none;
+  }
+
+  /* Ni desplazarse ni esperar: también se apagan las transiciones nuevas
+     de elevación y los zooms de las fotos de tarjeta. */
+  .tarjeta,
+  .acceso,
+  .noticia-tarjeta,
+  .admin-tarjeta,
+  .admin-btn,
+  .public-btn,
+  .admin-tabla tbody tr,
+  .admin-usuario,
+  .admin-plegar,
+  .admin-modo,
+  .admin-herramienta,
+  .novedades__todas,
+  .noticias-pestanas button,
+  .boton,
+  .estadistica {
+    transition: none;
+  }
+
+  .noticia-tarjeta:hover img,
+  .servicios .tarjeta:hover img {
     transform: none;
   }
 
@@ -927,18 +2252,6 @@ mark {
   .bloque {
     padding-block: var(--space-48, 3rem);
   }
-  .admin-shell {
-    grid-template-columns: 1fr;
-  }
-  .admin-nav {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-borde);
-  }
-  /* La portada se apila: en una columna, la foto va debajo del texto. */
-  .page-hero:has(.page-hero__imagen) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-24, 1.5rem);
-  }
 }
 
 /* El placeholder por defecto del navegador no alcanza 4.5:1 sobre la
@@ -947,3 +2260,117 @@ mark {
   color: var(--color-texto-suave);
   opacity: 1;
 }
+
+/* --------------------------------------------------------
+   15. Novedades y noticias públicas
+   -------------------------------------------------------- */
+
+/* Novedades: portada editorial. Noticia destacada con foto grande, titulares
+   con miniatura y una columna de comunicados marcada con el acento. */
+.novedades__intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.25rem; margin-bottom: 1.75rem; }
+.novedades__intro .bloque__tag { color: var(--color-primario); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+.novedades__intro h2 { margin: 0 0 0.55rem; font-size: clamp(1.9rem, 2.7vw, 2.5rem); font-weight: 800; letter-spacing: -0.035em; color: var(--color-primario); }
+.novedades__intro p { margin: 0; color: var(--color-texto-suave); }
+.novedades__todas { display: inline-flex; align-items: center; gap: 0.5rem; flex-shrink: 0; color: var(--color-primario); font-size: 0.88rem; font-weight: 700; text-decoration: none; transition: color var(--transicion); }
+.novedades__todas:hover { color: var(--color-acento); text-decoration: underline; text-underline-offset: 0.22em; }
+.novedades__vacio { padding: 2rem; border: 1px dashed var(--color-borde); border-radius: var(--radio-tarjeta); color: var(--color-texto-suave); text-align: center; }
+.novedades__rejilla { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(17.5rem, 0.8fr); gap: 1.4rem; align-items: stretch; }
+.novedades__rejilla:has(> :only-child) { grid-template-columns: 1fr; }
+.novedades__panel {
+  padding: 1.6rem;
+  border: 1px solid var(--color-linea-suave);
+  border-radius: var(--radio-tarjeta);
+  background: linear-gradient(180deg, var(--color-fondo) 58%, color-mix(in srgb, var(--color-superficie) 42%, var(--color-fondo)) 100%);
+  box-shadow: var(--shadow-md);
+}
+.novedades__noticias { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); gap: 1.4rem; align-items: start; }
+.noticia h3 { margin: 0; font-size: 0.88rem; font-weight: 700; line-height: 1.4; }
+.noticia__enlace { color: var(--color-texto); text-decoration: none; }
+.noticia__enlace:hover { color: var(--color-primario); text-decoration: underline; }
+.noticia time, .comunicado time { display: block; margin-top: 0.3rem; color: var(--color-texto-suave); font-size: 0.75rem; }
+.noticia--destacada { display: grid; gap: 0.7rem; }
+.noticia__media {
+  position: relative;
+  overflow: hidden;
+  height: 15.3rem;
+  border-radius: var(--radio-media);
+  background: var(--color-lavado);
+  /* Filo fino por dentro: la foto se recorta limpio aunque sea clara. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-texto) 8%, transparent);
+}
+.noticia__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--easing-suave, cubic-bezier(0.16, 1, 0.3, 1)); }
+.noticia--destacada:hover .noticia__media img { transform: scale(1.04); }
+.noticia__categoria { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radio-pill); background: var(--color-primario); color: var(--color-boton-texto, #fff); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+/* Fuera de la portada la píldora no flota sobre una foto: es una etiqueta en línea. */
+.noticia__categoria--fija { position: static; display: inline-block; width: max-content; }
+.noticia--destacada h3 { font-size: 1.17rem; line-height: 1.35; }
+.noticia--destacada p { margin: 0; color: var(--color-texto-suave); font-size: 0.88rem; line-height: 1.6; }
+.noticias__lista, .comunicados__lista { display: grid; margin: 0; padding: 0; list-style: none; }
+.noticias__lista .noticia { display: flex; gap: 0.65rem; padding: 0.8rem 0; border-bottom: 1px solid var(--color-borde); }
+.noticias__lista .noticia:first-child { padding-top: 0; }
+.noticias__lista img { flex: 0 0 4.4rem; width: 4.4rem; height: 4rem; border-radius: 10px; object-fit: cover; }
+.novedades__panel--comunicados {
+  border-left: 3px solid var(--color-acento-relleno, var(--color-acento));
+  background: linear-gradient(180deg, var(--color-superficie) 60%, color-mix(in srgb, var(--color-superficie) 75%, var(--color-lavado)) 100%);
+}
+.comunicado { display: flex; gap: 0.75rem; padding: 0.9rem 0; border-bottom: 1px solid var(--color-borde); color: var(--color-acento); }
+.comunicado:last-child { border-bottom: 0; }
+.comunicado__titulo { margin: 0; color: var(--color-texto); font-size: 0.95rem; font-weight: 650; line-height: 1.4; text-decoration: none; }
+.comunicado__titulo:hover { text-decoration: underline; }
+
+/* Listado público /noticias */
+.noticias-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+.noticia-tarjeta {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-texto) 11%, transparent);
+  border-radius: var(--radio-tarjeta);
+  background: var(--color-fondo);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transicion-elevacion),
+    box-shadow var(--transicion-elevacion),
+    border-color var(--transicion);
+}
+.noticia-tarjeta:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-primario) 36%, var(--color-linea-suave));
+  box-shadow: var(--shadow-lg);
+}
+.noticia-tarjeta img { width: 100%; height: 12.5rem; object-fit: cover; transition: transform 0.5s var(--easing-suave, cubic-bezier(0.16, 1, 0.3, 1)); }
+.noticia-tarjeta:hover img { transform: scale(1.03); }
+.noticia-tarjeta__cuerpo { display: grid; gap: 0.5rem; padding: 1.1rem 1.25rem 1.3rem; }
+.noticia-tarjeta__cuerpo h2 { margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
+.noticia-tarjeta__cuerpo p { margin: 0; color: var(--color-texto-suave); font-size: 0.9rem; line-height: 1.55; }
+.noticia-tarjeta__cuerpo time { color: var(--color-texto-suave); font-size: 0.78rem; }
+.noticias-filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin: 2rem 0 1.5rem; }
+.noticias-filtros .busqueda-form { flex: 1 1 14rem; min-width: 0; max-width: min(26rem, 100%); }
+.noticias-filtros .busqueda-form__campo { flex: 1; min-width: 0; width: auto; }
+.noticias-pestanas {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-pill);
+  background: var(--color-superficie);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--color-texto) 5%, transparent);
+}
+.noticias-pestanas button { min-height: 2.5rem; padding: 0.5rem 1rem; border: 0; border-radius: var(--radio-pill); background: transparent; color: var(--color-texto-suave); font-weight: 600; cursor: pointer; transition: background-color var(--transicion), color var(--transicion), box-shadow var(--transicion); }
+.noticias-pestanas button[aria-selected='true'] { background: var(--color-fondo); color: var(--color-primario); box-shadow: var(--shadow-sm); }
+.noticias-paginas { display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 2rem 0 3rem; color: var(--color-texto-suave); }
+
+/* Detalle de noticia */
+.noticia-detalle { max-width: 48rem; margin: 2.5rem auto 4rem; }
+.noticia-detalle__migas { margin-bottom: 1.5rem; color: var(--color-texto-suave); font-size: 0.85rem; }
+.noticia-detalle__migas a { color: var(--color-primario); text-decoration: none; }
+.noticia-detalle__migas a:hover { text-decoration: underline; }
+.noticia-detalle .titulo-h1 { margin-top: 0.9rem; }
+.noticia-detalle__fecha { display: block; margin: 0.6rem 0 0; color: var(--color-texto-suave); font-size: 0.85rem; }
+.noticia-detalle__resumen { color: var(--color-texto-suave); font-size: 1.05rem; line-height: 1.6; }
+.noticia-detalle__imagen { width: 100%; margin: 1.5rem 0; border-radius: var(--radio-tarjeta); box-shadow: var(--shadow-md); }
+.noticia-detalle__cuerpo { margin-bottom: 2rem; line-height: 1.7; }
+.noticia-detalle__cuerpo img { max-width: 100%; height: auto; }
+
+@media (max-width: 1100px) { .novedades__noticias { grid-template-columns: 1fr; } .noticias__lista { border-top: 1px solid var(--color-borde); padding-top: 0.75rem; } }
+@media (max-width: 800px) { .novedades__rejilla { grid-template-columns: 1fr; } .novedades__intro { flex-direction: column; align-items: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .noticia--destacada:hover .noticia__media img { transform: none; } }

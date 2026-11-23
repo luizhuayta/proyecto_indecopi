@@ -163,6 +163,14 @@ probar('el slug duplicado responde 409', function () {
     afirmar(error_ultimo_codigo() === 409, 'debe responder 409');
 });
 
+probar('el listado de paginas exige sesion', function () {
+    fijarSesionDePrueba(null);
+    intentar(function () {
+        listarPaginas('es');
+    });
+    afirmar(error_ultimo_codigo() === 401, 'debe responder 401 sin sesión');
+});
+
 probar('el menu solo incluye las paginas visibles', function () {
     $admin = usuarioAdminPaginas();
     fijarSesionDePrueba($admin);

@@ -4,6 +4,8 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { SitioPublicoService } from '../core/sitio-publico.service';
+import { Icono } from '../shared/public/icono';
+import { PanelAccesibilidad } from '../shared/public/panel-accesibilidad';
 
 /**
  * Marco compartido del sitio público: la cabecera con la marca, el buscador y
@@ -19,9 +21,24 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
 @Component({
   selector: 'app-marco-portal',
   standalone: true,
-  imports: [FormsModule, RouterLink, RouterLinkActive],
+  imports: [FormsModule, RouterLink, RouterLinkActive, Icono, PanelAccesibilidad],
   template: `
     <a class="saltar-contenido" href="#contenido-principal">Saltar al contenido</a>
+
+    @if (sitio.accesos().length) {
+      <nav class="franja" aria-label="Accesos rápidos">
+        <div class="marco-ancho franja__fila">
+          @for (acceso of sitio.accesos(); track $index) {
+            <a class="franja__enlace" [href]="acceso.url">
+              @if (acceso.icono) {
+                <app-icono [nombre]="acceso.icono" />
+              }
+              {{ acceso.nombre }}
+            </a>
+          }
+        </div>
+      </nav>
+    }
 
     <header class="cabecera">
       <div class="marco-ancho cabecera__fila">
@@ -31,7 +48,7 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
           }
           <span>{{ sitio.nombre() }}</span>
         </a>
-        @if (sitio.menu().length > 0) {
+        @if (sitio.menu().length || sitio.botonesCabecera().length || mostrarBuscador) {
           <button
             class="menu-control"
             type="button"
@@ -39,10 +56,11 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
             [attr.aria-expanded]="menuAbierto()"
             (click)="menuAbierto.set(!menuAbierto())"
           >
-            Menú
+            <app-icono [nombre]="menuAbierto() ? 'cerrar' : 'menu'" />
+            <span class="sr-only">Menú</span>
           </button>
         }
-        <div class="cabecera__acciones">
+        <div class="cabecera__acciones" [class.abierta]="menuAbierto()">
           @if (mostrarBuscador) {
             <form class="busqueda-form busqueda-cabecera" role="search" (ngSubmit)="buscarDesdeCabecera()">
               <label class="sr-only" for="busqueda-cabecera-campo">Buscar en el sitio</label>
@@ -75,6 +93,15 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
               >
             }
           </nav>
+          @if (sitio.botonesCabecera().length) {
+            <div class="cabecera__botones">
+              @for (boton of sitio.botonesCabecera(); track $index) {
+                <a [href]="boton.url" [class]="'boton-cabecera boton-cabecera--' + boton.estilo">{{
+                  boton.texto
+                }}</a>
+              }
+            </div>
+          }
         </div>
       </div>
     </header>
@@ -83,8 +110,17 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
 
     <footer class="pie">
       <div class="marco-ancho pie__contenido">
-        <section aria-label="Datos de la institución">
-          <h2>{{ sitio.nombre() }}</h2>
+        <section class="pie__marca" aria-label="Datos de la institución">
+          @if (logo(); as logo) {
+            <img
+              class="pie__logo"
+              [src]="logo"
+              [alt]="sitio.texto('logo_alt') || sitio.nombre()"
+              width="200"
+              height="64"
+            />
+          }
+          <h2 class="pie__titulo">{{ sitio.nombre() }}</h2>
           @if (sitio.identidad(); as identidad) {
             <address>
               @if (identidad.direccion) {
@@ -112,7 +148,6 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
             @for (item of sitio.menu(); track item.slug) {
               <li><a [routerLink]="item.ruta || '/' + item.slug">{{ item.titulo }}</a></li>
             }
-            <li><a routerLink="/libro-de-reclamaciones">Libro de Reclamaciones</a></li>
           </ul>
         </nav>
 
@@ -132,6 +167,20 @@ import { SitioPublicoService } from '../core/sitio-publico.service';
         <a routerLink="/admin/login">Acceso al panel</a>
       </div>
     </footer>
+
+    @if (sitio.whatsapp(); as wa) {
+      <a
+        class="whatsapp-flotante"
+        [href]="wa"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="'Escribir por WhatsApp a ' + sitio.nombre()"
+      >
+        <app-icono nombre="mensaje" />
+      </a>
+    }
+
+    <app-panel-accesibilidad />
   `,
 })
 export class MarcoPortal {

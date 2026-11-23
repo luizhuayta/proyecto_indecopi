@@ -17,6 +17,8 @@
   --color-secundario: #5a6b80; /* gris azulado: texto secundario, bordes de apoyo */
   --color-acento: #b3541e; /* terracota sobrio: aviso, error, dato destacado */
   --color-acento-texto: #ffffff; /* texto sobre el color de aviso: el panel lo recalcula */
+  --color-acento-relleno: #b3541e; /* acento publicado tal cual, para rellenos (franja, botones de acción) */
+  --color-sobre-acento: #ffffff; /* texto sobre el acento en relleno: el panel lo recalcula */
   --color-texto: #1b1f24; /* texto principal, nunca negro puro */
   --color-texto-suave: #525c68; /* texto secundario */
   --color-fondo: #ffffff; /* fondo de página */
@@ -29,9 +31,9 @@
   --color-lavado: color-mix(in srgb, var(--color-primario) 7%, var(--color-fondo));
   --color-linea-suave: color-mix(in srgb, var(--color-primario) 14%, var(--color-fondo));
 
-  /* Tipografía: display serif (Source Serif 4) y cuerpo (IBM Plex Sans). */
-  --font-titulos: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --font-cuerpo: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Tipografía: Poppins en títulos y cuerpo (diseño institucional). */
+  --font-titulos: 'Poppins', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-cuerpo: 'Poppins', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Escala tipográfica (tamaño / altura de línea) */
   --texto-xs: 0.75rem; /* metadatos, notas al pie */
@@ -52,9 +54,14 @@
   --space-48: 48px;
   --space-64: 64px;
 
-  /* Radios por jerarquía (no un radio único en todo) */
-  --radio-campo: 10px; /* campos y botones secundarios */
-  --radio-tarjeta: 18px; /* tarjetas, paneles y la banda destacada */
+  /* Radios por jerarquía (no un radio único en todo). La escala es más
+     generosa que la del diseño de referencia: las tarjetas son lo más
+     redondo, los controles quedan un peldaño por debajo y lo que es
+     una etiqueta o un botón de acción va siempre en píldora. */
+  --radio-campo: 12px; /* campos y botones secundarios */
+  --radio-media: 14px; /* imágenes y medios dentro de una tarjeta */
+  --radio-tarjeta: 20px; /* tarjetas, paneles y la banda destacada */
+  --radio-pill: 999px; /* etiquetas, chips y estados */
   --radio-boton: 999px; /* solo el botón principal: es el punto de más peso */
 
   /* Sombras: escala corta de elevación. Van teñidas con el color de la
@@ -70,8 +77,13 @@
     0 14px 32px -8px color-mix(in srgb, var(--color-primario) 24%, transparent),
     0 4px 10px -4px color-mix(in srgb, var(--color-primario) 14%, transparent);
 
-  /* Movimiento: una sola duración para todo lo que reacciona al puntero. */
+  /* Movimiento: una duración corta para lo que reacciona al puntero y una
+     curva con salida elástica para las elevaciones (tarjetas que se levantan,
+     medios que hacen zoom): la salida suave es lo que da la sensación de
+     acabado caro sin hacer esperar a nadie. */
   --transicion: 180ms ease;
+  --easing-suave: cubic-bezier(0.16, 1, 0.3, 1);
+  --transicion-elevacion: 260ms var(--easing-suave);
 }
 
 

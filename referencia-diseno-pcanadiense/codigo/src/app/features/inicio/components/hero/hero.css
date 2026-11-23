@@ -1,0 +1,111 @@
+:host{display:block}
+.side-buttons{display:flex;align-items:center;justify-content:center;gap:0;width:100%;min-height:48px;box-sizing:border-box;padding:0 24px;background:#f46a0b}
+.side-item{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;box-sizing:border-box;padding:9px 25px;text-decoration:none;color:#fff;transition:background-color .2s}
+.side-item+.side-item{border-left:1px solid rgba(255,255,255,.35)}
+.side-item:hover{background:rgba(0,0,0,.13)}
+.side-item:focus-visible{outline:2px solid #fff;outline-offset:-4px}
+.side-btn{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex-shrink:0}
+.side-btn img{display:block;width:24px;height:24px;object-fit:contain;filter:brightness(0) invert(1)}
+.side-text{color:#fff;font-size:13px;font-weight:750;white-space:nowrap}
+.hero{position:relative;min-height:520px;display:flex;isolation:isolate;overflow:hidden;background:#153a67}
+.hero-slides,.overlay{position:absolute;inset:0}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;opacity:0;transition:opacity 1s ease}
+.hero-bg.active{opacity:1}
+.overlay{z-index:1;background:linear-gradient(90deg,rgba(7,30,62,.84) 0%,rgba(8,35,69,.65) 30%,rgba(8,35,69,.2) 59%,rgba(8,35,69,.03) 100%);pointer-events:none}
+.hero-stage{position:relative;z-index:2;box-sizing:border-box;width:100%;max-width:1320px;margin:auto;padding:75px 48px 65px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"content" "ctas";align-content:center;gap:30px}
+.hero-content{grid-area:content;max-width:600px;color:#fff}
+.hero-content::before{content:"FORMACIÓN DOCENTE · EDUCACIÓN SUPERIOR";display:inline-block;margin-bottom:18px;padding:7px 12px;border:1px solid rgba(255,255,255,.4);border-radius:30px;background:rgba(10,43,83,.32);font-size:10px;font-weight:700;letter-spacing:.08em}
+.hero-content h1{font-size:clamp(2rem,2.75vw,3rem);line-height:1.17;letter-spacing:-.025em;font-weight:800;margin:0 0 16px;max-width:590px;text-wrap:balance;text-shadow:0 2px 12px rgba(0,0,0,.25)}
+.hero-content p{font-size:clamp(1rem,1.25vw,1.25rem);font-weight:500;line-height:1.5;max-width:510px;margin:0;color:#f2f6ff;text-shadow:0 2px 8px rgba(0,0,0,.3)}
+.buttons-section{grid-area:ctas}
+.buttons-container{display:flex;flex-wrap:wrap;gap:12px}
+.btn-card{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:50px;box-sizing:border-box;padding:12px 19px;border-radius:9px;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.3);transition:transform .2s,background .2s,box-shadow .2s}
+.btn-card.carreras{background:#ff6900;box-shadow:0 7px 20px rgba(0,0,0,.12)}
+.btn-card.licencia{background:rgba(15,43,79,.65);backdrop-filter:blur(5px)}
+.btn-card .front,.btn-card .licencia-inner{display:flex;align-items:center;gap:10px}
+.btn-card .icon{display:flex;align-items:center}
+.btn-card .icon i{font-size:18px}
+.btn-card span{font-size:14px;font-weight:700}
+.btn-card:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(0,0,0,.2)}
+.btn-card:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.licencia-popup{position:absolute;top:calc(100% + 8px);left:0;width:150px;height:125px;overflow:hidden;border-radius:10px;opacity:0;transform:translateY(-7px);pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 10px 25px rgba(0,0,0,.22)}
+.licencia-popup img{width:100%;height:100%;object-fit:cover}
+.licencia:hover .licencia-popup{opacity:1;transform:translateY(0)}
+@media(max-width:768px){.side-buttons{padding:0 10px;flex-wrap:wrap}.side-item{flex:1 1 auto;padding:10px 12px}.side-text{font-size:11px}.hero{min-height:0}.hero-stage{padding:72px 20px 45px;gap:23px}.overlay{background:linear-gradient(90deg,rgba(7,30,62,.86),rgba(7,30,62,.47))}.hero-content h1{font-size:clamp(1.9rem,6vw,2.6rem)}.hero-content p{font-size:1rem}.licencia-popup{display:none}}
+@media(max-width:480px){.side-buttons{gap:0}.side-item{flex:1 1 100%;min-height:38px;padding:7px 12px}.side-item+.side-item{border-left:0;border-top:1px solid rgba(255,255,255,.24)}.side-btn{width:22px;height:22px}.side-btn img{width:20px;height:20px}.side-text{font-size:12px}.hero-stage{padding:56px 16px 38px}.hero-content::before{font-size:9px}.btn-card{flex:1 1 auto}}
+@media(prefers-reduced-motion:reduce){.hero-bg,.btn-card,.side-item,.licencia-popup{transition:none}}
+
+/* Licenciamiento: vista previa flotante sin recortes */
+.hero{overflow:visible}
+.buttons-section,.buttons-container,.btn-card.licencia{overflow:visible}
+.btn-card.licencia{z-index:5}
+.licencia-popup{position:absolute;top:auto;bottom:calc(100% + 10px);left:50%;width:185px;height:135px;transform:translate(-50%,8px);opacity:0;visibility:hidden;pointer-events:none;z-index:30;border-radius:12px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.26);transition:opacity .2s,transform .2s,visibility .2s}
+.licencia:hover .licencia-popup,.licencia:focus-within .licencia-popup{opacity:1;visibility:visible;transform:translate(-50%,0)}
+@media(max-width:768px){.licencia-popup{display:none}}
+
+/* Vista previa de Licenciamiento a la derecha, como en el diseño original */
+@media(min-width:769px){
+  .licencia-popup{top:50%;bottom:auto;left:calc(100% + 14px);width:185px;height:135px;transform:translate(-8px,-50%);opacity:0;visibility:hidden}
+  .licencia:hover .licencia-popup,.licencia:focus-within .licencia-popup{transform:translate(0,-50%);opacity:1;visibility:visible}
+}
+
+/* Vista previa pequeña: no invade el texto de la portada */
+@media(min-width:769px){
+  .licencia-popup{top:50%;left:calc(100% + 10px);width:116px;height:84px;border-radius:9px;box-shadow:0 7px 17px rgba(0,0,0,.2)}
+  .licencia-popup img{width:100%;height:100%;object-fit:cover}
+}
+
+/* Mantener botón horizontal y mostrar imagen mediana a su derecha */
+@media(min-width:769px){
+  .btn-card.licencia{width:auto;height:auto;min-height:50px;padding:12px 19px;flex-direction:row}
+  .btn-card.licencia .licencia-inner,.btn-card.licencia .front{display:flex;flex-direction:row;align-items:center;gap:10px}
+  .btn-card.licencia .icon i{font-size:18px}
+  .btn-card.licencia span{font-size:14px}
+  .licencia-popup{top:50%;bottom:auto;left:calc(100% + 12px);width:165px;height:125px;transform:translate(-8px,-50%)}
+  .licencia:hover .licencia-popup,.licencia:focus-within .licencia-popup{transform:translate(0,-50%)}
+}
+
+/* Desplazar la vista previa de Licenciamiento hacia abajo */
+@media(min-width:769px){
+  .licencia-popup{top:calc(50% + 45px)}
+}
+
+/* Alinear el borde superior de la imagen con el borde superior del botón */
+@media(min-width:769px){
+  .licencia-popup{top:0;bottom:auto;transform:translateX(-8px)}
+  .licencia:hover .licencia-popup,.licencia:focus-within .licencia-popup{transform:translateX(0)}
+}
+
+/* Retoques finales: degradado suave, portada más compacta y botones equilibrados */
+@media(min-width:769px){
+ .hero{min-height:490px}
+ .hero-stage{padding-top:59px;padding-bottom:50px;gap:27px}
+ .overlay{background:linear-gradient(90deg,rgba(7,30,62,.84) 0%,rgba(8,35,69,.65) 28%,rgba(8,35,69,.33) 44%,rgba(8,35,69,.09) 66%,rgba(8,35,69,0) 100%)}
+ .btn-card .front,.btn-card .licencia-inner{gap:11px}
+ .btn-card .icon{min-width:20px;justify-content:center}
+ .btn-card .icon i{font-size:19px}
+ .btn-card span{line-height:1.25}
+ /* Se mantiene la alineación superior aprobada de la imagen emergente */
+ .licencia-popup{top:0;left:calc(100% + 12px)}
+}
+
+/* Legibilidad de textos en la portada institucional, sin alterar su distribución */
+@media(min-width:769px){
+ .hero-content::before{font-size:13px;padding:9px 15px;letter-spacing:.055em}
+ .hero-content h1{font-size:clamp(2.5rem,3.1vw,3.35rem);line-height:1.15}
+ .hero-content p{font-size:clamp(1.25rem,1.5vw,1.55rem);line-height:1.45}
+ .btn-card{min-height:58px;padding:14px 23px}
+ .btn-card span,.btn-card.licencia span{font-size:17px}
+ .btn-card .icon i,.btn-card.licencia .icon i{font-size:21px}
+ .btn-card.licencia{min-height:58px;padding:14px 23px}
+}
+@media(max-width:768px){
+ .hero-content::before{font-size:11px}
+ .hero-content p{font-size:1.1rem}
+ .btn-card span{font-size:15px}
+}
+
+/* Alinear el bloque de presentación más cerca del borde izquierdo en escritorio */
+@media(min-width:1100px){
+ .hero-stage{max-width:none;padding-left:clamp(48px,5.2vw,94px);padding-right:48px}
+}

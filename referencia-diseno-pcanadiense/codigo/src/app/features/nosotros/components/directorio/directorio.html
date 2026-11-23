@@ -1,0 +1,68 @@
+<section class="directorio" id="docentes" aria-labelledby="directorio-title">
+  <div class="directorio-head">
+    <div>
+      <span class="directorio-eyebrow">NUESTRO EQUIPO</span>
+      <h2 id="directorio-title">Directorio institucional</h2>
+      <p>Conoce a las autoridades, al equipo administrativo y a nuestra plana docente.</p>
+    </div>
+    <div class="directorio-count" aria-live="polite">
+      <strong>{{ visible().length }}</strong>
+      <span>integrantes</span>
+    </div>
+  </div>
+
+  <div class="filters" role="group" aria-label="Filtrar directorio">
+    <div class="chips" role="group" aria-label="Filtrar por tipo de personal">
+      @for (type of types; track type) {
+        <button type="button" class="chip" [class.is-active]="typeFilter() === type"
+          [attr.aria-pressed]="typeFilter() === type" (click)="typeFilter.set(type)">
+          {{ type }}
+        </button>
+      }
+    </div>
+    <label class="area-filter">
+      <span>Área o dependencia</span>
+      <select [value]="areaFilter()" (change)="areaFilter.set($any($event.target).value)">
+        @for (area of areas(); track area) {
+          <option [value]="area">{{ area === 'Todas' ? 'Todas las áreas' : area }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <ul class="grid">
+    @for (member of visible(); track member.id) {
+      <li class="card">
+        <div class="card-top">
+          <div class="avatar" aria-hidden="true">
+            @if (hasPhoto(member)) {
+              <img [appSrc]="member.image ?? ''" alt="" (error)="markBroken(member.id)" />
+            } @else {
+              <span>{{ initials(member) }}</span>
+            }
+          </div>
+          <div class="person-details">
+            <span class="member-type">{{ member.type }}</span>
+            <h3>{{ member.names }} {{ member.lastNames }}</h3>
+            <p class="role">{{ member.position }}</p>
+          </div>
+        </div>
+        <div class="card-details">
+          @if (member.area) {
+            <p class="meta"><i class="fa-solid fa-building" aria-hidden="true"></i><span>{{ member.area }}</span></p>
+          }
+          @if (member.grade) {
+            <p class="meta"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>{{ member.grade }}</span></p>
+          }
+        </div>
+        @if (member.email) {
+          <a class="member-email" [href]="'mailto:' + member.email">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i><span>{{ member.email }}</span>
+          </a>
+        }
+      </li>
+    } @empty {
+      <li class="empty">No se encontraron integrantes con los filtros seleccionados.</li>
+    }
+  </ul>
+</section>

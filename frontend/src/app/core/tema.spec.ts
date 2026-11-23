@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { temaPublico } from './tema';
+import { FONTS_DEFECTO, temaPublico } from './tema';
 import { contraste } from './contraste';
 
 describe('temaPublico', () => {
@@ -25,5 +25,26 @@ describe('temaPublico', () => {
     }
     expect(contraste(tema['--color-boton-texto'], tema['--color-primario'])).toBeGreaterThanOrEqual(4.5);
     expect(contraste(tema['--color-boton-texto-hover'], tema['--color-primario-fuerte'])).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('temaPublico — diseño institucional', () => {
+  it('usa Poppins por defecto en títulos y cuerpo', () => {
+    const tema = temaPublico({});
+    expect(tema['--font-titulos']).toBe(FONTS_DEFECTO['tipografia_titulos']);
+    expect(FONTS_DEFECTO['tipografia_titulos'].startsWith("'Poppins'")).toBe(true);
+    expect(FONTS_DEFECTO['tipografia_cuerpo'].startsWith("'Poppins'")).toBe(true);
+  });
+
+  it('publica el acento sin ajustar para rellenos con texto legible encima', () => {
+    const tema = temaPublico({ color_acento: '#ff6600' });
+    expect(tema['--color-acento-relleno']).toBe('#ff6600');
+    expect(contraste(tema['--color-sobre-acento'], '#ff6600')).toBeGreaterThanOrEqual(4.5);
+    // El acento como texto sigue ajustado a AA sobre el fondo.
+    expect(contraste(tema['--color-acento'], tema['--color-fondo'])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('un acento oscuro lleva texto blanco encima', () => {
+    expect(temaPublico({ color_acento: '#123a6d' })['--color-sobre-acento']).toBe('#ffffff');
   });
 });

@@ -1,0 +1,79 @@
+:host{display:block;background:#f5f9ff}
+.svc-wrap{max-width:1320px;padding:48px 28px 88px;gap:38px}
+.svc-intro{margin:0 0 -12px}
+.svc-eyebrow{color:#1267bb;font-size:.77rem;font-weight:800;letter-spacing:.11em}
+.svc-intro h2{font-size:clamp(2rem,3vw,2.65rem);font-weight:800;letter-spacing:-.035em;color:#103e76}
+.svc-intro p{font-size:1.02rem;color:#506b8f}
+.svc-wrap>.svc-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.svc-wrap>.svc-grid .svc-card{--accent:#1267c4;--tint:#eaf3ff;position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:222px;padding:24px 22px 20px;border:1px solid #e1eaf5;border-radius:17px;background:#fff;box-shadow:0 8px 26px rgba(14,53,99,.055);overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.svc-wrap>.svc-grid .svc-card::before{content:"";position:absolute;inset:auto 0 0;height:4px;background:var(--accent);opacity:.92}
+.svc-wrap>.svc-grid .svc-card::after{content:"";position:absolute;top:-43px;right:-37px;width:134px;height:134px;border-radius:50%;background:var(--tint);opacity:.65;pointer-events:none}
+.svc-wrap>.svc-grid .svc-icon{position:relative;z-index:1;width:53px;height:53px;min-height:53px;margin:0 0 18px;border-radius:13px;background:var(--tint);color:var(--accent);font-size:1.35rem}
+.svc-wrap>.svc-grid .svc-card h3{position:relative;z-index:1;margin:0 0 9px;color:#0c376c;font-size:1.08rem;line-height:1.35;font-weight:800}
+.svc-wrap>.svc-grid .svc-card p{position:relative;z-index:1;margin:0 0 12px;padding-right:8px;color:#526b8b;font-size:.91rem;line-height:1.55;overflow-wrap:break-word}
+.svc-wrap>.svc-grid .svc-card::after{font-size:initial;color:initial}
+.svc-card-arrow{position:relative;z-index:1;align-self:flex-end;display:grid;place-items:center;margin-top:auto;width:36px;height:36px;border-radius:50%;background:var(--tint);color:var(--accent);font-size:.92rem;transition:transform .2s ease}
+.svc-wrap>.svc-grid .svc-card:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 17px 34px rgba(14,53,99,.13)}
+.svc-wrap>.svc-grid .svc-card:hover .svc-card-arrow{transform:translateX(3px)}
+.svc-wrap>.svc-grid .svc-card:focus-visible{outline:3px solid #1976d2;outline-offset:3px}
+@media(max-width:1100px){.svc-wrap>.svc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.svc-wrap{padding:34px 16px 62px;gap:26px}.svc-wrap>.svc-grid{grid-template-columns:1fr;gap:14px}.svc-wrap>.svc-grid .svc-card{min-height:190px;padding:21px}.svc-intro h2{font-size:1.9rem}}
+@media(prefers-reduced-motion:reduce){.svc-wrap>.svc-grid .svc-card,.svc-card-arrow{transition:none}}
+
+/* Atención institucional integrada con el nuevo diseño EVA */
+.svc-panel{padding:28px 32px;border:1px solid #dbe8f7;border-radius:20px;background:linear-gradient(120deg,#fff 0%,#edf6ff 100%);box-shadow:0 10px 28px rgba(12,57,112,.06)}
+.svc-panel>h2{margin:0 0 20px;color:#0b376c;font-size:1.55rem;font-weight:800}
+.svc-contact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.svc-contact>div{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.svc-contact>div>i{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:12px;background:#e3f0ff;color:#1267c4}
+.svc-contact strong{display:block;margin-bottom:5px;color:#0b376c}
+.svc-contact p{margin:0;color:#526b8b;line-height:1.55;overflow-wrap:anywhere}
+.svc-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+@media(max-width:850px){.svc-contact{grid-template-columns:1fr;gap:20px}}
+@media(max-width:620px){.svc-panel{padding:24px 18px}.svc-actions>*{width:100%;text-align:center}}
+
+/* Rediseño de Atención: cabecera, información y acciones claras */
+.svc-panel{position:relative;overflow:hidden;padding:34px 36px 32px;border-radius:22px;background:linear-gradient(115deg,#fff 0%,#f7fbff 62%,#eaf4ff 100%)}
+.svc-panel::before{content:"";position:absolute;top:-95px;right:-95px;width:260px;height:260px;border-radius:50%;border:32px solid rgba(24,112,207,.045);pointer-events:none}
+.svc-panel-heading{position:relative;display:flex;align-items:center;gap:18px;margin-bottom:26px}
+.svc-panel-heading-icon{display:grid;place-items:center;flex:none;width:66px;height:66px;border-radius:18px;background:#e3efff;color:#1267c4;font-size:1.7rem}
+.svc-panel-eyebrow{display:block;margin-bottom:5px;color:#f36a08;font-size:.72rem;letter-spacing:.1em;font-weight:800}
+.svc-panel .svc-panel-heading h2{margin:0 0 5px;color:#0b376c;font-size:clamp(1.65rem,2.2vw,2.15rem);font-weight:800}
+.svc-panel-heading p{margin:0;color:#536d8e;line-height:1.55}
+.svc-contact{position:relative;gap:16px}
+.svc-contact>div{padding:21px 19px;gap:14px;border:1px solid #e0eaf5;border-radius:15px;background:#fff;box-shadow:0 6px 18px rgba(12,57,112,.035)}
+.svc-contact>div>i{width:48px;height:48px;font-size:1.18rem}
+.svc-contact>div:nth-child(2)>i{background:#fff0e6;color:#f36a08}
+.svc-contact strong{font-size:.97rem;line-height:1.4}
+.svc-contact p{font-size:.94rem}
+.svc-actions{position:relative;gap:14px;margin-top:24px}
+.svc-actions>a{display:inline-flex;align-items:center;justify-content:center;gap:13px;min-height:49px;padding:12px 20px;border-radius:11px;font-weight:750;text-decoration:none;transition:transform .2s ease,box-shadow .2s ease}
+.svc-actions>a:first-child{background:#ff6b00;border-color:#ff6b00;color:#fff}
+.svc-actions>a:last-child{border:1.5px solid #1765b4;color:#0b4c91;background:#fff}
+.svc-actions>a:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(12,57,112,.1)}
+.svc-actions>a:focus-visible{outline:3px solid #1267c4;outline-offset:3px}
+@media(max-width:900px){.svc-contact{grid-template-columns:1fr}.svc-panel{padding:27px 24px}}
+@media(max-width:620px){.svc-panel{padding:24px 17px}.svc-panel-heading{align-items:flex-start;gap:12px}.svc-panel-heading-icon{width:48px;height:48px;border-radius:12px;font-size:1.3rem}.svc-contact>div{padding:17px}.svc-actions>a{width:100%}}
+@media(prefers-reduced-motion:reduce){.svc-actions>a{transition:none}}
+
+/* Paleta institucional unificada: azul principal, azul marino y acento naranja */
+.svc-wrap>.svc-grid .svc-card:nth-child(4n+1){--accent:#1267c4;--tint:#eaf3ff}
+.svc-wrap>.svc-grid .svc-card:nth-child(4n+2){--accent:#f36a08;--tint:#fff1e5}
+.svc-wrap>.svc-grid .svc-card:nth-child(4n+3){--accent:#164a80;--tint:#eaf1f9}
+.svc-wrap>.svc-grid .svc-card:nth-child(4n+4){--accent:#2376c9;--tint:#edf5ff}
+.svc-wrap>.svc-grid .svc-card::after{opacity:.5}
+.svc-wrap>.svc-grid .svc-card{border-color:#dce7f4}
+.svc-wrap>.svc-grid .svc-card h3{color:#0b376c}
+
+
+/* Atención: tres fichas compactas, limpias y equilibradas */
+.svc-contact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.svc-contact>div,.svc-contact>div:last-child{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:0;grid-column:auto;padding:22px 24px;border:1px solid #dce8f5;border-radius:16px;background:#fff;box-shadow:none}
+.svc-contact>div>i{display:grid;place-items:center;flex:none;width:44px;height:44px;margin:0 0 16px;border-radius:11px;font-size:1.1rem}
+.svc-contact>div>div{display:block;width:100%;min-width:0}
+.svc-contact strong{display:block;margin:0 0 9px;font-size:1rem;line-height:1.35;color:#0b376c}
+.svc-contact p{display:block;margin:0;color:#536d8e;font-size:.93rem;line-height:1.55;overflow-wrap:anywhere}
+.svc-actions{display:flex;justify-content:flex-start;gap:12px;margin-top:22px}
+.svc-actions>a{width:auto;min-width:210px}
+@media(max-width:900px){.svc-contact{grid-template-columns:repeat(2,minmax(0,1fr))}.svc-contact>div:last-child{grid-column:1/-1}}
+@media(max-width:600px){.svc-contact{grid-template-columns:1fr}.svc-contact>div,.svc-contact>div:last-child{grid-column:auto;padding:20px}.svc-actions{flex-direction:column}.svc-actions>a{width:100%}}

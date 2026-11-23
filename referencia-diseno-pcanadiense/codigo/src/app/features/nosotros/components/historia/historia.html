@@ -1,0 +1,37 @@
+<section class="historia" aria-labelledby="historia-title">
+  <article class="historia-card">
+    <div class="historia-heading">
+      <span class="historia-eyebrow">NUESTRA TRAYECTORIA</span>
+      <h2 id="historia-title">Reseña histórica</h2>
+      <p>Conoce los acontecimientos que forman parte de nuestra historia institucional.</p>
+    </div>
+    <div class="historia-layout">
+      <figure class="historia-photo">
+        <img [appSrc]="copy().historiaImage.src" [alt]="copy().historiaImage.alt" />
+      </figure>
+      <div class="historia-copy">
+        <div class="det-content__html" [innerHTML]="copy().historyLead"></div>
+        @if (tieneCronologia()) {
+          <button
+            type="button"
+            appButton
+            variant="outline"
+            size="sm"
+            [attr.aria-expanded]="expanded()"
+            aria-controls="historia-cronologia"
+            (click)="expanded.update((v) => !v)"
+          >
+            {{ expanded() ? 'Ocultar cronología' : 'Conocer nuestra trayectoria' }}
+            <i class="fa-solid" [class.fa-chevron-up]="expanded()" [class.fa-arrow-right]="!expanded()" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    </div>
+    @if (expanded() && tieneCronologia()) {
+      <section class="historia-cronologia" id="historia-cronologia" aria-label="Cronología institucional">
+        <h3>Hitos de nuestra historia</h3>
+        <div class="det-content__html historia-detalle" [innerHTML]="copy().historyTimeline"></div>
+      </section>
+    }
+  </article>
+</section>

@@ -1,0 +1,15 @@
+<app-inicio-hero [previewCopy]="previewCopy()" />
+<app-stat-bar />
+<section class="main-content">
+  <div class="container">
+    <app-inicio-gestion />
+    <app-inicio-otros-servicios [previewCopy]="previewCopy()" />
+    <app-inicio-actualidad />
+    <section class="partners-section" aria-labelledby="partners-title">
+      <div class="partners-heading">
+        <div><span class="partners-eyebrow">RECURSOS Y VÍNCULOS</span><h2 id="partners-title">Plataformas y aliados institucionales</h2><p>Accede a plataformas educativas y recursos de interés para nuestra comunidad.</p></div>
+      </div>
+      <app-inicio-logos-carousel [previewCopy]="previewCopy()" />
+    </section>
+  </div>
+</section>

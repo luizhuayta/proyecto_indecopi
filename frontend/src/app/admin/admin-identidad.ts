@@ -47,18 +47,20 @@ const VACIO: Identidad = {
   standalone: true,
   imports: [FormsModule],
   template: `
-    <header>
-      <h1 class="admin-titulo">Identidad</h1>
-      <p class="admin-subtitulo">
-        Los datos oficiales de la institución. Aparecen en el pie, los documentos y el libro de
-        reclamaciones.
-      </p>
+    <header class="admin-encabezado">
+      <div>
+        <h2 class="admin-encabezado__titulo">Identidad</h2>
+        <p class="admin-subtitulo admin-encabezado__texto">
+          Los datos oficiales de la institución. Aparecen en el pie, los documentos y el libro de
+          reclamaciones.
+        </p>
+      </div>
     </header>
 
     @if (cargando()) {
       <p class="admin-vacio">Cargando los datos…</p>
     } @else {
-      <form class="identidad" (ngSubmit)="guardar(false)">
+      <form class="identidad admin-tarjeta" (ngSubmit)="guardar(false)">
         @for (campo of CAMPOS; track campo.key) {
           <div class="admin-campo">
             <label [for]="'identidad-' + campo.key">{{ campo.label }}</label>

@@ -47,7 +47,7 @@ function controladorGuardarApariencia(): void
     $cuerpo = cuerpoJson();
     $contenido = is_array($cuerpo['contenido'] ?? null) ? $cuerpo['contenido'] : [];
     $version = (int) ($cuerpo['version'] ?? 0);
-    json_out(guardarDocumento(CLAVE_APARIENCIA, localeDePeticion(), $contenido, $version, 'prepararApariencia'), 200);
+    json_out(guardarApariencia($contenido, $version, localeDePeticion()), 200);
 }
 
 /**

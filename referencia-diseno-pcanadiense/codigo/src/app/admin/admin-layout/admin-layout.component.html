@@ -1,0 +1,401 @@
+
+<div
+  class="admin-shell studio-shell"
+  [class.nav-open]="navAbierto()"
+  [attr.data-paleta]="paleta()"
+  [attr.data-modo]="modo()"
+>
+
+  <app-toast-host />
+
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <button
+    type="button"
+    class="admin-scrim"
+    aria-label="Cerrar el menú"
+    (click)="navAbierto.set(false)"
+  ></button>
+
+  <div class="admin-body">
+
+    <!-- BARRA SUPERIOR -->
+
+    <header class="admin-topbar studio-topbar">
+
+      <div class="topbar-left">
+
+        <button
+          type="button"
+          class="admin-burger"
+          [attr.aria-expanded]="navAbierto()"
+          [attr.aria-label]="
+            colapsado()
+              ? 'Expandir el menú de secciones'
+              : 'Contraer el menú de secciones'
+          "
+          (click)="alternarNav()"
+        >
+          <i
+            class="fa"
+            [class.fa-angles-right]="colapsado()"
+            [class.fa-angles-left]="!colapsado()"
+            aria-hidden="true"
+          ></i>
+        </button>
+
+        <div class="studio-header-copy">
+
+          <span class="studio-header-overline">
+            CENTRO ADMINISTRATIVO
+            <span class="studio-header-divider">/</span>
+            {{ contextoActual().etiqueta }}
+          </span>
+
+          <span class="topbar-heads">
+            <h2 class="topbar-title">
+              {{ pageTitle() }}
+            </h2>
+
+            <span class="topbar-date">
+              {{ hoy }}
+            </span>
+          </span>
+
+        </div>
+      </div>
+
+      <div class="topbar-right">
+
+        <span class="studio-session-indicator">
+          <span class="studio-session-dot"></span>
+          Sesión administrativa
+        </span>
+
+        <!-- CONSERVA EL CONTROL DE APARIENCIA -->
+
+        <button
+          type="button"
+          class="theme-toggle"
+          (click)="alternarModo($event)"
+          [attr.aria-label]="
+            modo() === 'claro'
+              ? 'Activar modo oscuro'
+              : 'Activar modo claro'
+          "
+          [attr.title]="
+            modo() === 'claro'
+              ? 'Modo oscuro'
+              : 'Modo claro'
+          "
+          [attr.aria-pressed]="modo() === 'oscuro'"
+        >
+          @if (modo() === 'oscuro') {
+            <svg
+              class="theme-line-icon"
+              viewBox="0 0 24 24"
+              width="21"
+              height="21"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.65"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+              />
+            </svg>
+          } @else {
+            <svg
+              class="theme-line-icon"
+              viewBox="0 0 24 24"
+              width="21"
+              height="21"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.65"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M20.5 14.1A8.5 8.5 0 0 1 9.9 3.5 8.5 8.5 0 1 0 20.5 14.1Z"
+              />
+            </svg>
+          }
+        </button>
+
+        <!-- CONSERVA EL MENU DEL USUARIO -->
+
+        <div class="usermenu">
+
+          <button
+            type="button"
+            class="usermenu-trigger"
+            [class.is-open]="menuAbierto()"
+            (click)="alternarMenu()"
+            [attr.aria-expanded]="menuAbierto()"
+            aria-haspopup="menu"
+          >
+            <span class="topbar-avatar" aria-hidden="true">
+              {{ iniciales() }}
+            </span>
+
+            <span class="usermenu-id">
+              <span class="usermenu-name">
+                {{ usuario()?.nombre ?? 'Sesión' }}
+              </span>
+
+              <span class="usermenu-role">
+                {{ rolEtiqueta() }}
+              </span>
+            </span>
+
+            <i
+              class="fa fa-chevron-down usermenu-caret"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+          @if (menuAbierto()) {
+            <div class="usermenu-pop" role="menu">
+
+              <div class="usermenu-pop-head">
+                <span class="usermenu-name">
+                  {{ usuario()?.nombre ?? 'Sesión' }}
+                </span>
+
+                <span class="usermenu-role">
+                  {{ rolEtiqueta() }}
+                </span>
+              </div>
+
+              <a
+                routerLink="/admin/mi-cuenta"
+                class="usermenu-item"
+                role="menuitem"
+              >
+                <i
+                  class="fa fa-user-gear"
+                  aria-hidden="true"
+                ></i>
+                Mi cuenta
+              </a>
+
+              <button
+                type="button"
+                class="usermenu-item usermenu-item--danger"
+                role="menuitem"
+                (click)="cerrarSesion()"
+              >
+                <i
+                  class="fa fa-right-from-bracket"
+                  aria-hidden="true"
+                ></i>
+                Cerrar sesión
+              </button>
+
+            </div>
+          }
+        </div>
+
+      </div>
+    </header>
+
+    <!-- NUEVA BARRA DE TRABAJO -->
+
+    <nav
+      class="studio-toolbar"
+      aria-label="Herramientas administrativas"
+    >
+
+      <div class="studio-breadcrumb">
+
+        <a routerLink="/admin/dashboard">
+          <i
+            class="fa fa-gauge-high"
+            aria-hidden="true"
+          ></i>
+          Administración
+        </a>
+
+        <i
+          class="fa fa-chevron-right studio-chevron"
+          aria-hidden="true"
+        ></i>
+
+        <span aria-current="page">
+          {{ pageTitle() }}
+        </span>
+
+      </div>
+
+      <div class="studio-toolbar-actions">
+
+        <a
+          class="studio-tool"
+          routerLink="/admin/contenido"
+          title="Ir al contenido del portal"
+        >
+          <i class="fa fa-layer-group" aria-hidden="true"></i>
+          <span>Contenido</span>
+        </a>
+
+        <a
+          class="studio-tool"
+          routerLink="/admin/noticias"
+          title="Gestionar noticias"
+        >
+          <i class="fa fa-newspaper" aria-hidden="true"></i>
+          <span>Noticias</span>
+        </a>
+
+        <a
+          class="studio-tool"
+          [routerLink]="rutaPublica()"
+          target="_blank"
+          rel="noopener noreferrer"
+          [title]="
+            tieneVistaPublica()
+              ? 'Ver la página pública correspondiente'
+              : 'Abrir el portal público'
+          "
+        >
+          <i
+            class="fa fa-arrow-up-right-from-square"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            {{
+              tieneVistaPublica()
+                ? 'Ver página'
+                : 'Ver portal'
+            }}
+          </span>
+        </a>
+
+        <button
+          type="button"
+          class="studio-tool studio-tool-guide"
+          [class.is-active]="guiaAbierta()"
+          [attr.aria-expanded]="guiaAbierta()"
+          (click)="alternarGuia()"
+        >
+          <i
+            class="fa fa-sliders"
+            aria-hidden="true"
+          ></i>
+          <span>Guía del módulo</span>
+        </button>
+
+      </div>
+    </nav>
+
+    <!-- GUIA CONTEXTUAL POR MODULO -->
+
+    @if (guiaAbierta()) {
+
+      <section
+        class="studio-guide"
+        aria-label="Guía de la sección actual"
+      >
+
+        <div class="studio-guide-heading">
+
+          <div>
+            <span class="studio-guide-eyebrow">
+              GUÍA DE TRABAJO
+            </span>
+
+            <h3>{{ pageTitle() }}</h3>
+
+            <p>
+              {{ contextoActual().descripcion }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="studio-guide-close"
+            aria-label="Cerrar guía"
+            (click)="guiaAbierta.set(false)"
+          >
+            <i class="fa fa-xmark" aria-hidden="true"></i>
+          </button>
+
+        </div>
+
+        <ol class="studio-guide-steps">
+          @for (accion of contextoActual().acciones; track accion) {
+            <li>{{ accion }}</li>
+          }
+        </ol>
+
+        <div class="studio-guide-note">
+          <i
+            class="fa fa-circle-info"
+            aria-hidden="true"
+          ></i>
+          Los cambios se guardan desde los formularios del
+          módulo correspondiente. La barra de herramientas
+          no modifica datos por sí sola.
+        </div>
+
+      </section>
+    }
+
+    <!-- CONTENIDO ORIGINAL DEL ADMINISTRADOR -->
+
+    <main
+      class="admin-main studio-main"
+      [attr.data-admin-route]="rutaActual()"
+    >
+
+      <router-outlet></router-outlet>
+
+    </main>
+
+  </div>
+
+  <!-- DIALOGO ORIGINAL DE CIERRE DE SESION -->
+
+  <app-dialog
+    [open]="confirmarSalida()"
+    title="Cerrar sesión"
+    variant="logout"
+    (openChange)="confirmarSalida.set($event)"
+  >
+
+    <p>
+      ¿Deseas cerrar sesión del panel administrativo?
+      Tendrás que iniciar sesión nuevamente para volver
+      a acceder.
+    </p>
+
+    <div dialog-footer>
+
+      <button
+        type="button"
+        class="btn-cancel"
+        (click)="confirmarSalida.set(false)"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn-danger"
+        (click)="confirmarCerrarSesion()"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
+  </app-dialog>
+
+</div>

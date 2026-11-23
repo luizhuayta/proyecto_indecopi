@@ -5,6 +5,7 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminMedios, cajaRecorteEnPixeles } from './admin-medios';
 import { MediosService } from '../core/medios.service';
@@ -28,6 +29,7 @@ describe('AdminMedios', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         CmsApiService,
         CmsHistoryService,
         CmsContentService,

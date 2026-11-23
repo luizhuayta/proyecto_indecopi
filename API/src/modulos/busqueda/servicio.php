@@ -92,11 +92,17 @@ function buscar(string $texto, string $locale, int $limite = 20): array
     $limite = max(1, min(50, $limite));
     $patron = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $consulta) . '%';
 
+    // Los resultados deben llevar a una página visible: o una página con
+    // contenido publicado, o una noticia publicada y ya vigente (los dos
+    // LEFT JOIN + el IS NOT NULL actúan como el antiguo INNER JOIN).
     $stmt = conexion()->prepare(
-        'SELECT i.ruta, i.titulo, i.texto
+        'SELECT DISTINCT i.ruta, i.titulo, i.texto
            FROM trabajos_busqueda i
-           JOIN paginas p ON p.ruta = i.ruta AND p.locale = i.locale AND p.contenido IS NOT NULL
+           LEFT JOIN paginas p ON p.ruta = i.ruta AND p.locale = i.locale AND p.contenido IS NOT NULL
+           LEFT JOIN noticias n ON i.ruta = CONCAT(\'/noticias/\', n.slug)
+               AND n.estado = \'publicado\' AND n.publicado_en <= NOW()
           WHERE i.locale = ? AND (i.titulo LIKE ? OR i.texto LIKE ?)
+            AND (p.slug IS NOT NULL OR n.slug IS NOT NULL)
           ORDER BY (i.titulo LIKE ?) DESC, i.titulo
           LIMIT ' . $limite
     );

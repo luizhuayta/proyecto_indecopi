@@ -38,7 +38,9 @@ export function setByPath<T>(obj: T, path: string, value: unknown): T {
     const key = keys[i];
     const nextKey = keys[i + 1];
     const asIndex = Array.isArray(cursor);
-    const current = asIndex ? (cursor as unknown[])[Number(key)] : (cursor as JsonMap)[key];
+    const current = asIndex
+      ? (cursor as unknown[])[Number(key)]
+      : (cursor as JsonMap)[key];
     if (current == null) {
       const next = /^\d+$/.test(nextKey) ? [] : {};
       if (asIndex) {
@@ -47,9 +49,9 @@ export function setByPath<T>(obj: T, path: string, value: unknown): T {
         (cursor as JsonMap)[key] = next;
       }
     }
-    cursor = (asIndex ? (cursor as unknown[])[Number(key)] : (cursor as JsonMap)[key]) as
-      | JsonMap
-      | unknown[];
+    cursor = (
+      asIndex ? (cursor as unknown[])[Number(key)] : (cursor as JsonMap)[key]
+    ) as JsonMap | unknown[];
   }
   const last = keys[keys.length - 1];
   if (Array.isArray(cursor)) {
@@ -60,21 +62,38 @@ export function setByPath<T>(obj: T, path: string, value: unknown): T {
   return clone as T;
 }
 
-export function changedPaths(before: unknown, after: unknown, prefix = ''): string[] {
+export function changedPaths(
+  before: unknown,
+  after: unknown,
+  prefix = '',
+): string[] {
   if (before === after) {
     return [];
   }
-  if (typeof before !== 'object' || typeof after !== 'object' || !before || !after) {
+  if (
+    typeof before !== 'object' ||
+    typeof after !== 'object' ||
+    !before ||
+    !after
+  ) {
     return [prefix || '(documento)'];
   }
-  const keys = new Set([...Object.keys(before as JsonMap), ...Object.keys(after as JsonMap)]);
+  const keys = new Set([
+    ...Object.keys(before as JsonMap),
+    ...Object.keys(after as JsonMap),
+  ]);
   const out: string[] = [];
   for (const key of keys) {
     const path = prefix ? `${prefix}.${key}` : key;
     const left = (before as JsonMap)[key];
     const right = (after as JsonMap)[key];
     if (JSON.stringify(left) !== JSON.stringify(right)) {
-      if (left && right && typeof left === 'object' && typeof right === 'object') {
+      if (
+        left &&
+        right &&
+        typeof left === 'object' &&
+        typeof right === 'object'
+      ) {
         out.push(...changedPaths(left, right, path));
       } else {
         out.push(path);
@@ -101,13 +120,18 @@ export function buscarMarcadores(contenido: unknown): string[] {
     }
     if (typeof value === 'string') {
       const texto = value.trim();
-      if (MARCADORES.has(texto) || (texto.startsWith('{{') && texto.endsWith('}}'))) {
+      if (
+        MARCADORES.has(texto) ||
+        (texto.startsWith('{{') && texto.endsWith('}}'))
+      ) {
         out.push(path);
       }
       return;
     }
     if (Array.isArray(value)) {
-      value.forEach((item, index) => walk(item, path ? `${path}.${index}` : String(index)));
+      value.forEach((item, index) =>
+        walk(item, path ? `${path}.${index}` : String(index)),
+      );
       return;
     }
     if (typeof value === 'object') {
@@ -168,6 +192,22 @@ export interface CmsDocResponse {
   mostrar_en_menu?: boolean;
   orden_menu?: number;
   tiene_borrador?: boolean;
+}
+
+/** Noticia o comunicado publicado (GET /publico/noticias). */
+export interface NoticiaPublica {
+  id: number;
+  tipo: 'noticia' | 'comunicado';
+  titulo: string;
+  slug: string;
+  ruta: string;
+  categoria: string;
+  resumen: string;
+  imagen_url: string;
+  imagen_alt: string;
+  destacada: boolean;
+  publicado_en: string | null;
+  cuerpo?: string;
 }
 
 export interface CmsRevision {

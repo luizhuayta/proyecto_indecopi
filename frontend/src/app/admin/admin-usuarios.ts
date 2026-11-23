@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../cms/auth.service';
 import { CmsApiService, UsuarioItem } from '../cms/cms-api.service';
 import { EstadoVacio } from './estado-vacio';
@@ -21,12 +23,14 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
   standalone: true,
   imports: [FormsModule, DatePipe, EstadoVacio],
   template: `
-    <header>
-      <h1 class="admin-titulo">Usuarios</h1>
-      <p class="admin-subtitulo">
-        Las cuentas que pueden entrar al panel. Solo un administrador puede crear cuentas y
-        cambiar roles o estados.
-      </p>
+    <header class="admin-encabezado">
+      <div>
+        <h2 class="admin-encabezado__titulo">Usuarios</h2>
+        <p class="admin-subtitulo admin-encabezado__texto">
+          Las cuentas que pueden entrar al panel. Solo un administrador puede crear cuentas y
+          cambiar roles o estados.
+        </p>
+      </div>
     </header>
 
     @if (error()) {
@@ -36,12 +40,13 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
       <p class="admin-banner admin-banner--ok" role="status">{{ status() }}</p>
     }
 
-    <section class="admin-alta" aria-labelledby="titulo-alta">
+    <section class="admin-alta admin-tarjeta" aria-labelledby="titulo-alta">
       <h2 id="titulo-alta" class="admin-titulo admin-titulo--chico">Nueva cuenta</h2>
       <form class="admin-form-alta" (ngSubmit)="crear()">
         <div class="admin-campo">
           <label for="nuevo-usuario">Usuario</label>
           <input
+            #altaUsuario
             id="nuevo-usuario"
             class="admin-control"
             name="usuario"
@@ -67,6 +72,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
           <select id="nuevo-rol" class="admin-control" name="rol" [(ngModel)]="nuevoRol">
             <option value="editor">Editor</option>
             <option value="admin">Administrador</option>
+            <option value="secretaria">Secretaría</option>
           </select>
         </div>
         <button type="submit" class="admin-btn admin-btn--primario" [disabled]="creando()">
@@ -84,6 +90,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
         mensaje="Crea la primera cuenta para que alguien pueda entrar al panel y administrar el sitio."
       />
     } @else {
+      <div class="admin-tabla-scroll">
       <table class="admin-tabla">
         <caption class="sr-only">Cuentas del panel</caption>
         <thead>
@@ -115,10 +122,15 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
                 >
                   <option value="editor">Editor</option>
                   <option value="admin">Administrador</option>
+                  <option value="secretaria">Secretaría</option>
                 </select>
               </td>
               <td>
-                <span class="admin-etiqueta" [class.admin-etiqueta--ok]="u.activo">
+                <span
+                  class="admin-etiqueta"
+                  [class.admin-etiqueta--ok]="u.activo"
+                  [class.admin-etiqueta--borrador]="!u.activo"
+                >
                   {{ u.activo ? 'Activa' : 'Desactivada' }}
                 </span>
               </td>
@@ -139,6 +151,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
           }
         </tbody>
       </table>
+      </div>
       <p class="admin-ayuda">No puedes desactivar tu propia cuenta ni cambiarte el rol.</p>
     }
   `,
@@ -166,11 +179,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
         margin: 0;
       }
       .admin-alta {
-        padding: 1.25rem;
-        border: 1px solid var(--color-borde);
-        border-radius: var(--radio-tarjeta);
-        background: var(--color-superficie);
-        box-shadow: var(--shadow-sm);
+        /* La tarjeta la da .admin-tarjeta; aquí solo vive la retícula del formulario. */
       }
       .admin-form-alta {
         display: grid;
@@ -187,18 +196,9 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
         width: auto;
         min-width: 9rem;
       }
+      /* El pill vive en _componentes.scss; aquí solo el espacio tras el nombre. */
       .admin-etiqueta {
-        display: inline-block;
         margin-left: 0.35rem;
-        padding: 0.15rem 0.5rem;
-        border: 1px solid var(--color-borde);
-        border-radius: var(--radio-campo);
-        font-size: 0.875rem;
-        font-weight: 400;
-      }
-      .admin-etiqueta--ok {
-        border-color: var(--color-primario);
-        color: var(--color-primario);
       }
       .admin-btn--chico {
         padding: 0.35rem 0.75rem;
@@ -226,6 +226,9 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
 export class AdminUsuarios implements OnInit {
   private readonly api = inject(CmsApiService);
   private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private sub?: Subscription;
 
   readonly usuarios = signal<UsuarioItem[]>([]);
   readonly cargando = signal(false);
@@ -236,10 +239,31 @@ export class AdminUsuarios implements OnInit {
 
   nuevoUsuario = '';
   nuevaContrasena = '';
-  nuevoRol: 'admin' | 'editor' = 'editor';
+  nuevoRol: UsuarioItem['rol'] = 'editor';
+
+  /** Campo del alta: «Nueva cuenta» de la cabecera deja el foco aquí. */
+  @ViewChild('altaUsuario') private altaUsuario?: ElementRef<HTMLInputElement>;
 
   ngOnInit(): void {
     void this.cargar();
+    // «Nueva cuenta» de la cabecera llega como ?nueva=1: enfoca el alta y
+    // retira el parámetro de la URL.
+    this.sub = this.route.queryParams.subscribe((params) => {
+      if (params['nueva'] !== '1') {
+        return;
+      }
+      setTimeout(() => this.altaUsuario?.nativeElement.focus());
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { nueva: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 
   esPropio(u: UsuarioItem): boolean {
@@ -291,7 +315,7 @@ export class AdminUsuarios implements OnInit {
   }
 
   async cambiarRol(u: UsuarioItem, rol: string): Promise<void> {
-    if (rol !== 'admin' && rol !== 'editor') {
+    if (rol !== 'admin' && rol !== 'editor' && rol !== 'secretaria') {
       return;
     }
     if (this.esPropio(u) && rol !== 'admin') {
@@ -305,7 +329,7 @@ export class AdminUsuarios implements OnInit {
     this.error.set('');
     this.status.set('');
     try {
-      const item = await this.api.actualizarUsuario(u.id, { rol });
+      const item = await this.api.actualizarUsuario(u.id, { rol: rol as UsuarioItem['rol'] });
       this.reemplazar(item);
       this.status.set(`Rol de ${u.usuario} actualizado a ${this.nombreRol(item.rol)}.`);
     } catch (err: unknown) {
@@ -336,7 +360,12 @@ export class AdminUsuarios implements OnInit {
   }
 
   nombreRol(rol: string): string {
-    return rol === 'admin' ? 'Administrador' : 'Editor';
+    const rotulos: Record<string, string> = {
+      admin: 'Administrador',
+      editor: 'Editor',
+      secretaria: 'Secretaría',
+    };
+    return rotulos[rol] ?? rol;
   }
 
   private reemplazar(item: UsuarioItem): void {

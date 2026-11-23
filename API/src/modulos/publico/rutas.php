@@ -25,5 +25,13 @@ function manejarRutasPublico(string $metodo, string $ruta): void
         controladorBuscar();
         return;
     }
+    if ($metodo === 'GET' && $ruta === '/publico/noticias') {
+        controladorNoticiasPublicas();
+        return;
+    }
+    if ($metodo === 'GET' && preg_match('#^/publico/noticias/([a-z0-9-]{1,120})$#', $ruta, $m) === 1) {
+        controladorNoticiaPublica($m[1]);
+        return;
+    }
     noEncontrado('Ruta no encontrada.');
 }

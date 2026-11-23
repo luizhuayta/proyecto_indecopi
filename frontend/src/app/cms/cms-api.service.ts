@@ -66,13 +66,11 @@ export interface AparienciaResponse {
 }
 
 /**
- * Elemento de la biblioteca de medios. El contrato del API trae `creado_en`;
- * `alt` se gestiona en el cliente (el servidor lo exige para imágenes con
- * contenido, pero aún no lo devuelve en este contrato).
+ * Elemento de la biblioteca de medios. El texto alternativo se edita en cada
+ * bloque de imagen, donde se conoce el contexto de uso.
  */
 export interface MedioItem extends CmsMediaItem {
   creado_en?: string | null;
-  alt?: string | null;
 }
 
 export interface ListarMediosResponse {
@@ -109,7 +107,10 @@ export interface MensajeItem {
   nombre: string;
   correo: string;
   telefono: string;
+  documento?: string;
   mensaje: string;
+  /** Página del sitio desde la que se reportó (solo en reportes de accesibilidad). */
+  ruta?: string;
 }
 
 /** Resultado de responder un mensaje. */
@@ -121,11 +122,14 @@ export interface MensajeRespondido {
   correo: string;
 }
 
+/** Rol de una cuenta del panel. */
+export type RolUsuario = 'admin' | 'editor' | 'secretaria';
+
 /** Cuenta del panel (contrato GET /auth/usuarios). */
 export interface UsuarioItem {
   id: number;
   usuario: string;
-  rol: 'admin' | 'editor';
+  rol: RolUsuario;
   activo: boolean;
   creado_en?: string | null;
 }
@@ -134,14 +138,55 @@ export interface UsuarioItem {
 export interface CrearUsuarioBody {
   usuario: string;
   contrasena: string;
-  rol: 'admin' | 'editor';
+  rol: RolUsuario;
 }
 
 /** Cambios de una cuenta (PATCH /auth/usuarios/{id}). */
 export interface ActualizarUsuarioBody {
-  rol?: 'admin' | 'editor';
+  rol?: RolUsuario;
   activo?: boolean;
   contrasena?: string;
+}
+
+/** Noticia o comunicado tal como lo devuelve el panel (GET /noticias). */
+export interface NoticiaAdmin {
+  id: number;
+  tipo: 'noticia' | 'comunicado';
+  titulo: string;
+  slug: string;
+  ruta: string;
+  categoria: string;
+  resumen: string;
+  cuerpo: string;
+  imagen_url: string;
+  imagen_alt: string;
+  destacada: boolean;
+  estado: 'borrador' | 'publicado';
+  publicado_en: string | null;
+  autor: string;
+  actualizado_en: string | null;
+}
+
+/** Campos que se pueden enviar al crear o editar una noticia. */
+export type NoticiaEntrada = Partial<
+  Omit<NoticiaAdmin, 'id' | 'ruta' | 'autor' | 'actualizado_en'>
+>;
+
+/**
+ * Un documento vacío llega del API como `[]` (un array PHP vacío). El panel
+ * necesita un objeto para escribir rutas como `color_primario`; si se queda
+ * como array, `JSON.stringify` descarta esas claves y el guardado miente.
+ */
+function contenidoComoMapa(valor: unknown): JsonMap {
+  return valor !== null && typeof valor === 'object' && !Array.isArray(valor)
+    ? (valor as JsonMap)
+    : {};
+}
+
+function normalizarDocumento<T extends { contenido: JsonMap }>(
+  documento: T,
+): T {
+  return { ...documento, contenido: contenidoComoMapa(documento.contenido) };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -159,32 +204,43 @@ export class CmsApiService {
 
   getPaginas(): Promise<{ paginas: CmsPageSummary[]; menu: CmsMenuItem[] }> {
     return firstValueFrom(
-      this.http.get<{ paginas: CmsPageSummary[]; menu?: CmsMenuItem[] }>(`${API_BASE}/paginas`, {
-        params: this.locParams(),
-      })
+      this.http.get<{ paginas: CmsPageSummary[]; menu?: CmsMenuItem[] }>(
+        `${API_BASE}/paginas`,
+        {
+          params: this.locParams(),
+        },
+      ),
     ).then((res) => ({ paginas: res.paginas ?? [], menu: res.menu ?? [] }));
   }
 
   getPagina(slug: string): Promise<CmsDocResponse> {
     return firstValueFrom(
-      this.http.get<CmsDocResponse>(`${API_BASE}/paginas/${slug}`, { params: this.locParams() })
-    );
+      this.http.get<CmsDocResponse>(`${API_BASE}/paginas/${slug}`, {
+        params: this.locParams(),
+      }),
+    ).then(normalizarDocumento);
   }
 
-  guardarPagina(slug: string, contenido: JsonMap, version: number): Promise<CmsDocResponse> {
+  guardarPagina(
+    slug: string,
+    contenido: JsonMap,
+    version: number,
+  ): Promise<CmsDocResponse> {
     return firstValueFrom(
       this.http.put<CmsDocResponse>(
         `${API_BASE}/paginas/${slug}`,
         { contenido, version },
-        { params: this.locParams() }
-      )
-    );
+        { params: this.locParams() },
+      ),
+    ).then(normalizarDocumento);
   }
 
   publicarPagina(slug: string, version: number): Promise<CmsDocResponse> {
     return firstValueFrom(
-      this.http.post<CmsDocResponse>(`${API_BASE}/paginas/${slug}/publicar`, { version })
-    );
+      this.http.post<CmsDocResponse>(`${API_BASE}/paginas/${slug}/publicar`, {
+        version,
+      }),
+    ).then(normalizarDocumento);
   }
 
   crearPagina(body: CrearPaginaBody): Promise<{
@@ -193,62 +249,84 @@ export class CmsApiService {
     version: number;
   }> {
     return firstValueFrom(
-      this.http.post<{ pagina: CmsPageSummary; contenido: JsonMap; version: number }>(
-        `${API_BASE}/paginas`,
-        body,
-        { params: this.locParams() }
-      )
-    );
+      this.http.post<{
+        pagina: CmsPageSummary;
+        contenido: JsonMap;
+        version: number;
+      }>(`${API_BASE}/paginas`, body, { params: this.locParams() }),
+    ).then(normalizarDocumento);
   }
 
-  actualizarMeta(slug: string, body: ActualizarMetaBody): Promise<{ pagina: CmsPageSummary }> {
+  actualizarMeta(
+    slug: string,
+    body: ActualizarMetaBody,
+  ): Promise<{ pagina: CmsPageSummary }> {
     return firstValueFrom(
-      this.http.patch<{ pagina: CmsPageSummary }>(`${API_BASE}/paginas/${slug}/meta`, body, {
-        params: this.locParams(),
-      })
+      this.http.patch<{ pagina: CmsPageSummary }>(
+        `${API_BASE}/paginas/${slug}/meta`,
+        body,
+        {
+          params: this.locParams(),
+        },
+      ),
     );
   }
 
   eliminarPagina(slug: string): Promise<void> {
-    return firstValueFrom(this.http.delete(`${API_BASE}/paginas/${slug}`)).then(() => undefined);
+    return firstValueFrom(this.http.delete(`${API_BASE}/paginas/${slug}`)).then(
+      () => undefined,
+    );
   }
 
   listarRevisiones(slug: string): Promise<CmsRevision[]> {
     return firstValueFrom(
-      this.http.get<{ items: CmsRevision[] }>(`${API_BASE}/paginas/${slug}/revisiones`)
+      this.http.get<{ items: CmsRevision[] }>(
+        `${API_BASE}/paginas/${slug}/revisiones`,
+      ),
     ).then((res) => res.items ?? []);
   }
 
-  restaurarRevision(slug: string, id: number, version: number): Promise<CmsDocResponse> {
+  restaurarRevision(
+    slug: string,
+    id: number,
+    version: number,
+  ): Promise<CmsDocResponse> {
     return firstValueFrom(
       this.http.post<CmsDocResponse>(
         `${API_BASE}/paginas/${slug}/revisiones/${id}/restaurar`,
         { version },
-        { params: this.locParams() }
-      )
-    );
+        { params: this.locParams() },
+      ),
+    ).then(normalizarDocumento);
   }
 
   getConfiguracion(): Promise<CmsDocResponse> {
     return firstValueFrom(
-      this.http.get<CmsDocResponse>(`${API_BASE}/configuracion`, { params: this.locParams() })
-    );
+      this.http.get<CmsDocResponse>(`${API_BASE}/configuracion`, {
+        params: this.locParams(),
+      }),
+    ).then(normalizarDocumento);
   }
 
-  guardarConfiguracion(contenido: JsonMap, version: number): Promise<CmsDocResponse> {
+  guardarConfiguracion(
+    contenido: JsonMap,
+    version: number,
+  ): Promise<CmsDocResponse> {
     return firstValueFrom(
       this.http.put<CmsDocResponse>(
         `${API_BASE}/configuracion`,
         { contenido, version },
-        { params: this.locParams() }
-      )
-    );
+        { params: this.locParams() },
+      ),
+    ).then(normalizarDocumento);
   }
 
   publicarConfiguracion(version: number): Promise<CmsDocResponse> {
     return firstValueFrom(
-      this.http.post<CmsDocResponse>(`${API_BASE}/configuracion/publicar`, { version })
-    );
+      this.http.post<CmsDocResponse>(`${API_BASE}/configuracion/publicar`, {
+        version,
+      }),
+    ).then(normalizarDocumento);
   }
 
   // ---- Identidad ----
@@ -258,44 +336,100 @@ export class CmsApiService {
   }
 
   guardarIdentidad(body: Partial<Identidad>): Promise<Identidad> {
-    return firstValueFrom(this.http.put<Identidad>(`${API_BASE}/identidad`, body));
+    return firstValueFrom(
+      this.http.put<Identidad>(`${API_BASE}/identidad`, body),
+    );
   }
 
   // ---- Apariencia ----
 
   getApariencia(): Promise<AparienciaResponse> {
-    return firstValueFrom(this.http.get<AparienciaResponse>(`${API_BASE}/configuracion/apariencia`));
+    return firstValueFrom(
+      this.http.get<AparienciaResponse>(`${API_BASE}/configuracion/apariencia`),
+    ).then(normalizarDocumento);
   }
 
-  guardarApariencia(contenido: JsonMap, version: number): Promise<AparienciaResponse> {
+  guardarApariencia(
+    contenido: JsonMap,
+    version: number,
+  ): Promise<AparienciaResponse> {
     return firstValueFrom(
-      this.http.put<AparienciaResponse>(`${API_BASE}/configuracion/apariencia`, { contenido, version })
-    );
+      this.http.put<AparienciaResponse>(
+        `${API_BASE}/configuracion/apariencia`,
+        { contenido, version },
+      ),
+    ).then(normalizarDocumento);
   }
 
   publicarApariencia(version: number): Promise<AparienciaResponse> {
     return firstValueFrom(
-      this.http.post<AparienciaResponse>(`${API_BASE}/configuracion/apariencia/publicar`, { version })
-    );
+      this.http.post<AparienciaResponse>(
+        `${API_BASE}/configuracion/apariencia/publicar`,
+        { version },
+      ),
+    ).then(normalizarDocumento);
   }
 
   // ---- Mensajes ----
 
-  listarMensajes(filtros: { tipo?: string; estado?: string } = {}): Promise<MensajeItem[]> {
+  listarMensajes(
+    filtros: { tipo?: string; estado?: string } = {},
+  ): Promise<MensajeItem[]> {
     const params: Record<string, string> = { locale: LOCALE };
     if (filtros.tipo) params['tipo'] = filtros.tipo;
     if (filtros.estado) params['estado'] = filtros.estado;
     return firstValueFrom(
-      this.http.get<{ items: MensajeItem[] }>(`${API_BASE}/mensajes`, { params })
+      this.http.get<{ items: MensajeItem[] }>(`${API_BASE}/mensajes`, {
+        params,
+      }),
     ).then((res) => res.items ?? []);
   }
 
-  responderMensaje(id: number, respuesta: string, notificar: boolean): Promise<MensajeRespondido> {
+  responderMensaje(
+    id: number,
+    respuesta: string,
+    notificar: boolean,
+  ): Promise<MensajeRespondido> {
     return firstValueFrom(
       this.http.post<MensajeRespondido>(
         `${API_BASE}/mensajes/${id}/responder`,
-        { respuesta, notificar }
-      )
+        { respuesta, notificar },
+      ),
+    );
+  }
+
+  archivarMensaje(id: number): Promise<{ id: number; estado: string }> {
+    return firstValueFrom(
+      this.http.post<{ id: number; estado: string }>(
+        `${API_BASE}/mensajes/${id}/archivar`,
+        {},
+      ),
+    );
+  }
+
+  // ---- Noticias ----
+
+  listarNoticias(): Promise<NoticiaAdmin[]> {
+    return firstValueFrom(
+      this.http.get<{ items: NoticiaAdmin[] }>(`${API_BASE}/noticias`),
+    ).then((r) => r.items ?? []);
+  }
+
+  crearNoticia(body: NoticiaEntrada): Promise<NoticiaAdmin> {
+    return firstValueFrom(
+      this.http.post<NoticiaAdmin>(`${API_BASE}/noticias`, body),
+    );
+  }
+
+  actualizarNoticia(id: number, body: NoticiaEntrada): Promise<NoticiaAdmin> {
+    return firstValueFrom(
+      this.http.put<NoticiaAdmin>(`${API_BASE}/noticias/${id}`, body),
+    );
+  }
+
+  eliminarNoticia(id: number): Promise<{ id: number }> {
+    return firstValueFrom(
+      this.http.delete<{ id: number }>(`${API_BASE}/noticias/${id}`),
     );
   }
 
@@ -303,19 +437,28 @@ export class CmsApiService {
 
   listarUsuarios(): Promise<UsuarioItem[]> {
     return firstValueFrom(
-      this.http.get<{ items: UsuarioItem[] }>(`${API_BASE}/auth/usuarios`)
+      this.http.get<{ items: UsuarioItem[] }>(`${API_BASE}/auth/usuarios`),
     ).then((res) => res.items ?? []);
   }
 
   crearUsuario(body: CrearUsuarioBody): Promise<UsuarioItem> {
     return firstValueFrom(
-      this.http.post<{ ok: boolean; item: UsuarioItem }>(`${API_BASE}/auth/usuarios`, body)
+      this.http.post<{ ok: boolean; item: UsuarioItem }>(
+        `${API_BASE}/auth/usuarios`,
+        body,
+      ),
     ).then((res) => res.item);
   }
 
-  actualizarUsuario(id: number, body: ActualizarUsuarioBody): Promise<UsuarioItem> {
+  actualizarUsuario(
+    id: number,
+    body: ActualizarUsuarioBody,
+  ): Promise<UsuarioItem> {
     return firstValueFrom(
-      this.http.patch<{ ok: boolean; item: UsuarioItem }>(`${API_BASE}/auth/usuarios/${id}`, body)
+      this.http.patch<{ ok: boolean; item: UsuarioItem }>(
+        `${API_BASE}/auth/usuarios/${id}`,
+        body,
+      ),
     ).then((res) => res.item);
   }
 
@@ -324,28 +467,34 @@ export class CmsApiService {
   subirMedio(file: File): Promise<MedioItem> {
     const body = new FormData();
     body.append('file', file);
-    return firstValueFrom(this.http.post<MedioItem>(`${API_BASE}/medios`, body));
+    return firstValueFrom(
+      this.http.post<MedioItem>(`${API_BASE}/medios`, body),
+    );
   }
 
   listarMedios(): Promise<MedioItem[]> {
     return firstValueFrom(
-      this.http.get<ListarMediosResponse>(`${API_BASE}/medios`)
+      this.http.get<ListarMediosResponse>(`${API_BASE}/medios`),
     ).then((res) => res.items ?? []);
   }
 
   eliminarMedio(id: number): Promise<void> {
-    return firstValueFrom(this.http.delete(`${API_BASE}/medios/${id}`)).then(() => undefined);
+    return firstValueFrom(this.http.delete(`${API_BASE}/medios/${id}`)).then(
+      () => undefined,
+    );
   }
 
   recortarMedio(body: RecortarMedioBody): Promise<RecortarMedioResult> {
     return firstValueFrom(
-      this.http.post<RecortarMedioResult>(`${API_BASE}/medios/recortar`, body)
+      this.http.post<RecortarMedioResult>(`${API_BASE}/medios/recortar`, body),
     );
   }
 
   listarVersionesMedio(id: number): Promise<MedioVersionItem[]> {
     return firstValueFrom(
-      this.http.get<{ items: MedioVersionItem[] }>(`${API_BASE}/medios/${id}/versiones`)
+      this.http.get<{ items: MedioVersionItem[] }>(
+        `${API_BASE}/medios/${id}/versiones`,
+      ),
     ).then((res) => res.items ?? []);
   }
 
@@ -353,11 +502,17 @@ export class CmsApiService {
    * Restaura una versión de un medio. Sin `versionId` restaura el original.
    * El archivo actual queda archivado como una versión más.
    */
-  restaurarVersionMedio(id: number, versionId: number | null): Promise<RestaurarMedioResult> {
+  restaurarVersionMedio(
+    id: number,
+    versionId: number | null,
+  ): Promise<RestaurarMedioResult> {
     return firstValueFrom(
-      this.http.post<RestaurarMedioResult>(`${API_BASE}/medios/${id}/restaurar`, {
-        versionId,
-      })
+      this.http.post<RestaurarMedioResult>(
+        `${API_BASE}/medios/${id}/restaurar`,
+        {
+          versionId,
+        },
+      ),
     );
   }
 }

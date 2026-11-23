@@ -305,32 +305,6 @@ import { EstadoVacio } from './estado-vacio';
         display: flex;
         gap: var(--space-4, 0.25rem);
       }
-      .admin-btn {
-        border: 1px solid var(--color-borde);
-        background: var(--color-superficie);
-        color: var(--color-texto);
-        border-radius: var(--radio-campo, 4px);
-        padding: 0.4rem 0.75rem;
-        font: inherit;
-        cursor: pointer;
-      }
-      .admin-btn:hover {
-        border-color: var(--color-secundario);
-      }
-      .admin-btn:focus-visible {
-        outline: 2px solid var(--color-primario);
-        outline-offset: 2px;
-      }
-      .admin-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .admin-btn--fantasma {
-        background: transparent;
-      }
-      .admin-btn--fantasma:hover {
-        background: var(--color-superficie);
-      }
     `,
   ],
 })

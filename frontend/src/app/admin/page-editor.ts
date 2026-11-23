@@ -11,6 +11,7 @@ import { BLOCK_TYPES, pageBlocks } from '../cms/block-registry';
 import type { CmsBlock } from '../cms/block-registry';
 import { CmsInspector } from './cms-inspector';
 import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
+import type { CmsRevision } from '../cms/cms.models';
 
 /**
  * Constructor visual de una página: vista previa por dispositivo, selección de
@@ -77,27 +78,48 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
         <div class="editor__grupo">
           <button type="button" class="admin-btn" (click)="undo()" [disabled]="!canUndo()">Deshacer</button>
           <button type="button" class="admin-btn" (click)="redo()" [disabled]="!canRedo()">Rehacer</button>
+          <button
+            type="button"
+            class="admin-btn"
+            (click)="alternarHistorial()"
+            [disabled]="cargandoHistorial()"
+          >
+            {{ cargandoHistorial() ? 'Cargando…' : historial() !== null ? 'Cerrar historial' : 'Historial' }}
+          </button>
         </div>
-
-        @if (selectedIndex() != null) {
-          <div class="editor__grupo" aria-label="Acciones del bloque seleccionado">
-            <button type="button" class="admin-btn" (click)="duplicateBlock()">Duplicar</button>
-            <button type="button" class="admin-btn" (click)="toggleHidden()">Ocultar</button>
-            <button type="button" class="admin-btn" (click)="moveBlock(-1)" [disabled]="selectedIndex() === 0">
-              Subir
-            </button>
-            <button
-              type="button"
-              class="admin-btn"
-              (click)="moveBlock(1)"
-              [disabled]="selectedIndex() === bloques().length - 1"
-            >
-              Bajar
-            </button>
-            <button type="button" class="admin-btn admin-btn--peligro" (click)="removeBlock()">Eliminar</button>
-          </div>
-        }
       </div>
+
+      @if (historial(); as lista) {
+        <section class="editor__historial" aria-label="Historial de publicaciones">
+          <div class="editor__historial-cabecera">
+            <h2>Historial</h2>
+            <button type="button" class="admin-btn" (click)="alternarHistorial()">Cerrar</button>
+          </div>
+          @if (lista.length === 0) {
+            <p>Esta página todavía no tiene publicaciones guardadas.</p>
+          } @else {
+            <ul>
+              @for (revision of lista; track revision.id) {
+                <li>
+                  <span class="editor__historial-fecha">{{ fechaRevision(revision.creado_en) }}</span>
+                  <span class="editor__historial-autor">{{ revision.autor || 'Sin autor' }}</span>
+                  <button
+                    type="button"
+                    class="admin-btn"
+                    (click)="restaurar(revision)"
+                    [disabled]="restaurando() !== null"
+                  >
+                    {{ restaurando() === revision.id ? 'Restaurando…' : 'Restaurar' }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (error()) {
+            <p class="admin-banner admin-banner--error" role="alert">{{ error() }}</p>
+          }
+        </section>
+      }
 
       <div class="editor__cuerpo">
         <div class="editor__preview" #marcoPreview>          <div
@@ -116,6 +138,22 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
 
         <aside class="editor__inspector" aria-label="Inspector">
           @if (selectedIndex() != null) {
+            <div class="editor__acciones-bloque" role="group" aria-label="Acciones del bloque seleccionado">
+              <button type="button" class="admin-btn" (click)="duplicateBlock()">Duplicar</button>
+              <button type="button" class="admin-btn" (click)="toggleHidden()">Ocultar</button>
+              <button type="button" class="admin-btn" (click)="moveBlock(-1)" [disabled]="selectedIndex() === 0">
+                Subir
+              </button>
+              <button
+                type="button"
+                class="admin-btn"
+                (click)="moveBlock(1)"
+                [disabled]="selectedIndex() === bloques().length - 1"
+              >
+                Bajar
+              </button>
+              <button type="button" class="admin-btn admin-btn--peligro" (click)="removeBlock()">Eliminar</button>
+            </div>
             <app-cms-inspector [blockIndex]="selectedIndex()!"></app-cms-inspector>
           } @else {
             <p>Selecciona un bloque de la vista previa para editar sus campos.</p>
@@ -131,92 +169,157 @@ import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
       }
       .editor {
         display: grid;
-        grid-template-rows: auto 1fr;
         gap: var(--space-16, 1rem);
-        height: 100%;
       }
       .editor__barra {
         display: flex;
         flex-wrap: wrap;
-        gap: var(--space-12, 0.75rem);
         align-items: center;
+        justify-content: space-between;
+        gap: var(--space-12, 0.75rem);
+        min-width: 0;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--color-borde);
+        border-radius: 14px;
+        background: var(--color-fondo);
+        box-shadow: var(--shadow-sm);
       }
       .editor__grupo {
         display: flex;
-        gap: var(--space-8, 0.5rem);
+        flex-wrap: wrap;
         align-items: center;
+        gap: var(--space-8, 0.5rem);
+        min-width: 0;
       }
       .editor__escala {
         font-size: var(--texto-sm, 0.875rem);
         color: var(--color-texto-suave);
-        white-space: nowrap;
+        white-space: normal;
       }
-      .editor__cuerpo {
-        display: grid;
-        grid-template-columns: 1fr minmax(18rem, 24rem);
-        gap: var(--space-16, 1rem);
-        align-items: start;
-      }
-      @media (max-width: 900px) {
-        .editor__cuerpo {
-          grid-template-columns: 1fr;
-        }
-      }
-      .editor__preview {
-        background: var(--color-fondo);
-        border: 1px solid var(--color-borde);
-        border-radius: var(--radio-tarjeta, 6px);
-        overflow: auto;
-        min-height: 20rem;
-        box-shadow: var(--shadow-sm);
-      }
-      .editor__preview-inner {
-        margin: 0 auto;
-        transition: width 0.15s ease;
-      }
-      .editor__inspector {
+      .editor__historial {
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-tarjeta, 6px);
         padding: var(--space-16, 1rem);
         background: var(--color-superficie);
+      }
+      .editor__historial-cabecera {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-8, 0.5rem);
+        margin-bottom: var(--space-8, 0.5rem);
+      }
+      .editor__historial-cabecera h2 {
+        margin: 0;
+        font-size: var(--texto-lg, 1.125rem);
+      }
+      .editor__historial ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: var(--space-4, 0.25rem);
+      }
+      .editor__historial li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-8, 0.5rem);
+        padding: var(--space-4, 0.25rem) 0;
+        border-top: 1px solid var(--color-borde);
+      }
+      .editor__historial-fecha {
+        font-variant-numeric: tabular-nums;
+      }
+      .editor__historial-autor {
+        color: var(--color-texto-suave);
+        flex: 1;
+      }
+      .editor__cuerpo {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
+        gap: var(--space-16, 1rem);
+        align-items: start;
+      }
+      @media (max-width: 1350px) {
+        .editor__cuerpo {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .editor__preview,
+        .editor__inspector {
+          position: static;
+          max-height: none;
+        }
+      }
+      .editor__preview {
+        position: relative;
+        overflow: auto;
+        max-height: calc(100vh - 13rem);
+        min-height: 20rem;
+        padding: 3.25rem 0.75rem 0.75rem;
+        background: var(--color-superficie);
+        border: 1px solid var(--color-borde);
+        border-radius: 14px;
         box-shadow: var(--shadow-sm);
       }
-      .admin-btn {
+      .editor__preview::before {
+        content: 'Vista previa del borrador';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--color-borde);
+        background: var(--color-fondo);
+        color: var(--color-primario);
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .editor__preview-inner {
+        margin: 0 auto;
+        background: var(--color-fondo);
+        box-shadow: var(--shadow-md);
+        transition: width 0.15s ease;
+      }
+      .editor__inspector {
+        position: sticky;
+        top: 9.5rem;
+        max-height: calc(100vh - 11rem);
+        overflow-y: auto;
+        padding: 1.25rem;
         border: 1px solid var(--color-borde);
-        background: var(--color-superficie);
-        color: var(--color-texto);
-        border-radius: var(--radio-campo, 4px);
-        padding: 0.4rem 0.75rem;
-        font: inherit;
-        cursor: pointer;
+        border-radius: 14px;
+        background: var(--color-fondo);
+        box-shadow: var(--shadow-sm);
+        scrollbar-width: thin;
       }
-      .admin-btn:hover {
-        border-color: var(--color-secundario);
-      }
-      .admin-btn:focus-visible,
-      select:focus-visible {
-        outline: 2px solid var(--color-primario);
-        outline-offset: 2px;
-      }
-      .admin-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      .editor__acciones-bloque {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-8, 0.5rem);
+        padding-bottom: var(--space-12, 0.75rem);
+        margin-bottom: var(--space-12, 0.75rem);
+        border-bottom: 1px solid var(--color-borde);
       }
       .admin-btn--activo {
         background: var(--color-primario);
-        color: #fff;
+        color: var(--color-boton-texto, #fff);
         border-color: var(--color-primario);
-      }
-      .admin-btn--peligro {
-        color: var(--color-acento);
       }
       select {
         border: 1px solid var(--color-borde);
-        border-radius: var(--radio-campo, 4px);
-        background: var(--color-superficie);
+        border-radius: 10px;
+        background: var(--color-fondo);
         color: var(--color-texto);
-        padding: 0.4rem 0.5rem;
+        padding: 0.5rem 0.65rem;
         font: inherit;
+        min-height: 2.5rem;
+      }
+      select:focus-visible {
+        outline: 2px solid var(--color-primario);
+        outline-offset: 2px;
       }
     `,
   ],
@@ -233,6 +336,9 @@ export class PageEditor implements OnInit, OnDestroy {
   readonly error = signal('');
   readonly status = signal('');
   readonly newType = signal('richText');
+  readonly historial = signal<CmsRevision[] | null>(null);
+  readonly cargandoHistorial = signal(false);
+  readonly restaurando = signal<number | null>(null);
 
   /** Ancho disponible en la vista previa, en píxeles. */
   private readonly anchoDisponible = signal(0);
@@ -272,6 +378,14 @@ export class PageEditor implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.editor.enable();
+    // En una pantalla de teléfono, la vista previa útil es la de teléfono.
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 768px)').matches
+    ) {
+      this.editor.device.set('mobile');
+    }
     this.cms.startEditingSession();
     if (!this.cms.loaded()) {
       void this.cms.loadAll();
@@ -289,6 +403,8 @@ export class PageEditor implements OnInit, OnDestroy {
       this.slug.set(slug);
       this.cms.useSlug(slug);
       this.selectedId.set(null);
+      this.historial.set(null);
+      this.error.set('');
     });
   }
 
@@ -352,6 +468,47 @@ export class PageEditor implements OnInit, OnDestroy {
 
   selectBlock(id: string): void {
     this.selectedId.set(id);
+  }
+
+  async alternarHistorial(): Promise<void> {
+    if (this.historial() !== null) {
+      this.historial.set(null);
+      return;
+    }
+    this.cargandoHistorial.set(true);
+    this.error.set('');
+    try {
+      this.historial.set(await this.cms.listarRevisiones(this.slug()));
+    } catch {
+      this.error.set('No se pudo cargar el historial de la página.');
+      this.historial.set(null);
+    } finally {
+      this.cargandoHistorial.set(false);
+    }
+  }
+
+  fechaRevision(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
+    const fecha = new Date(iso);
+    return Number.isNaN(fecha.getTime()) ? '—' : fecha.toLocaleString('es-PE');
+  }
+
+  async restaurar(revision: CmsRevision): Promise<void> {
+    if (this.restaurando() !== null) {
+      return;
+    }
+    this.restaurando.set(revision.id);
+    this.error.set('');
+    try {
+      await this.cms.restaurarRevision(this.slug(), revision.id);
+      this.historial.set(null);
+    } catch {
+      this.error.set('No se pudo restaurar la revisión. Recarga la página e inténtalo de nuevo.');
+    } finally {
+      this.restaurando.set(null);
+    }
   }
 
   categorias(): string[] {

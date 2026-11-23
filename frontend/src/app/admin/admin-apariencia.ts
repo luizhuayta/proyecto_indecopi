@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CmsApiService } from '../cms/cms-api.service';
 import { getByPath, setByPath, JsonMap } from '../cms/cms.models';
+import { OPCIONES_ICONO } from '../cms/iconos';
 import { contraste, normalizarHex, sugerirContraste } from '../core/contraste';
 import { COLORES_DEFECTO, FONTS_DEFECTO } from '../core/tema';
 import { SitioPublicoService } from '../core/sitio-publico.service';
@@ -16,10 +17,10 @@ interface AvisoContraste {
   sugerido: string;
 }
 
-interface Red {
+type Red = {
   nombre: string;
   url: string;
-}
+};
 
 const CAMPOS_COLOR: CampoColor[] = [
   { key: 'color_primario', label: 'Color primario' },
@@ -45,17 +46,19 @@ const CAMPOS_COLOR: CampoColor[] = [
   standalone: true,
   imports: [FormsModule],
   template: `
-    <header>
-      <h1 class="admin-titulo">Apariencia</h1>
-      <p class="admin-subtitulo">
-        Los colores, las tipografías y el logo de la institución. La maqueta muestra el efecto al
-        instante, sin guardar.
-      </p>
+    <header class="admin-encabezado">
+      <div>
+        <h2 class="admin-encabezado__titulo">Apariencia</h2>
+        <p class="admin-subtitulo admin-encabezado__texto">
+          Los colores, las tipografías y el logo de la institución. La maqueta muestra el efecto al
+          instante, sin guardar.
+        </p>
+      </div>
     </header>
 
     <div class="apariencia">
       <form class="apariencia__formulario" (ngSubmit)="guardar()">
-        <section class="apariencia__seccion">
+        <section class="apariencia__seccion admin-tarjeta">
           <h2>Colores</h2>
           <div class="apariencia__colores">
             @for (c of CAMPOS_COLOR; track c.key) {
@@ -89,7 +92,7 @@ const CAMPOS_COLOR: CampoColor[] = [
         </section>
 
         @if (problemasContraste().length > 0) {
-          <section class="apariencia__seccion apariencia__contraste" aria-label="Avisos de contraste">
+          <section class="apariencia__seccion apariencia__contraste admin-tarjeta" aria-label="Avisos de contraste">
             <h2>Contraste</h2>
             @for (p of problemasContraste(); track $index) {
               <p class="apariencia__contraste-item" role="alert">
@@ -100,7 +103,7 @@ const CAMPOS_COLOR: CampoColor[] = [
           </section>
         }
 
-        <section class="apariencia__seccion">
+        <section class="apariencia__seccion admin-tarjeta">
           <h2>Tipografía</h2>
           <div class="admin-campo">
             <label for="tipografia-titulos">Tipografía de títulos</label>
@@ -108,7 +111,7 @@ const CAMPOS_COLOR: CampoColor[] = [
               id="tipografia-titulos"
               class="admin-control"
               type="text"
-              [value]="str('tipografia_titulos')"
+              [value]="str('tipografia_titulos', FONTS_DEFECTO['tipografia_titulos'])"
               (input)="setStr('tipografia_titulos', $any($event.target).value)"
             />
           </div>
@@ -118,13 +121,13 @@ const CAMPOS_COLOR: CampoColor[] = [
               id="tipografia-cuerpo"
               class="admin-control"
               type="text"
-              [value]="str('tipografia_cuerpo')"
+              [value]="str('tipografia_cuerpo', FONTS_DEFECTO['tipografia_cuerpo'])"
               (input)="setStr('tipografia_cuerpo', $any($event.target).value)"
             />
           </div>
         </section>
 
-        <section class="apariencia__seccion">
+        <section class="apariencia__seccion admin-tarjeta">
           <h2>Logo y favicon</h2>
           <div class="admin-campo">
             <label for="logo-url">URL del logo</label>
@@ -158,7 +161,7 @@ const CAMPOS_COLOR: CampoColor[] = [
           </div>
         </section>
 
-        <section class="apariencia__seccion">
+        <section class="apariencia__seccion admin-tarjeta">
           <h2>Pie y contacto</h2>
           <div class="admin-campo">
             <label for="pie-legal">Texto legal del pie</label>
@@ -192,7 +195,7 @@ const CAMPOS_COLOR: CampoColor[] = [
           </div>
         </section>
 
-        <section class="apariencia__seccion">
+        <section class="apariencia__seccion admin-tarjeta">
           <h2>Redes sociales</h2>
           @for (red of redes(); track $index) {
             <div class="red">
@@ -249,6 +252,192 @@ const CAMPOS_COLOR: CampoColor[] = [
           <button type="button" class="admin-btn" (click)="agregarRed()">Agregar red</button>
         </section>
 
+        <section class="apariencia__seccion admin-tarjeta">
+          <h2>Accesos rápidos (franja superior)</h2>
+          @for (acceso of itemsDe('accesos'); track $index) {
+            <div class="red red--tres-campos">
+              <div class="admin-campo red__nombre">
+                <label [for]="'acceso-nombre-' + $index">Nombre</label>
+                <input
+                  [id]="'acceso-nombre-' + $index"
+                  class="admin-control"
+                  type="text"
+                  [value]="textoDe(acceso, 'nombre')"
+                  (input)="setItem('accesos', $index, 'nombre', $any($event.target).value)"
+                />
+              </div>
+              <div class="admin-campo red__url">
+                <label [for]="'acceso-url-' + $index">URL</label>
+                <input
+                  [id]="'acceso-url-' + $index"
+                  class="admin-control"
+                  type="text"
+                  [value]="textoDe(acceso, 'url')"
+                  (input)="setItem('accesos', $index, 'url', $any($event.target).value)"
+                />
+              </div>
+              <div class="admin-campo">
+                <label [for]="'acceso-icono-' + $index">Icono</label>
+                <select
+                  [id]="'acceso-icono-' + $index"
+                  class="admin-control"
+                  (change)="setItem('accesos', $index, 'icono', $any($event.target).value)"
+                >
+                  <option value="" [selected]="!textoDe(acceso, 'icono')">Sin icono</option>
+                  @for (op of opcionesIcono; track op.value) {
+                    <option [value]="op.value" [selected]="op.value === textoDe(acceso, 'icono')">
+                      {{ op.label }}
+                    </option>
+                  }
+                </select>
+              </div>
+              <div class="red__acciones">
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma"
+                  (click)="moverItem('accesos', $index, -1)"
+                  [disabled]="$index === 0"
+                  [attr.aria-label]="'Subir acceso ' + ($index + 1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma"
+                  (click)="moverItem('accesos', $index, 1)"
+                  [disabled]="$index === itemsDe('accesos').length - 1"
+                  [attr.aria-label]="'Bajar acceso ' + ($index + 1)"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma admin-btn--peligro"
+                  (click)="quitarItem('accesos', $index)"
+                  [attr.aria-label]="'Quitar acceso ' + ($index + 1)"
+                >
+                  Quitar
+                </button>
+              </div>
+            </div>
+          }
+          <p class="apariencia__ayuda">
+            Aparecen en la franja de color sobre la cabecera. Máximo 6.
+          </p>
+          <button
+            type="button"
+            class="admin-btn"
+            (click)="agregarItem('accesos', { nombre: '', url: '', icono: '' }, 6)"
+            [disabled]="itemsDe('accesos').length >= 6"
+          >
+            Agregar acceso
+          </button>
+        </section>
+
+        <section class="apariencia__seccion admin-tarjeta">
+          <h2>Botones de la cabecera</h2>
+          @for (boton of itemsDe('botones_cabecera'); track $index) {
+            <div class="red red--tres-campos">
+              <div class="admin-campo red__nombre">
+                <label [for]="'boton-texto-' + $index">Texto</label>
+                <input
+                  [id]="'boton-texto-' + $index"
+                  class="admin-control"
+                  type="text"
+                  [value]="textoDe(boton, 'texto')"
+                  (input)="setItem('botones_cabecera', $index, 'texto', $any($event.target).value)"
+                />
+              </div>
+              <div class="admin-campo red__url">
+                <label [for]="'boton-url-' + $index">URL</label>
+                <input
+                  [id]="'boton-url-' + $index"
+                  class="admin-control"
+                  type="text"
+                  [value]="textoDe(boton, 'url')"
+                  (input)="setItem('botones_cabecera', $index, 'url', $any($event.target).value)"
+                />
+              </div>
+              <div class="admin-campo">
+                <label [for]="'boton-estilo-' + $index">Estilo</label>
+                <select
+                  [id]="'boton-estilo-' + $index"
+                  class="admin-control"
+                  (change)="setItem('botones_cabecera', $index, 'estilo', $any($event.target).value)"
+                >
+                  <option
+                    value="principal"
+                    [selected]="textoDe(boton, 'estilo') !== 'contorno'"
+                  >
+                    Principal (color de acento)
+                  </option>
+                  <option value="contorno" [selected]="textoDe(boton, 'estilo') === 'contorno'">
+                    Contorno
+                  </option>
+                </select>
+              </div>
+              <div class="red__acciones">
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma"
+                  (click)="moverItem('botones_cabecera', $index, -1)"
+                  [disabled]="$index === 0"
+                  [attr.aria-label]="'Subir botón ' + ($index + 1)"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma"
+                  (click)="moverItem('botones_cabecera', $index, 1)"
+                  [disabled]="$index === itemsDe('botones_cabecera').length - 1"
+                  [attr.aria-label]="'Bajar botón ' + ($index + 1)"
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--fantasma admin-btn--peligro"
+                  (click)="quitarItem('botones_cabecera', $index)"
+                  [attr.aria-label]="'Quitar botón ' + ($index + 1)"
+                >
+                  Quitar
+                </button>
+              </div>
+            </div>
+          }
+          <p class="apariencia__ayuda">
+            Máximo 2. El primero suele ser la acción principal (p. ej. Admisión).
+          </p>
+          <button
+            type="button"
+            class="admin-btn"
+            (click)="agregarItem('botones_cabecera', { texto: '', url: '', estilo: 'principal' }, 2)"
+            [disabled]="itemsDe('botones_cabecera').length >= 2"
+          >
+            Agregar botón
+          </button>
+        </section>
+
+        <section class="apariencia__seccion admin-tarjeta">
+          <h2>WhatsApp</h2>
+          <div class="admin-campo">
+            <label for="whatsapp">Número de WhatsApp</label>
+            <input
+              id="whatsapp"
+              class="admin-control"
+              type="text"
+              inputmode="numeric"
+              [value]="str('whatsapp')"
+              (input)="setWhatsapp($any($event.target).value)"
+            />
+            <p class="apariencia__ayuda">
+              Número con código de país, solo dígitos (ej. 51938146082). Vacío oculta el botón
+              flotante.
+            </p>
+          </div>
+        </section>
+
         @if (avisos().length > 0) {
           <section class="apariencia__seccion" aria-label="Avisos del servidor">
             @for (a of avisos(); track a.campo) {
@@ -283,6 +472,7 @@ const CAMPOS_COLOR: CampoColor[] = [
         <p class="apariencia__nota">Vista previa</p>
         <div
           class="maqueta"
+          aria-hidden="true"
           [style.--color-primario]="colorDe('color_primario')"
           [style.--color-primario-fuerte]="colorDe('color_primario_fuerte')"
           [style.--color-secundario]="colorDe('color_secundario')"
@@ -306,7 +496,7 @@ const CAMPOS_COLOR: CampoColor[] = [
           </div>
           <div class="maqueta__cuerpo">
             <p class="maqueta__regla"></p>
-            <h1>Título de portada</h1>
+            <p class="maqueta__titulo">Título de portada</p>
             <p class="maqueta__texto">
               Una línea que explica qué es la institución y para quién.
             </p>
@@ -353,11 +543,14 @@ const CAMPOS_COLOR: CampoColor[] = [
       .apariencia__seccion {
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: var(--space-12, 0.75rem);
-        border: 1px solid var(--color-borde);
-        border-radius: var(--radio-tarjeta, 6px);
-        padding: var(--space-16, 1rem);
-        box-shadow: var(--shadow-sm);
+      }
+      .apariencia__seccion > * {
+        width: 100%;
+      }
+      .apariencia__seccion > .admin-btn {
+        width: auto;
       }
       .apariencia__seccion h2 {
         margin: 0;
@@ -437,9 +630,24 @@ const CAMPOS_COLOR: CampoColor[] = [
         gap: var(--space-8, 0.5rem);
         align-items: end;
       }
+      /* Filas con tercer campo (icono o estilo): una columna más estrecha. */
+      .red--tres-campos {
+        grid-template-columns: 1fr 1fr minmax(8rem, 0.8fr) auto;
+      }
+      @media (max-width: 640px) {
+        .red,
+        .red--tres-campos {
+          grid-template-columns: 1fr;
+        }
+      }
       .red__acciones {
         display: flex;
         gap: var(--space-4, 0.25rem);
+      }
+      .apariencia__ayuda {
+        margin: 0;
+        font-size: var(--texto-sm, 0.875rem);
+        color: var(--color-texto-suave);
       }
       .apariencia__acciones {
         display: flex;
@@ -491,10 +699,12 @@ const CAMPOS_COLOR: CampoColor[] = [
         background: var(--color-primario);
         margin: 0 0 var(--space-12, 0.75rem);
       }
-      .maqueta h1 {
+      .maqueta__titulo {
+        margin: 0 0 0.5em;
         font-family: var(--font-titulos);
         font-weight: 600;
         font-size: var(--texto-xl, 1.5rem);
+        line-height: 1.15;
         color: var(--color-texto);
       }
       .maqueta__texto {
@@ -526,6 +736,7 @@ const CAMPOS_COLOR: CampoColor[] = [
 })
 export class AdminApariencia implements OnInit {
   protected readonly CAMPOS_COLOR = CAMPOS_COLOR;
+  protected readonly FONTS_DEFECTO = FONTS_DEFECTO;
 
   private api = inject(CmsApiService);
   /** Apariencia publicada, compartida con el marco del panel. */
@@ -585,38 +796,74 @@ export class AdminApariencia implements OnInit {
   }
 
   redes(): Red[] {
-    const raw = getByPath(this.contenido(), 'redes');
-    if (!Array.isArray(raw)) {
-      return [];
-    }
-    return raw.filter(
-      (r): r is Red => !!r && typeof r === 'object' && typeof (r as Red).nombre === 'string',
-    );
+    return this.itemsDe('redes').filter((r): r is Red => typeof r['nombre'] === 'string');
   }
 
   setRed(index: number, campo: 'nombre' | 'url', valor: string): void {
-    this.setStr(`redes.${index}.${campo}`, valor);
+    this.setItem('redes', index, campo, valor);
   }
 
   agregarRed(): void {
-    const lista = [...this.redes(), { nombre: '', url: '' }];
-    this.contenido.set(setByPath(this.contenido(), 'redes', lista));
+    this.agregarItem('redes', { nombre: '', url: '' });
   }
 
   quitarRed(index: number): void {
-    const lista = this.redes().filter((_, i) => i !== index);
-    this.contenido.set(setByPath(this.contenido(), 'redes', lista));
+    this.quitarItem('redes', index);
   }
 
   moverRed(from: number, delta: number): void {
-    const lista = this.redes();
+    this.moverItem('redes', from, delta);
+  }
+
+  /** Elementos de una lista de la apariencia (redes, accesos, botones). */
+  itemsDe(clave: string): JsonMap[] {
+    const raw = getByPath(this.contenido(), clave);
+    return Array.isArray(raw)
+      ? raw.filter((x): x is JsonMap => !!x && typeof x === 'object')
+      : [];
+  }
+
+  /** Valor de texto de un elemento de lista, para pintarlo en su campo. */
+  textoDe(item: JsonMap, campo: string): string {
+    const valor = item[campo];
+    return typeof valor === 'string' ? valor : '';
+  }
+
+  setItem(clave: string, index: number, campo: string, valor: string): void {
+    this.setStr(`${clave}.${index}.${campo}`, valor);
+  }
+
+  agregarItem(clave: string, vacio: JsonMap, maximo = Infinity): void {
+    if (this.itemsDe(clave).length >= maximo) {
+      return;
+    }
+    this.contenido.set(
+      setByPath(this.contenido(), clave, [...this.itemsDe(clave), vacio]),
+    );
+  }
+
+  quitarItem(clave: string, index: number): void {
+    this.contenido.set(
+      setByPath(this.contenido(), clave, this.itemsDe(clave).filter((_, i) => i !== index)),
+    );
+  }
+
+  moverItem(clave: string, from: number, delta: number): void {
+    const lista = this.itemsDe(clave);
     const to = from + delta;
     if (to < 0 || to >= lista.length) {
       return;
     }
     const [moved] = lista.splice(from, 1);
     lista.splice(to, 0, moved);
-    this.contenido.set(setByPath(this.contenido(), 'redes', lista));
+    this.contenido.set(setByPath(this.contenido(), clave, lista));
+  }
+
+  readonly opcionesIcono = OPCIONES_ICONO;
+
+  /** WhatsApp guarda solo dígitos: el «+» y los espacios se quitan al escribir. */
+  setWhatsapp(valor: string): void {
+    this.setStr('whatsapp', valor.replace(/\D/g, ''));
   }
 
   /** Pares de contraste que no cumplen 4.5:1 (texto sobre fondo/superficie y botón). */

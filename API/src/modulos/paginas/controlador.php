@@ -24,9 +24,14 @@ function controladorListarPaginas(): void
 function controladorVerPagina(string $slug): void
 {
     $locale = localeDePeticion();
-    $documento = usuarioActual() !== null
-        ? documentoPagina($slug, $locale, true)
-        : paginaPublicada($slug, $locale);
+    // Con sesión devuelve el borrador: solo quienes editan páginas lo ven.
+    // Sin sesión queda la lectura pública (contenido publicado).
+    if (usuarioActual() !== null) {
+        exigirRol('admin', 'editor');
+        $documento = documentoPagina($slug, $locale, true);
+    } else {
+        $documento = paginaPublicada($slug, $locale);
+    }
     if ($documento === null) {
         noEncontrado('Página no encontrada.');
     }

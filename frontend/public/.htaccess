@@ -1,0 +1,28 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # La API vive en ./API y el frontend la llama por /api.
+  RewriteRule ^api(/.*)?$ API/entrada.php [L,QSA]
+
+  # SEO en la raíz: el API entrega el XML y el texto.
+  RewriteRule ^sitemap\.xml$ API/entrada.php [L,QSA]
+  RewriteRule ^robots\.txt$ API/entrada.php [L,QSA]
+
+  # El resto de rutas son de la aplicación Angular.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Nunca servir credenciales, volcados ni documentación interna.
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(sql|md|log)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/API/(pruebas|tmp|cms|src)/

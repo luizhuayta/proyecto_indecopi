@@ -4,7 +4,49 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE } from './cms.models';
 
-export type AdminRole = 'admin' | 'editor' | '';
+export type AdminRole = 'admin' | 'editor' | 'secretaria' | '';
+
+/**
+ * Secciones del panel que se pueden proteger por rol. La autorización real
+ * la hace siempre la API; aquí solo se decide qué enseñar y adónde entrar.
+ */
+export type SeccionAdmin =
+  | 'paginas'
+  | 'noticias'
+  | 'medios'
+  | 'mensajes'
+  | 'identidad'
+  | 'apariencia'
+  | 'usuarios'
+  | 'cuenta';
+
+/**
+ * Secciones que cada rol puede abrir, en el orden del menú lateral. La
+ * secretaria atiende la bandeja y la agenda editorial: no toca páginas,
+ * identidad, apariencia ni usuarios.
+ */
+const SECCIONES_POR_ROL: Record<string, SeccionAdmin[]> = {
+  admin: [
+    'paginas',
+    'noticias',
+    'medios',
+    'mensajes',
+    'identidad',
+    'apariencia',
+    'usuarios',
+    'cuenta',
+  ],
+  editor: ['paginas', 'noticias', 'medios', 'mensajes', 'cuenta'],
+  secretaria: ['noticias', 'medios', 'mensajes', 'cuenta'],
+};
+
+/** Etiqueta visible de cada rol. */
+const ROTULOS_ROL: Record<AdminRole, string> = {
+  admin: 'Administrador',
+  editor: 'Editor',
+  secretaria: 'Secretaría',
+  '': '',
+};
 
 interface AuthMeResponse {
   autenticado: boolean;
@@ -32,6 +74,33 @@ export class AuthService {
 
   isAdmin(): boolean {
     return this.role() === 'admin';
+  }
+
+  isSecretaria(): boolean {
+    return this.role() === 'secretaria';
+  }
+
+  /**
+   * ¿Puede el rol actual entrar a la sección del panel? El menú y los guards
+   * lo usan para filtrar; la API vuelve a comprobarlo en cada petición.
+   */
+  puede(seccion: SeccionAdmin): boolean {
+    return (SECCIONES_POR_ROL[this.role()] ?? []).includes(seccion);
+  }
+
+  /**
+   * Adónde se manda a quien intenta abrir una pantalla que no le toca: el
+   * tablero, que es la portada del panel y cada rol lo ve solo con sus
+   * métricas y accesos permitidos. Antes era la primera sección del rol;
+   * desde que existe el dashboard es el destino coherente para todos.
+   */
+  primeraSeccion(): string {
+    return '/admin';
+  }
+
+  /** Etiqueta del rol para mostrar junto al nombre de usuario. */
+  rotuloRol(): string {
+    return ROTULOS_ROL[this.role()];
   }
 
   async ensureSession(): Promise<boolean> {

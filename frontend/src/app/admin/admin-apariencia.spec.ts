@@ -61,12 +61,14 @@ describe('AdminApariencia', () => {
     expect(put.request.body).toEqual({ contenido: APARIENCIA.contenido, version: 3 });
     put.flush({ contenido: APARIENCIA.contenido, version: 4 });
     await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
 
     const publicar = http.expectOne(
       (r) => r.url === `${API_BASE}/configuracion/apariencia/publicar` && r.method === 'POST',
     );
     publicar.flush({ contenido: APARIENCIA.contenido, version: 5 });
     await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
     // Tras publicar, el panel vuelve a leer el tema publicado.
     http.expectOne((r) => r.url === `${API_BASE}/publico/sitio`).flush({});
     // La publicación termina cuando el tema nuevo está aplicado.
@@ -84,17 +86,35 @@ describe('AdminApariencia', () => {
     expect(guardar.request.method).toBe('PUT');
     guardar.flush({ contenido: guardar.request.body['contenido'], version: 4 });
     await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
 
     const publicar = http.expectOne(`${API_BASE}/configuracion/apariencia/publicar`);
     expect(publicar.request.method).toBe('POST');
     expect(publicar.request.body['version']).toBe(4);
     publicar.flush({ contenido: {}, version: 5 });
     await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 0));
     // Tras publicar, el panel vuelve a leer el tema publicado.
     http.expectOne((r) => r.url === `${API_BASE}/publico/sitio`).flush({});
     await enCurso;
     fixture.detectChanges();
 
     expect(component.status()).toBe('Publicado en el sitio.');
+  });
+
+  it('limita los botones de la cabecera a dos y sanea el whatsapp', async () => {
+    await cargar();
+
+    component.agregarItem('botones_cabecera', { texto: 'Admisión', url: '/admision', estilo: 'principal' }, 2);
+    component.agregarItem('botones_cabecera', { texto: 'Transparencia', url: '/transparencia', estilo: 'contorno' }, 2);
+    component.agregarItem('botones_cabecera', { texto: 'Sobra', url: '/x', estilo: 'principal' }, 2);
+    fixture.detectChanges();
+    expect(component.itemsDe('botones_cabecera')).toHaveLength(2);
+
+    const campo = fixture.nativeElement.querySelector('#whatsapp') as HTMLInputElement;
+    campo.value = '+51 938';
+    campo.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(component.str('whatsapp')).toBe('51938');
   });
 });

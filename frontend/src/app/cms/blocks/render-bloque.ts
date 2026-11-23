@@ -1,5 +1,6 @@
 import { getByPath } from '../cms.models';
 import { BLOCK_CATALOG } from '../block-registry';
+import { iconoSvg } from '../iconos';
 import type { CmsBlock, BlockTypeDef } from '../block-types';
 import type { SchemaField } from '../cms-schema';
 import type { JsonMap, ImageMeta } from '../cms.models';
@@ -28,15 +29,18 @@ export interface RenderOptions {
 const TIPOS_CON_PLANTILLA = new Set([
   'hero',
   'pageHero',
+  'listingHero',
   'cta',
   'admision',
   'stats',
+  'accesos',
   'gallery',
   'map',
   'team',
   'reasons',
   'serviceCards',
   'contactCards',
+  'entidades',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -422,6 +426,17 @@ function renderBotonCta(props: JsonMap): string {
   return `<a class="boton" href="${escapeAttr((href as string).trim())}">${escapeHtml(etiquetaBoton)}</a>`;
 }
 
+/** Botón con clase propia; sin enlace navegable se degrada a texto. */
+function renderBoton(etiquetaBoton: string, href: unknown, clase: string): string {
+  if (!etiquetaBoton.trim()) {
+    return '';
+  }
+  if (!hrefValido(href)) {
+    return `<p>${escapeHtml(etiquetaBoton)}</p>`;
+  }
+  return `<a class="${clase}" href="${escapeAttr(href.trim())}">${escapeHtml(etiquetaBoton)}</a>`;
+}
+
 function renderEnlaceMini(props: JsonMap, linkPath: string, label: string): string {
   const href = getByPath(props, linkPath);
   if (!hrefValido(href)) {
@@ -430,19 +445,38 @@ function renderEnlaceMini(props: JsonMap, linkPath: string, label: string): stri
   return `<a class="enlace" href="${escapeAttr((href as string).trim())}">${escapeHtml(label)}</a>`;
 }
 
-const heroEspecial: RenderEspecial = (props, opts) => {
-  const slides = listaDe(props['slides'])
-    .map((s) => {
-      const img = renderImagen(s, 'image', opts);
-      const badge = etiqueta(s['badge']);
-      const t = titulo(s['title']);
-      return `<div class="hero__slide">${img}${badge}${t}</div>`;
+const heroEspecial: RenderEspecial = (props) => {
+  const lista = listaDe(props['slides']);
+  const carrusel = lista.length > 1;
+  const slides = lista
+    .map((s, i) => {
+      // El fondo es decorativo: el mensaje lo dan la etiqueta y el título.
+      const src = texto(s, 'image').trim();
+      const carga = i === 0 ? 'fetchpriority="high"' : 'loading="lazy"';
+      const img = src ? `<img src="${escapeAttr(src)}" alt="" ${carga} decoding="async">` : '';
+      const clase = i === 0 ? 'hero__slide hero__slide--activa' : 'hero__slide';
+      const ocultar = i === 0 ? '' : ' aria-hidden="true" inert';
+      return `<div class="${clase}"${ocultar}>${img}<div class="hero__texto">${etiqueta(s['badge'])}${titulo(s['title'])}</div></div>`;
     })
     .join('');
   const subtitle = hayTexto(props['subtitle'])
     ? `<p class="hero__subtitulo">${escapeHtml((props['subtitle'] as string).trim())}</p>`
     : '';
-  return `<div class="hero">${slides}${subtitle}${renderBotonCta(props)}</div>`;
+  const botones =
+    renderBoton(texto(props, 'cta'), props['ctaLink'], 'boton boton--acento') +
+    renderBoton(texto(props, 'cta2'), props['cta2Link'], 'boton boton--claro');
+  const pie = subtitle || botones ? `<div class="hero__pie">${subtitle}<div class="hero__botones">${botones}</div></div>` : '';
+  const controles = carrusel
+    ? `<div class="hero__controles">` +
+      `<button type="button" class="hero__pausa" aria-pressed="false" aria-label="Pausar carrusel">` +
+      `${iconoSvg('pausa', 'icono hero__icono-pausa')}${iconoSvg('reproducir', 'icono hero__icono-reproducir')}</button>` +
+      lista
+        .map((_, i) =>
+          `<button type="button" class="hero__punto" aria-label="Mostrar banner ${i + 1} de ${lista.length}" aria-current="${i === 0}"></button>`)
+        .join('') +
+      `</div>`
+    : '';
+  return `<div class="hero"${carrusel ? ' data-carrusel' : ''}>${slides}${pie}${controles}</div>`;
 };
 
 const pageHeroEspecial: RenderEspecial = (props, opts) => {
@@ -489,17 +523,45 @@ const admisionEspecial: RenderEspecial = (props) => {
 const statsEspecial: RenderEspecial = (props) => {
   const items = listaDe(props['items'])
     .map((i) => {
+      const svg = iconoSvg(i['icon']);
+      const icono = svg ? `<span class="estadistica__icono">${svg}</span>` : '';
       const numero = hayTexto(i['number'])
         ? `<span class="dato">${escapeHtml((i['number'] as string).trim())}</span>`
         : '';
-      const label = parrafo(i['label']);
-      return `<div class="estadistica">${numero}${label}</div>`;
+      return `<div class="estadistica">${icono}${numero}${parrafo(i['label'])}</div>`;
     })
     .join('');
   if (!items) {
     return '';
   }
-  return `<div class="rejilla rejilla--stats">${items}</div>`;
+  return `<div class="cifras">${etiqueta(props['tag'])}${titulo(props['title'])}<div class="rejilla rejilla--stats">${items}</div></div>`;
+};
+
+/** Accesos institucionales: grupos de enlaces con icono (postulantes, servicios, normativa). */
+const accesosEspecial: RenderEspecial = (props) => {
+  const grupos = listaDe(props['grupos'])
+    .map((g) => {
+      const enlaces = listaDe(g['enlaces'])
+        .filter((e) => hayTexto(e['texto']) && hrefValido(e['url']))
+        .map((e) => {
+          const svg = iconoSvg(e['icono']);
+          const icono = svg ? `<span class="acceso__icono">${svg}</span>` : '';
+          const descripcion = g['destacado'] === true && hayTexto(e['descripcion'])
+            ? `<span class="acceso__texto">${escapeHtml((e['descripcion'] as string).trim())}</span>`
+            : '';
+          return `<li><a class="acceso" href="${escapeAttr((e['url'] as string).trim())}">${icono}` +
+            `<span class="acceso__titulo">${escapeHtml((e['texto'] as string).trim())}</span>${descripcion}</a></li>`;
+        })
+        .join('');
+      if (!enlaces) {
+        return '';
+      }
+      const clase = g['destacado'] === true ? 'accesos__lista accesos__lista--destacada' : 'accesos__lista';
+      const encabezado = hayTexto(g['titulo']) ? `<h3 class="accesos__grupo">${escapeHtml((g['titulo'] as string).trim())}</h3>` : '';
+      return `${encabezado}<ul class="${clase}">${enlaces}</ul>`;
+    })
+    .join('');
+  return `<div class="accesos">${titulo(props['title'])}${grupos}</div>`;
 };
 
 const galleryEspecial: RenderEspecial = (props, opts) => {
@@ -582,6 +644,35 @@ const serviceCardsEspecial: RenderEspecial = (props, opts) => {
   return `<div class="servicios">${subtitle}${t}<div class="rejilla">${tarjetas}</div></div>`;
 };
 
+/**
+ * Entidades colaboradoras como marquesina de logos. El bucle continuo
+ * necesita una segunda copia de la lista: va oculta a lectores y fuera del
+ * orden de tabulación, para que nadie la recorra dos veces.
+ */
+const entidadesEspecial: RenderEspecial = (props, opts) => {
+  const items = listaDe(props['items']);
+  const logos = (copia: boolean) =>
+    items
+      .map((i) => {
+        const img = renderImagen(i, 'image', opts);
+        if (!img) {
+          return '';
+        }
+        const tab = copia ? ' tabindex="-1"' : '';
+        return hrefValido(i['url'])
+          ? `<li><a href="${escapeAttr((i['url'] as string).trim())}" class="entidades__logo"${tab}>${img}</a></li>`
+          : `<li><span class="entidades__logo">${img}</span></li>`;
+      })
+      .join('');
+  const marquesina = items.length >= 4;
+  const pista =
+    `<div class="entidades__pista"${marquesina ? ' data-marquesina' : ''}>` +
+    `<ul class="entidades__lista">${logos(false)}</ul>` +
+    (marquesina ? `<ul class="entidades__lista" aria-hidden="true">${logos(true)}</ul>` : '') +
+    `</div>`;
+  return `<div class="entidades">${titulo(props['title'])}${parrafo(props['text'])}${pista}</div>`;
+};
+
 const contactCardsEspecial: RenderEspecial = (props) => {
   const tarjetas = listaDe(props['items'])
     .map((i) => {
@@ -598,15 +689,18 @@ const contactCardsEspecial: RenderEspecial = (props) => {
 const PLANTILLAS_ESPECIFICAS: Record<string, RenderEspecial> = {
   hero: heroEspecial,
   pageHero: pageHeroEspecial,
+  listingHero: pageHeroEspecial,
   cta: ctaEspecial,
   admision: admisionEspecial,
   stats: statsEspecial,
+  accesos: accesosEspecial,
   gallery: galleryEspecial,
   map: mapEspecial,
   team: teamEspecial,
   reasons: reasonsEspecial,
   serviceCards: serviceCardsEspecial,
   contactCards: contactCardsEspecial,
+  entidades: entidadesEspecial,
 };
 
 // ---------------------------------------------------------------------------

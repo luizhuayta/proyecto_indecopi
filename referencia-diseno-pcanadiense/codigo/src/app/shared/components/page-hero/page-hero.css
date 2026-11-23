@@ -1,0 +1,22 @@
+:host{display:block}
+.page-hero{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:255px;padding:52px 24px 58px;text-align:center;background:linear-gradient(112deg,#102e54 0%,#174977 66%,#1e5684 100%);color:#fff}
+.page-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.10),transparent 38%);pointer-events:none}
+.hero-content,.trans-hero-content{position:relative;z-index:1;max-width:900px;margin:0 auto}
+.page-hero h1{margin:0 0 16px;color:#fff;font-size:clamp(2rem,3.2vw,3.25rem);font-weight:800;letter-spacing:-.025em;line-height:1.12;text-transform:none;text-shadow:none}
+.page-hero .hero-sub,.page-hero .hero-sub p,.page-hero p:not(.nf-code){max-width:740px;margin:0 auto;color:rgba(255,255,255,.91)!important;font-size:clamp(.94rem,1.25vw,1.08rem);line-height:1.7;font-weight:400}
+.page-hero .hero-sub p+p{margin-top:.4em}
+@media(max-width:768px){.page-hero{min-height:205px;padding:42px 20px 47px}.page-hero h1{font-size:clamp(1.85rem,6vw,2.5rem)}}
+@media(max-width:480px){.page-hero{min-height:175px;padding:35px 17px 39px}.page-hero h1{font-size:1.85rem;margin-bottom:11px}}
+
+/* Identidad visual unificada para todas las páginas del portal público */
+.page-hero{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;min-height:285px;padding:44px 22px 38px;overflow:hidden;text-align:center;color:#fff;background:linear-gradient(112deg,#0d4677 0%,#1266a8 65%,#087bce 100%)}
+.page-hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.6;background:radial-gradient(circle at 0 90%,rgba(3,24,57,.45),transparent 48%),radial-gradient(circle at 92% 3%,rgba(61,153,248,.38),transparent 42%);pointer-events:none}
+.page-hero::after{content:"";position:absolute;right:-75px;top:-120px;width:300px;height:300px;border:48px solid rgba(87,170,255,.22);border-radius:50%;pointer-events:none}
+.hero-content,.trans-hero-content{position:relative;z-index:1;width:100%;max-width:1100px;margin:auto}
+.hero-content::before,.hero-content::after,.trans-hero-content::before,.trans-hero-content::after{content:"";position:absolute;width:100px;height:100px;opacity:.36;background-image:radial-gradient(#fff 2px,transparent 2.5px);background-size:17px 17px;pointer-events:none}
+.hero-content::before,.trans-hero-content::before{left:-8%;top:0}
+.hero-content::after,.trans-hero-content::after{right:-8%;bottom:0}
+.page-hero h1{margin:17px 0 12px;color:#fff;font-size:clamp(2.3rem,4.1vw,4rem);font-weight:850;line-height:1.12;letter-spacing:-.035em;text-transform:none;text-shadow:none}
+.page-hero .hero-sub,.page-hero .hero-sub p,.page-hero p:not(.nf-code){max-width:920px;margin:0 auto;color:#edf7ff!important;font-size:clamp(.95rem,1.4vw,1.18rem);font-weight:400;line-height:1.65}
+.page-hero .hero-sub::after{content:"";display:block;width:82px;height:6px;margin:20px auto 0;border-radius:999px;background:#40a4ff}
+@media(max-width:768px){.page-hero{min-height:225px;padding:35px 17px}.page-hero h1{font-size:clamp(2rem,7vw,2.65rem)}.hero-content::before,.hero-content::after,.trans-hero-content::before,.trans-hero-content::after{display:none}}

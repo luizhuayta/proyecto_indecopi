@@ -11,6 +11,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../nucleo/base_datos.php';
 require_once __DIR__ . '/../../nucleo/configuracion.php';
 require_once __DIR__ . '/../../nucleo/fechas.php';
+require_once __DIR__ . '/../noticias/repositorio.php';
 
 /**
  * Filas de las páginas publicadas de un locale.
@@ -53,6 +54,22 @@ function generarSitemap(string $locale, ?string $base = null): string
             . '    <loc>' . htmlspecialchars($base . $ruta, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</loc>' . "\n"
             . '    <lastmod>' . htmlspecialchars($fecha, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</lastmod>' . "\n"
             . '  </url>' . "\n";
+    }
+
+    // Las noticias publicadas también son URLs del sitio; el listado
+    // /noticias solo entra cuando hay al menos una que enseñar.
+    $noticias = noticiasPublicadasSeoBd();
+    if ($noticias !== []) {
+        $urls .= '  <url>' . "\n"
+            . '    <loc>' . htmlspecialchars($base . '/noticias', ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</loc>' . "\n"
+            . '  </url>' . "\n";
+        foreach ($noticias as $fila) {
+            $fecha = substr((string) $fila['actualizado_en'], 0, 10) ?: date('Y-m-d');
+            $urls .= '  <url>' . "\n"
+                . '    <loc>' . htmlspecialchars($base . '/noticias/' . $fila['slug'], ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</loc>' . "\n"
+                . '    <lastmod>' . htmlspecialchars($fecha, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</lastmod>' . "\n"
+                . '  </url>' . "\n";
+        }
     }
 
     return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"

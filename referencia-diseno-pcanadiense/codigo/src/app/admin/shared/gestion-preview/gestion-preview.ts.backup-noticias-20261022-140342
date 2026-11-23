@@ -1,0 +1,591 @@
+﻿import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from '@angular/core';
+
+interface Campo {
+  label: string;
+  valor: string;
+}
+
+interface Tarjeta {
+  titulo: string;
+  detalle: string;
+}
+
+@Component({
+  selector: 'app-gestion-preview',
+  standalone: true,
+  template: `
+    <section class="gp-shell">
+
+      <header class="gp-header">
+        <span class="gp-overline">
+          PANEL DE VISUALIZACION
+        </span>
+
+        <h2>{{ titulo() }}</h2>
+
+        <p>
+          {{ descripcion() }}
+        </p>
+      </header>
+
+      <div class="gp-body">
+
+        @if (esPrivado()) {
+          <div class="gp-notice">
+            <i class="fa-solid fa-shield-halved"></i>
+
+            <h3>Gestión administrativa</h3>
+
+            <p>
+              Este módulo contiene operaciones o registros
+              internos. Por seguridad, los datos se consultan
+              únicamente desde el panel original.
+            </p>
+          </div>
+
+          <div class="gp-workflow">
+            <div>
+              <span>01</span>
+              <strong>Consultar</strong>
+              <small>Selecciona un registro</small>
+            </div>
+
+            <div>
+              <span>02</span>
+              <strong>Gestionar</strong>
+              <small>Revisa y actualiza su estado</small>
+            </div>
+
+            <div>
+              <span>03</span>
+              <strong>Confirmar</strong>
+              <small>Guarda desde el formulario original</small>
+            </div>
+          </div>
+
+        } @else {
+
+          @if (imagen(); as src) {
+            <div class="gp-image">
+              <img [src]="src" alt="Imagen de vista previa" />
+            </div>
+          }
+
+          @if (nombreRegistro()) {
+            <div class="gp-feature">
+              <span class="gp-kicker">
+                {{ activo() ? 'BORRADOR EN EDICION' : 'CONTENIDO' }}
+              </span>
+
+              <h3>{{ nombreRegistro() }}</h3>
+
+              @if (resumen()) {
+                <div
+                  class="gp-summary"
+                  [innerHTML]="resumen()"
+                ></div>
+              }
+            </div>
+          }
+
+          @if (campos().length) {
+            <div class="gp-fields">
+              @for (campo of campos(); track campo.label) {
+                <div class="gp-field">
+                  <span>{{ campo.label }}</span>
+                  <strong>{{ campo.valor }}</strong>
+                </div>
+              }
+            </div>
+          }
+
+          @if (tarjetas().length) {
+            <div class="gp-section-heading">
+              <h3>Elementos registrados</h3>
+              <span>{{ cantidad() }} elementos</span>
+            </div>
+
+            <div class="gp-cards">
+              @for (item of tarjetas(); track $index) {
+                <article class="gp-card">
+                  <div class="gp-card-mark">
+                    <i class="fa-solid fa-file-lines"></i>
+                  </div>
+
+                  <div>
+                    <strong>{{ item.titulo }}</strong>
+
+                    @if (item.detalle) {
+                      <p>{{ item.detalle }}</p>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+
+          @if (!nombreRegistro() && !campos().length && !tarjetas().length) {
+            <div class="gp-notice">
+              <i class="fa-solid fa-circle-info"></i>
+
+              <h3>{{ mensajeVacio() }}</h3>
+
+              <p>
+                Utiliza los controles originales de la
+                izquierda para gestionar este módulo.
+              </p>
+            </div>
+          }
+
+        }
+
+      </div>
+
+      <footer class="gp-footer">
+        @if (enlace()) {
+          <a
+            [href]="enlace()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            Abrir página pública
+          </a>
+        } @else {
+          <span>
+            <i class="fa-solid fa-lock"></i>
+            Acceso administrativo
+          </span>
+        }
+      </footer>
+
+    </section>
+  `,
+  styles: `
+    :host {
+      display: block;
+      min-width: 0;
+    }
+
+    .gp-shell {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 194px);
+      min-width: 0;
+      overflow: hidden;
+      background: var(--adm-surface);
+      border: 1px solid var(--adm-line);
+      border-radius: 14px;
+      box-shadow: 0 8px 26px rgba(12, 28, 48, .07);
+    }
+
+    .gp-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--adm-line);
+    }
+
+    .gp-overline,
+    .gp-kicker {
+      color: var(--adm-brand);
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .09em;
+    }
+
+    .gp-header h2 {
+      margin: 7px 0 5px;
+      font-size: 1.1rem;
+      line-height: 1.3;
+      color: var(--adm-ink);
+    }
+
+    .gp-header p {
+      margin: 0;
+      color: var(--adm-muted);
+      font-size: .77rem;
+      line-height: 1.6;
+    }
+
+    .gp-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+      background: var(--adm-bg);
+      scrollbar-width: thin;
+    }
+
+    .gp-image {
+      overflow: hidden;
+      margin-bottom: 14px;
+      border: 1px solid var(--adm-line);
+      border-radius: 12px;
+      background: var(--adm-surface);
+    }
+
+    .gp-image img {
+      display: block;
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+    }
+
+    .gp-feature,
+    .gp-fields,
+    .gp-notice {
+      margin-bottom: 14px;
+      padding: 20px;
+      border: 1px solid var(--adm-line);
+      border-radius: 13px;
+      background: var(--adm-surface);
+    }
+
+    .gp-feature h3 {
+      margin: 9px 0;
+      color: var(--adm-ink);
+      font-size: 1.25rem;
+      overflow-wrap: anywhere;
+    }
+
+    .gp-summary {
+      color: var(--adm-muted);
+      font-size: .85rem;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .gp-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .gp-field {
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid var(--adm-line);
+      border-radius: 9px;
+      background: var(--adm-bg);
+    }
+
+    .gp-field span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--adm-muted);
+      font-size: .7rem;
+    }
+
+    .gp-field strong {
+      display: block;
+      color: var(--adm-ink);
+      font-size: .8rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .gp-section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0 12px;
+    }
+
+    .gp-section-heading h3 {
+      margin: 0;
+      color: var(--adm-ink);
+      font-size: .95rem;
+    }
+
+    .gp-section-heading span {
+      color: var(--adm-muted);
+      font-size: .72rem;
+    }
+
+    .gp-cards {
+      display: grid;
+      gap: 10px;
+    }
+
+    .gp-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--adm-line);
+      border-radius: 11px;
+      background: var(--adm-surface);
+    }
+
+    .gp-card-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: var(--adm-brand-soft);
+      color: var(--adm-brand);
+    }
+
+    .gp-card strong {
+      display: block;
+      color: var(--adm-ink);
+      font-size: .8rem;
+      overflow-wrap: anywhere;
+    }
+
+    .gp-card p {
+      margin: 5px 0 0;
+      color: var(--adm-muted);
+      font-size: .72rem;
+      line-height: 1.5;
+    }
+
+    .gp-notice {
+      text-align: center;
+    }
+
+    .gp-notice > i {
+      display: block;
+      margin: 0 0 15px;
+      color: var(--adm-brand);
+      font-size: 2rem;
+    }
+
+    .gp-notice h3 {
+      margin: 0 0 9px;
+      color: var(--adm-ink);
+    }
+
+    .gp-notice p {
+      margin: 0;
+      color: var(--adm-muted);
+      font-size: .8rem;
+      line-height: 1.65;
+    }
+
+    .gp-workflow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .gp-workflow > div {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 15px;
+      border: 1px solid var(--adm-line);
+      border-radius: 10px;
+      background: var(--adm-surface);
+    }
+
+    .gp-workflow span {
+      color: var(--adm-brand);
+      font-weight: 800;
+      font-size: .7rem;
+    }
+
+    .gp-workflow strong {
+      color: var(--adm-ink);
+      font-size: .85rem;
+    }
+
+    .gp-workflow small {
+      color: var(--adm-muted);
+    }
+
+    .gp-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--adm-line);
+      color: var(--adm-muted);
+      font-size: .75rem;
+    }
+
+    .gp-footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--adm-brand);
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1350px) {
+      .gp-shell { height: 600px; }
+    }
+
+    @media (max-width: 550px) {
+      .gp-fields { grid-template-columns: 1fr; }
+    }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class GestionPreview {
+
+  readonly modulo = input('');
+  readonly titulo = input('Vista previa');
+  readonly registro = input<unknown>(null);
+  readonly lista = input<unknown>(null);
+  readonly activo = input(false);
+
+  readonly esPrivado = computed(() =>
+    [
+      'mesa-de-partes',
+      'reclamaciones',
+      'accesibilidad',
+      'solicitudes',
+      'usuarios',
+    ].includes(this.modulo())
+  );
+
+  readonly descripcion = computed(() =>
+    this.esPrivado()
+      ? 'Vista del flujo administrativo, sin exponer datos personales.'
+      : 'Consulta visual de la información del módulo.'
+  );
+
+  private readonly objeto = computed<Record<string, unknown> | null>(() => {
+    const valor = this.registro();
+
+    if (this.esPrivado()) return null;
+    if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return null;
+
+    if (!this.activo() && this.modulo() !== 'contactos') return null;
+
+    return valor as Record<string, unknown>;
+  });
+
+  private texto(clave: string): string {
+    const valor = this.objeto()?.[clave];
+    return typeof valor === 'string' || typeof valor === 'number'
+      ? String(valor)
+      : '';
+  }
+
+  readonly nombreRegistro = computed(() => {
+    const nombres = [
+      this.texto('title'),
+      this.texto('titulo'),
+      this.texto('name'),
+      [
+        this.texto('names'),
+        this.texto('lastNames'),
+      ].filter(Boolean).join(' '),
+    ];
+
+    return nombres.find(Boolean) ?? '';
+  });
+
+  readonly resumen = computed(() =>
+    this.texto('excerpt') ||
+    this.texto('resumen') ||
+    this.texto('description') ||
+    this.texto('slogan')
+  );
+
+  readonly imagen = computed(() =>
+    this.texto('image') || null
+  );
+
+  readonly campos = computed<Campo[]>(() => {
+    const o = this.objeto();
+    if (!o) return [];
+
+    const pares: Array<[string, unknown]> = [
+      ['Categoría', o['categoryLabel'] ?? o['category']],
+      ['Cargo', o['position']],
+      ['Área', o['area']],
+      ['Grado', o['grade']],
+      ['Programa', o['programa']],
+      ['Año', o['anio']],
+      ['Fecha', o['createdAt']],
+      ['Institución', o['shortName']],
+      ['Siglas', o['acronym']],
+      ['Eslogan', o['tagline']],
+      ['Teléfono', (o['contact'] as Record<string, unknown> | undefined)?.['landline']],
+      ['Correo institucional', (o['contact'] as Record<string, unknown> | undefined)?.['emailGeneral']],
+      ['Sedes', Array.isArray(o['locations']) ? o['locations'].length : undefined],
+    ];
+
+    return pares
+      .filter(([, v]) => v !== null && v !== undefined && String(v).trim() !== '')
+      .map(([label, valor]) => ({
+        label,
+        valor: String(valor),
+      }));
+  });
+
+  readonly cantidad = computed(() => {
+    const elementos = this.lista();
+    return Array.isArray(elementos) ? elementos.length : 0;
+  });
+
+  readonly tarjetas = computed<Tarjeta[]>(() => {
+    if (this.esPrivado()) return [];
+
+    const lista = this.lista();
+
+    if (!Array.isArray(lista)) return [];
+
+    return lista.slice(0, 6).map((item: unknown) => {
+      const x = item as Record<string, unknown>;
+
+      return {
+        titulo: String(
+          x['title'] ??
+          x['titulo'] ??
+          x['nombre'] ??
+          x['name'] ??
+          (x['names']
+            ? `${x['names']} ${x['lastNames'] ?? ''}`
+            : 'Registro')
+        ),
+        detalle: String(
+          x['categoryLabel'] ??
+          x['position'] ??
+          x['programa'] ??
+          x['modulo'] ??
+          x['estado'] ??
+          ''
+        ),
+      };
+    });
+  });
+
+  readonly mensajeVacio = computed(() => {
+    switch (this.modulo()) {
+      case 'comunicados':
+        return 'Los comunicados se gestionan desde Noticias';
+      case 'documentos':
+        return 'No hay documentos en el filtro actual';
+      default:
+        return 'Sin elementos para previsualizar';
+    }
+  });
+
+  readonly enlace = computed(() => {
+    switch (this.modulo()) {
+      case 'noticias':
+      case 'comunicados':
+        return '/noticias';
+      case 'personal':
+        return '/nosotros';
+      case 'contactos':
+        return '/inicio';
+      case 'investigaciones':
+        return '/repositorio';
+      case 'documentos':
+        return '/transparencia';
+      default:
+        return '';
+    }
+  });
+}

@@ -1,13 +1,28 @@
-import { Component, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  EventEmitter,
+  Input,
+  Output,
+  afterEveryRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CmsContentService } from '../cms-content.service';
 import { CmsEditorService } from '../cms-editor.service';
 import { blockLabel, pageBlocks } from '../block-registry';
 import type { CmsBlock } from '../block-registry';
 import { renderBloque } from './render-bloque';
+import { Carruseles } from './hero-carrusel';
+import { BloqueNovedades } from '../../public/bloque-novedades';
 import { FormularioContacto } from '../../public/formulario-contacto';
 import { FormularioReclamo } from '../../public/formulario-reclamo';
 import { JsonMap } from '../cms.models';
+import { PublicReveal } from '../../shared/public/public-reveal';
 import { SitioPublicoService } from '../../core/sitio-publico.service';
 import { contieneTokens, resolverTokensEnBloque } from '../../core/tokens';
 
@@ -23,53 +38,91 @@ import { contieneTokens, resolverTokensEnBloque } from '../../core/tokens';
 @Component({
   selector: 'app-cms-page-blocks',
   standalone: true,
-  imports: [FormularioContacto, FormularioReclamo],
+  imports: [
+    NgTemplateOutlet,
+    FormularioContacto,
+    FormularioReclamo,
+    BloqueNovedades,
+    PublicReveal,
+  ],
   template: `
     <div class="cms-bloques">
       @for (block of visibles(); track block.id) {
-        <div
-          class="bloque-host"
-          [class.bloque-host--editable]="editable()"
-          [class.bloque-host--seleccionado]="editable() && seleccionadoId === block.id"
-          [class.bloque-host--oculto]="block.hidden"
-          [attr.data-block-id]="block.id"
-          [tabindex]="editable() ? 0 : null"
-          [attr.role]="editable() ? 'button' : null"
-          [attr.aria-label]="editable() ? 'Seleccionar bloque ' + nombre(block.type) : null"
-          [attr.aria-pressed]="editable() ? (seleccionadoId === block.id) : null"
-          (click)="onSeleccionar(block)"
-          (keydown.enter)="onSeleccionar(block)"
-          (keydown.space)="onSeleccionar(block); $event.preventDefault()"
-        >
-          @if (editable()) {
-            <div class="bloque-host__etiqueta" aria-hidden="true">
-              {{ nombre(block.type) }}
-              @if (block.hidden) {
-                <span class="bloque-host__estado">oculto</span>
-              }
-            </div>
-          }
-          @if (esFormulario(block)) {
-            <app-formulario-contacto
-              [bloque]="block.props"
-              [csrf]="csrf"
-              [ruta]="ruta"
+        @if (editable()) {
+          <div
+            class="bloque-host bloque-host--editable"
+            [class.bloque-host--seleccionado]="seleccionadoId === block.id"
+            [class.bloque-host--oculto]="block.hidden"
+            [attr.data-block-id]="block.id"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Seleccionar bloque ' + nombre(block.type)"
+            [attr.aria-pressed]="seleccionadoId === block.id"
+            (click)="onSeleccionar(block)"
+            (keydown.enter)="onSeleccionar(block)"
+            (keydown.space)="onSeleccionar(block); $event.preventDefault()"
+          >
+            <ng-container
+              *ngTemplateOutlet="cuerpo; context: { $implicit: block }"
             />
-          } @else if (esLibroReclamaciones(block)) {
-            <app-formulario-reclamo
-              [bloque]="block.props"
-              [csrf]="csrf"
-              [ruta]="ruta"
+          </div>
+        } @else {
+          <!-- En lectura cada bloque aparece al desplazarse. La directiva es
+               de host, así que no se puede quitar con un binding: por eso el
+               editor tiene su propia rama sin animar. -->
+          <div
+            class="bloque-host"
+            appReveal
+            [delay]="'0ms'"
+            [attr.data-block-id]="block.id"
+          >
+            <ng-container
+              *ngTemplateOutlet="cuerpo; context: { $implicit: block }"
             />
-          } @else {
-            <div
-              class="bloque-host__cuerpo"
-              [attr.aria-hidden]="editable() || null"
-              [innerHTML]="html(block)"
-            ></div>
-          }
-        </div>
+          </div>
+        }
       }
+      <ng-template #cuerpo let-block>
+        @if (editable()) {
+          <div class="bloque-host__etiqueta" aria-hidden="true">
+            {{ nombre(block.type) }}
+            @if (block.hidden) {
+              <span class="bloque-host__estado">oculto</span>
+            }
+          </div>
+        }
+        @if (esFormulario(block)) {
+          <app-formulario-contacto
+            [bloque]="block.props"
+            [csrf]="csrf"
+            [ruta]="ruta"
+          />
+        } @else if (esLibroReclamaciones(block)) {
+          <app-formulario-reclamo
+            [bloque]="block.props"
+            [csrf]="csrf"
+            [ruta]="ruta"
+          />
+        } @else if (esNovedades(block)) {
+          <!-- Las novedades se piden al API: el render de cadena no puede
+               pintarlas. El marco de sección comparte el espaciado del
+               resto de bloques. -->
+          <section class="bloque bloque--novedades bloque--full">
+            <div
+              class="bloque__contenido"
+              [attr.aria-hidden]="editable() || null"
+            >
+              <app-bloque-novedades [bloque]="block.props" />
+            </div>
+          </section>
+        } @else {
+          <div
+            class="bloque-host__cuerpo"
+            [attr.aria-hidden]="editable() || null"
+            [innerHTML]="html(block)"
+          ></div>
+        }
+      </ng-template>
     </div>
   `,
   styles: [
@@ -140,16 +193,33 @@ export class CmsPageBlocks {
   private sanitizer = inject(DomSanitizer);
   /** Identidad publicada: la vista previa muestra los tokens ya resueltos. */
   private sitio = inject(SitioPublicoService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly carruseles = new Carruseles();
+
+  constructor() {
+    // El HTML de los bloques se reemplaza en cada pintado: tras cada uno se
+    // enganchan los banners nuevos. En el editor no se mueven: se editan.
+    afterEveryRender(() =>
+      this.editable()
+        ? this.carruseles.detenerTodo()
+        : this.carruseles.sincronizar(this.host.nativeElement),
+    );
+    inject(DestroyRef).onDestroy(() => this.carruseles.detenerTodo());
+  }
 
   @Input() slug = '';
   @Input() seleccionadoId = '';
   @Input() csrf = '';
   @Input() ruta = '';
   private readonly documentoPublico = signal<JsonMap | null>(null);
-  @Input() set documento(valor: JsonMap | null) { this.documentoPublico.set(valor); }
+  @Input() set documento(valor: JsonMap | null) {
+    this.documentoPublico.set(valor);
+  }
   @Output() bloqueSeleccionado = new EventEmitter<string>();
 
-  readonly editable = computed(() => this.documentoPublico() === null && this.editor.editMode());
+  readonly editable = computed(
+    () => this.documentoPublico() === null && this.editor.editMode(),
+  );
 
   esFormulario(block: CmsBlock): boolean {
     return block.type === 'contactForm';
@@ -160,11 +230,17 @@ export class CmsPageBlocks {
     return block.type === 'claimsBook';
   }
 
+  /** Las novedades se montan como componente: piden los datos al API. */
+  esNovedades(block: CmsBlock): boolean {
+    return block.type === 'novedades';
+  }
+
   readonly bloques = computed(() => {
     const publicado = this.documentoPublico();
     if (publicado !== null) return pageBlocks(publicado);
     const slug = this.slug || this.cms.currentSlug();
-    const page = slug === 'sitio' ? this.cms.site() : (this.cms.pages()[slug] ?? {});
+    const page =
+      slug === 'sitio' ? this.cms.site() : (this.cms.pages()[slug] ?? {});
     return pageBlocks(page);
   });
 

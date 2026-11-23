@@ -1,0 +1,78 @@
+:host{display:block}
+.historia{max-width:1200px;margin:0 auto;padding:0 24px 68px}
+.historia-card{background:#fff;border:1px solid #dfe8f2;border-radius:18px;padding:38px 42px;box-shadow:0 10px 28px rgba(18,53,96,.045)}
+.historia-card h2{margin:0 0 28px;color:#153c69;font-size:clamp(1.6rem,2.4vw,2.15rem);font-weight:800;letter-spacing:-.03em;line-height:1.2}
+.historia-layout{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:39px;align-items:center}
+.historia-layout figure{margin:0;min-width:0}
+.historia-layout img{display:block;width:100%;height:320px;min-height:0;max-height:none;object-fit:cover;border-radius:13px}
+.historia-copy{min-width:0}
+.historia-copy .det-content__html,.historia-copy .det-content__html *{color:#435a73;font-size:.96rem;line-height:1.85}
+.historia-copy .det-content__html p{margin:0 0 16px}
+.historia-copy strong{color:#153c69}
+.historia-copy ol,.historia-copy ul{margin:0 0 15px;padding-left:20px;display:grid;gap:9px}
+.historia-detalle{margin-top:16px;padding-top:17px;border-top:1px solid #e3eaf2}
+.historia-copy button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 20px;border-radius:9px;border:1px solid #1768b6;background:#fff;color:#1768b6;font-weight:750;cursor:pointer;transition:background .2s,color .2s}
+.historia-copy button:hover{background:#1768b6;color:#fff}
+@media(max-width:800px){.historia-layout{grid-template-columns:1fr;gap:22px}.historia-layout img{height:auto;max-height:370px}}
+@media(max-width:600px){.historia{padding:0 16px 43px}.historia-card{padding:24px 20px}.historia-card h2{margin-bottom:20px}.historia-layout img{max-height:280px}}
+
+/* Composición histórica: introducción equilibrada y cronología independiente */
+.historia-card{padding:40px 44px}
+.historia-heading{max-width:740px;margin-bottom:27px}
+.historia-eyebrow{display:block;margin-bottom:10px;color:#1768b6;font-size:.74rem;font-weight:800;letter-spacing:.13em}
+.historia-heading h2{margin-bottom:10px}
+.historia-heading>p{margin:0;color:#65768b;font-size:.94rem;line-height:1.6}
+.historia-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:34px}
+.historia-photo{align-self:stretch;display:flex;align-items:center}
+.historia-photo img{height:auto;max-height:340px;min-height:250px;aspect-ratio:4/3;object-fit:cover}
+.historia-copy{align-self:center}
+.historia-copy button{margin-top:12px;gap:11px;min-height:45px;padding:10px 17px}
+.historia-cronologia{margin-top:35px;padding:28px 30px 22px;background:#f4f8fd;border:1px solid #dce8f4;border-radius:15px}
+.historia-cronologia h3{margin:0 0 18px;font-size:1.25rem;font-weight:800;color:#153c69}
+.historia-cronologia .det-content__html{columns:2;column-gap:38px;column-rule:1px solid #dce8f4;color:#435a73;line-height:1.8;font-size:.92rem}
+.historia-cronologia .det-content__html>*{break-inside:avoid}
+.historia-cronologia .det-content__html strong{color:#16568f}
+.historia-cronologia .det-content__html p{margin:0 0 12px}
+@media(max-width:800px){.historia-layout{grid-template-columns:1fr;gap:22px}.historia-photo img{width:100%;max-height:340px;min-height:0}.historia-cronologia .det-content__html{columns:1}}
+@media(max-width:600px){.historia-card{padding:24px 20px}.historia-heading{margin-bottom:21px}.historia-cronologia{padding:20px 17px;margin-top:25px}}
+
+
+/* Cronología institucional: hitos separados, sin línea decorativa ni columnas */
+.historia-cronologia{margin-top:34px;padding:32px 36px 38px;background:#fff;border:1px solid #e0e8f2;border-radius:16px;box-shadow:0 8px 24px rgba(20,56,98,.04)}
+.historia-cronologia h3{margin:0 0 25px;padding:0 0 17px;border-bottom:1px solid #e4ebf3;color:#153c69;font-size:clamp(1.3rem,2vw,1.6rem);font-weight:800;letter-spacing:-.025em}
+.historia-cronologia .det-content__html{columns:1;column-rule:none;max-width:none;margin:0;padding:0;border:0;color:#435a73;font-size:.96rem;line-height:1.8}
+.historia-cronologia .det-content__html strong{display:block;margin:22px 0 7px;padding:0;color:#155c9e;font-size:1.04rem;font-weight:800;line-height:1.45}
+.historia-cronologia .det-content__html strong:first-child{margin-top:0}
+.historia-cronologia .det-content__html p{margin:0 0 14px;overflow-wrap:anywhere}
+.historia-cronologia .det-content__html p+p{margin-top:14px}
+.historia-cronologia .det-content__html li{margin-bottom:12px}
+.historia-cronologia .det-content__html br{display:block;content:"";margin:0 0 4px}
+@media(max-width:600px){.historia-cronologia{padding:23px 20px 27px;margin-top:25px}.historia-cronologia h3{margin-bottom:19px}.historia-cronologia .det-content__html{font-size:.91rem;line-height:1.7}.historia-cronologia .det-content__html strong{font-size:1rem}}
+
+/* Hitos: cada registro del HTML administrable se presenta como tarjeta independiente.
+   ::ng-deep es necesario porque historyTimeline se inserta mediante innerHTML. */
+:host ::ng-deep .historia-cronologia .det-content__html > ul{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;
+  list-style:none;margin:0;padding:0;border:0;
+}
+:host ::ng-deep .historia-cronologia .det-content__html > ul > li{
+  display:block;position:relative;margin:0;padding:22px 24px 22px 27px;
+  background:#f8fbff;border:1px solid #e1eaf4;border-radius:12px;
+  color:#475c74;font-size:.94rem;line-height:1.7;
+  box-shadow:0 3px 12px rgba(21,60,105,.035);
+  break-inside:avoid;overflow-wrap:anywhere;
+}
+:host ::ng-deep .historia-cronologia .det-content__html > ul > li::before{
+  content:"";position:absolute;top:23px;bottom:23px;left:0;width:4px;
+  border-radius:0 4px 4px 0;background:#2274c6;
+}
+:host ::ng-deep .historia-cronologia .det-content__html > ul > li > strong{
+  display:block;margin:0 0 10px;padding:0;
+  color:#153e70;font-size:1.04rem;font-weight:800;line-height:1.45;
+}
+@media(max-width:780px){
+  :host ::ng-deep .historia-cronologia .det-content__html > ul{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  :host ::ng-deep .historia-cronologia .det-content__html > ul > li{padding:18px 18px 18px 22px;font-size:.9rem}
+}

@@ -70,6 +70,19 @@ describe('PageEditor', () => {
     expect(inspector.textContent).toContain('Título');
   });
 
+  it('las acciones del bloque viven en el inspector, no en la barra', () => {
+    const hosts = fixture.nativeElement.querySelectorAll('.bloque-host');
+    hosts[0].click();
+    fixture.detectChanges();
+
+    const barra: HTMLElement = fixture.nativeElement.querySelector('.editor__barra');
+    const inspector: HTMLElement = fixture.nativeElement.querySelector('.editor__inspector');
+    expect(inspector.textContent).toContain('Duplicar');
+    expect(inspector.textContent).toContain('Eliminar');
+    expect(barra.textContent).not.toContain('Duplicar');
+    expect(barra.textContent).not.toContain('Eliminar');
+  });
+
   it('cambiar de dispositivo cambia el ancho del marco', () => {
     expect(component.deviceWidth()).toBe(1200);
 

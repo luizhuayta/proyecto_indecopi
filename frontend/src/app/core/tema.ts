@@ -9,8 +9,8 @@ export const COLORES_DEFECTO: Record<string, string> = {
 };
 
 export const FONTS_DEFECTO: Record<string, string> = {
-  tipografia_titulos: "'Source Serif 4', Georgia, 'Times New Roman', serif",
-  tipografia_cuerpo: "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  tipografia_titulos: "'Poppins', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  tipografia_cuerpo: "'Poppins', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
 };
 
 /**
@@ -40,6 +40,9 @@ export function temaPublico(apariencia: JsonMap): Record<string, string> {
       colores[clave] = normalizarHex(valor);
     }
   }
+  // El acento publicado se usa tal cual en rellenos (franja, botones de
+  // acción): ahí lo que debe ser legible es el texto encima, no el color.
+  const acentoRelleno = colores['color_acento'];
   const marca = colores['color_primario'];
   const fondo = colores['color_fondo'];
   let superficie = colores['color_superficie'];
@@ -79,5 +82,7 @@ export function temaPublico(apariencia: JsonMap): Record<string, string> {
   // El botón destructivo del diálogo va relleno con el color de aviso: el
   // texto tiene que ser legible sobre él, no sobre el fondo de la página.
   tema['--color-acento-texto'] = contraste('#ffffff', colores['color_acento']) >= 4.5 ? '#ffffff' : '#000000';
+  tema['--color-acento-relleno'] = acentoRelleno;
+  tema['--color-sobre-acento'] = contraste('#ffffff', acentoRelleno) >= 4.5 ? '#ffffff' : '#000000';
   return tema;
 }

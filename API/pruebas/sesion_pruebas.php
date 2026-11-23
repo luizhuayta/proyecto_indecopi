@@ -151,3 +151,12 @@ probar('un usuario no puede desactivar su propia cuenta', function () {
     });
     afirmar(error_ultimo_codigo() === 400, 'debe responder 400');
 });
+
+probar('cerrar sesion invalida la sesion vigente', function () {
+    $id = crear_usuario_de_prueba('prueba-sesion-logout', 'editor');
+    fijarSesionDePrueba($id);
+    afirmar(sesionActiva(), 'debe haber sesión antes de cerrarla');
+    cerrarSesion();
+    afirmar(usuarioActual() === null, 'no debe quedar usuario tras cerrar sesión');
+    afirmar((int) sesionEnMemoria()['usuario_id'] === 0, 'la sesión en memoria debe quedar vacía');
+});

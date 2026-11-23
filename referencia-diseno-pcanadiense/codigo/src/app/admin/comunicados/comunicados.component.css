@@ -1,0 +1,7 @@
+:host { display: block; min-width: 0; }
+.admin-view-header { margin-bottom: 22px; padding: 24px 28px; border: 1px solid var(--adm-brand-border); border-radius: 16px; background: linear-gradient(115deg, color-mix(in srgb, var(--adm-brand-soft) 45%, var(--adm-surface)), var(--adm-surface) 70%); }
+.admin-view-header h2 { margin: 0 0 8px; font-size: clamp(1.4rem, 2vw, 1.8rem); font-weight: 750; letter-spacing: -.025em; color: var(--adm-ink); }
+.admin-view-header p { margin: 0; color: var(--adm-muted); font-size: .88rem; line-height: 1.6; }
+:host .admin-card { padding: 28px; background: var(--adm-surface); border: 1px solid var(--adm-line); border-radius: var(--adm-radius); box-shadow: var(--adm-shadow); color: var(--adm-muted); }
+:host .admin-card p { margin: 0; line-height: 1.6; }
+@media(max-width:720px){.admin-view-header,:host .admin-card{padding:18px;}}

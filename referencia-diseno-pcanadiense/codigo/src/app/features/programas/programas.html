@@ -1,0 +1,185 @@
+<header class="programas-banner" aria-labelledby="programas-banner-title">
+  <div class="programas-banner__inner">
+    <span class="programas-banner__eyebrow">Nuestras carreras</span>
+    <h1 id="programas-banner-title">Programas de estudio</h1>
+    <p>{{ info().name }}</p>
+    <span class="programas-banner__rule" aria-hidden="true"></span>
+  </div>
+</header>
+
+<section class="oferta" aria-label="Oferta académica">
+  <div class="oferta-inner">
+    @if (nivelesVisibles().length > 1) {
+      <div class="niveles" role="tablist" aria-label="Tipo de programa">
+        @for (nivel of nivelesVisibles(); track nivel) {
+          <button
+            type="button"
+            role="tab"
+            class="nivel"
+            [class.is-active]="nivelActivo() === nivel"
+            [attr.aria-selected]="nivelActivo() === nivel"
+            [attr.aria-label]="etiquetaNivel[nivel] + ', ' + cuenta(nivel) + ' programas'"
+            (click)="selectLevel(nivel)"
+          >
+            <span>{{ etiquetaNivel[nivel] }}</span>
+            <span class="nivel-cuenta">{{ cuenta(nivel) }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (visiblePrograms().length) {
+      <div class="carrusel" role="radiogroup" [attr.aria-label]="etiquetaNivel[nivelActivo()]">
+        @for (program of visiblePrograms(); track program.id) {
+          <button
+            type="button"
+            role="radio"
+            class="pick"
+            [class.is-active]="ficha()[0]?.id === program.id"
+            [attr.aria-checked]="ficha()[0]?.id === program.id"
+            (click)="selectedId.set(program.id)"
+          >
+            @if (program.image) {
+              <span class="pick-foto">
+                <img
+                  [appSrc]="program.image"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  fetchpriority="low"
+                />
+              </span>
+            }
+            <span class="pick-copy">
+              <span class="pick-symbol" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+              <span class="pick-details">
+                <span class="pick-title">{{ program.title }}</span>
+                @if (program.featured) {
+                  <span class="pick-marca">Destacada</span>
+                }
+              </span>
+              <span class="pick-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+            </span>
+          </button>
+        }
+      </div>
+    }
+
+    @for (program of ficha(); track program.id) {
+      <article class="ficha" [attr.aria-labelledby]="'programa-' + program.id">
+        <div class="ficha-hero">
+          @if (program.image) {
+            <figure class="ficha-foto">
+              <img
+                [appSrc]="program.image"
+                [alt]="program.title"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+              />
+            </figure>
+          }
+          <div class="ficha-id">
+            <span class="ficha-etiqueta">Programa de estudio</span>
+            <h2 [id]="'programa-' + program.id">{{ program.title }}</h2>
+            @if (hayTexto(program.description)) {
+              <div class="det-content__html ficha-lead" [innerHTML]="program.description"></div>
+            }
+            <div class="cta-row">
+              <a appButton routerLink="/admision"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Postular a admisión</a>
+              <a
+                appButton
+                variant="whatsapp"
+                [href]="whatsappUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                <span>Informes por WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <dl class="datos">
+          @if (program.vacancies) {
+            <div class="dato">
+              <span class="dato-icon" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+              <div class="dato-body">
+              <dt>Vacantes</dt>
+              <dd>{{ program.vacancies }}</dd>
+            </div>
+            </div>
+          }
+          @if (program.duration) {
+            <div class="dato">
+              <span class="dato-icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
+              <div class="dato-body">
+              <dt>Duración</dt>
+              <dd>{{ program.duration }}</dd>
+            </div>
+            </div>
+          }
+          @if (program.shifts.length) {
+            <div class="dato">
+              <span class="dato-icon" aria-hidden="true"><i class="fa-solid fa-clock"></i></span>
+              <div class="dato-body">
+              <dt>Turnos</dt>
+              <dd class="dato-chips">
+                @for (turno of program.shifts; track turno) {
+                  <span>{{ turno }}</span>
+                }
+              </dd>
+            </div>
+            </div>
+          }
+          @if (program.normative) {
+            <div class="dato">
+              <span class="dato-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
+              <div class="dato-body">
+              <dt>Resolución</dt>
+              <dd>{{ program.normative }}</dd>
+            </div>
+            </div>
+          }
+          @if (program.ageRange) {
+            <div class="dato">
+              <span class="dato-icon" aria-hidden="true"><i class="fa-solid fa-children"></i></span>
+              <div class="dato-body">
+              <dt>Atención</dt>
+              <dd>{{ program.ageRange }}</dd>
+            </div>
+            </div>
+          }
+        </dl>
+
+        @if (program.degreeAwarded) {
+          <p class="grado">{{ program.degreeAwarded }}</p>
+        }
+
+        @if (hayTexto(program.profile) || program.fieldOfWork.length) {
+          <div class="columnas">
+            @if (hayTexto(program.profile)) {
+              <section class="columna" aria-labelledby="perfil-title">
+                <h3 id="perfil-title">Perfil del egresado</h3>
+                <div class="det-content__html" [innerHTML]="program.profile"></div>
+              </section>
+            }
+            @if (program.fieldOfWork.length) {
+              <section class="columna" aria-labelledby="campo-title">
+                <h3 id="campo-title">Campo laboral</h3>
+                <ul>
+                  @for (item of program.fieldOfWork; track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
+        }
+      </article>
+    } @empty {
+      <p class="vacio">Aún no hay programas publicados en este nivel.</p>
+    }
+  </div>
+</section>

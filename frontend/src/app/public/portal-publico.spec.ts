@@ -74,6 +74,25 @@ describe('PortalPublico', () => {
     expect(el.querySelector('footer.pie')?.textContent).toContain('Información institucional');
   });
 
+  it('con un héroe al inicio el h1 queda solo para lectores, sin duplicar el título visible', async () => {
+    await harness.navigateByUrl('/nosotros');
+    http.expectOne('/api/publico/sitio?locale=es').flush(sitio);
+    http.expectOne((r) => r.url === '/api/publico/pagina').flush({
+      titulo: 'Nosotros', version: 1,
+      contenido: { blocks: [makeBlock('pageHero', { title: 'Nosotros', text: '31 años formando maestros' })] },
+    });
+    await estabilizar();
+    const el: HTMLElement = harness.routeNativeElement!;
+    expect(el.querySelector('h1')?.textContent).toContain('Nosotros');
+    expect(el.querySelector('.titulo-pagina')?.classList).toContain('sr-only');
+  });
+
+  it('sin héroe al inicio el h1 se ve', async () => {
+    await harness.navigateByUrl('/estudios/oferta');
+    await responderPagina('/estudios/oferta');
+    expect(harness.routeNativeElement!.querySelector('.titulo-pagina')?.classList).not.toContain('sr-only');
+  });
+
   it('una ruta inexistente muestra 404 con salida al inicio, no redirige en silencio', async () => {
     await harness.navigateByUrl('/no-existe');
     http.expectOne('/api/publico/sitio?locale=es').flush(sitio);

@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../nucleo/sesion.php';
 require_once __DIR__ . '/../../nucleo/auditoria.php';
 require_once __DIR__ . '/../../nucleo/fechas.php';
 require_once __DIR__ . '/../../nucleo/saneado.php';
+require_once __DIR__ . '/../../nucleo/documento.php';
 require_once __DIR__ . '/../../http/errores.php';
 require_once __DIR__ . '/repositorio.php';
 
@@ -342,4 +343,27 @@ function localeDePeticion(): string
 function prepararContenidoDelSitio(array $contenido): array
 {
     return ['contenido' => sanearContenido($contenido), 'avisos' => []];
+}
+
+/**
+ * Contenido del sitio para el panel. Sin sesión devuelve lo publicado (la
+ * lectura pública); con sesión exige un rol que edite el sitio, porque la
+ * respuesta incluye el borrador. Quien no edita páginas tampoco ve esto.
+ */
+function verContenidoDelSitio(string $locale): array
+{
+    if (usuarioActual() !== null) {
+        exigirRol('admin', 'editor');
+    }
+    return leerDocumento(CLAVE_CONTENIDO, $locale);
+}
+
+/**
+ * Guarda el borrador del contenido del sitio. Lo hace quien edita páginas
+ * (admin o editor); publicarlo sigue siendo exclusivo del administrador.
+ */
+function guardarContenidoDelSitio(array $contenido, int $version, string $locale): array
+{
+    exigirRol('admin', 'editor');
+    return guardarDocumento(CLAVE_CONTENIDO, $locale, $contenido, $version, 'prepararContenidoDelSitio');
 }

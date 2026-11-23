@@ -1,0 +1,23 @@
+<section class="servicios-section" aria-labelledby="servicios-inicio-title">
+  <div class="section-intro">
+    <div>
+      <span class="section-eyebrow">EXPLORA MÁS</span>
+      <h2 id="servicios-inicio-title">Otros servicios</h2>
+      <p>Conoce nuestras oportunidades de formación y desarrollo profesional.</p>
+    </div>
+    <a routerLink="/programas" class="section-more">Explorar programas <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+  </div>
+  <div class="servicios-grid">
+    @for (service of services(); track service.src; let i = $index) {
+      <a routerLink="/programas" class="servicio-card" appReveal [appRevealDelay]="i * 80">
+        <span class="servicio-card__media">
+          <img [appSrc]="service.src" [alt]="service.alt" loading="lazy" decoding="async" />
+        </span>
+        <span class="servicio-card__label">
+          <span>{{ service.title }}</span>
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </span>
+      </a>
+    }
+  </div>
+</section>

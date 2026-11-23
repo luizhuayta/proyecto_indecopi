@@ -1,0 +1,38 @@
+
+/* Ajustes propios del módulo, sin modificar formularios ni datos. */
+:host { display: block; min-width: 0; }
+:host .admin-page { display: flex; flex-direction: column; gap: 18px; }
+:host .page-header { padding: 20px 24px; border: 1px solid var(--adm-brand-border); border-radius: 16px; background: linear-gradient(115deg, color-mix(in srgb, var(--adm-brand-soft) 45%, var(--adm-surface)), var(--adm-surface) 70%); }
+:host .page-header .page-title { letter-spacing: -.025em; }
+:host .page-header .page-sub { line-height: 1.6; max-width: 75ch; }
+:host .admin-card { min-width: 0; }
+:host .admin-card > .form-row, :host .admin-card > .form-grid { padding: 22px 24px; margin-bottom: 0; }
+:host .admin-table strong { font-weight: 700; color: var(--adm-ink); }
+:host .admin-table td { line-height: 1.5; }
+:host .admin-table td .form-hint { margin-top: 4px; }
+:host .admin-tabs { margin-bottom: 0; }
+:host .empty-state { padding: 36px 24px; }
+@media (max-width: 720px) {
+  :host .page-header { padding: 18px; }
+  :host .admin-card > .form-row, :host .admin-card > .form-grid { padding: 16px; }
+}
+
+/* Evita que el ancho del sidebar comprima el año, PDF y acciones. */
+:host .investigaciones-listado { min-width: 0; }
+:host .investigaciones-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+:host .investigaciones-scroll:focus-visible { outline: 2px solid var(--adm-brand); outline-offset: -2px; }
+:host .investigaciones-tabla { width: 100%; min-width: 1050px; table-layout: fixed; }
+:host .investigaciones-tabla th:nth-child(1) { width: 40%; }
+:host .investigaciones-tabla th:nth-child(2) { width: 18%; }
+:host .investigaciones-tabla th:nth-child(3) { width: 12%; }
+:host .investigaciones-tabla th:nth-child(4) { width: 6%; }
+:host .investigaciones-tabla th:nth-child(5) { width: 9%; }
+:host .investigaciones-tabla th:nth-child(6) { width: 15%; }
+:host .investigaciones-tabla td { overflow-wrap: break-word; word-break: normal; }
+:host .investigaciones-tabla .col-anio,
+:host .investigaciones-tabla .col-pdf { white-space: nowrap; overflow-wrap: normal; }
+:host .investigaciones-tabla .col-acciones { white-space: normal; }
+:host .investigaciones-tabla .td-actions { display: table-cell; vertical-align: middle; text-align: center; }
+:host .investigaciones-tabla .td-actions .btn-icon { display: inline-flex; margin: 2px; vertical-align: middle; }
+:host .investigaciones-tabla .btn-subir-pdf { white-space: nowrap; padding: 8px 10px; min-height: 36px; cursor: pointer; }
+:host .investigaciones-tabla .form-hint { overflow-wrap: anywhere; }

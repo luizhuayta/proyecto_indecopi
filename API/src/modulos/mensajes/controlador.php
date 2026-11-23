@@ -48,3 +48,12 @@ function controladorResponderMensaje(int $id): void
     $notificar = (bool) ($cuerpo['notificar'] ?? false);
     json_out(responderMensaje($id, $respuesta, $notificar));
 }
+
+/**
+ * POST /mensajes/{id}/archivar — saca un mensaje del flujo de la bandeja.
+ */
+function controladorArchivarMensaje(int $id): void
+{
+    exigirCsrf();
+    json_out(archivarMensaje($id));
+}

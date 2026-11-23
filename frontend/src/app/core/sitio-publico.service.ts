@@ -3,7 +3,20 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE, CmsMenuItem, JsonMap, LOCALE } from '../cms/cms.models';
 import { Identidad } from '../cms/cms-api.service';
+import { ICONOS, type NombreIcono } from '../cms/iconos';
 import { temaPublico } from './tema';
+
+export interface EnlaceAcceso {
+  nombre: string;
+  url: string;
+  icono: NombreIcono | '';
+}
+
+export interface BotonCabecera {
+  texto: string;
+  url: string;
+  estilo: 'principal' | 'contorno';
+}
 
 /**
  * Datos publicados del sitio: identidad, apariencia y menú.
@@ -49,6 +62,39 @@ export class SitioPublicoService {
       : [];
   });
 
+  /** Accesos rápidos de la franja superior (plataformas, aula virtual…). */
+  readonly accesos = computed<EnlaceAcceso[]>(() =>
+    this.lista('accesos')
+      .map((a): EnlaceAcceso => ({
+        nombre: typeof a['nombre'] === 'string' ? a['nombre'].trim() : '',
+        url: this.urlSegura(a['url']),
+        icono:
+          typeof a['icono'] === 'string' && Object.hasOwn(ICONOS, a['icono'])
+            ? (a['icono'] as NombreIcono)
+            : '',
+      }))
+      .filter((a) => a.nombre && a.url)
+      .slice(0, 6),
+  );
+
+  /** Botones de acción de la cabecera: como máximo dos, para no competir entre sí. */
+  readonly botonesCabecera = computed<BotonCabecera[]>(() =>
+    this.lista('botones_cabecera')
+      .map((b): BotonCabecera => ({
+        texto: typeof b['texto'] === 'string' ? b['texto'].trim() : '',
+        url: this.urlSegura(b['url']),
+        estilo: b['estilo'] === 'contorno' ? ('contorno' as const) : ('principal' as const),
+      }))
+      .filter((b) => b.texto && b.url)
+      .slice(0, 2),
+  );
+
+  /** Enlace directo a WhatsApp, o vacío si no hay un número válido. */
+  readonly whatsapp = computed(() => {
+    const numero = this.texto('whatsapp');
+    return /^\d{8,15}$/.test(numero) ? `https://wa.me/${numero}` : '';
+  });
+
   /** True cuando ya se intentó leer la apariencia publicada. */
   readonly cargado = signal(false);
 
@@ -91,6 +137,14 @@ export class SitioPublicoService {
   texto(clave: string): string {
     const valor = this.apariencia()[clave];
     return typeof valor === 'string' ? valor : '';
+  }
+
+  /** Lista de objetos de la apariencia (accesos, botones de cabecera…). */
+  private lista(clave: string): JsonMap[] {
+    const valor = this.apariencia()[clave];
+    return Array.isArray(valor)
+      ? valor.filter((x): x is JsonMap => !!x && typeof x === 'object')
+      : [];
   }
 
   /**

@@ -15,7 +15,7 @@ require_once __DIR__ . '/servicio.php';
  */
 function controladorVerConfiguracion(): void
 {
-    json_out(leerDocumento(CLAVE_CONTENIDO, localeDePeticion()), 200);
+    json_out(verContenidoDelSitio(localeDePeticion()), 200);
 }
 
 /**
@@ -27,7 +27,7 @@ function controladorGuardarConfiguracion(): void
     $cuerpo = cuerpoJson();
     $contenido = is_array($cuerpo['contenido'] ?? null) ? $cuerpo['contenido'] : [];
     $version = (int) ($cuerpo['version'] ?? 0);
-    json_out(guardarDocumento(CLAVE_CONTENIDO, localeDePeticion(), $contenido, $version, 'prepararContenidoDelSitio'), 200);
+    json_out(guardarContenidoDelSitio($contenido, $version, localeDePeticion()), 200);
 }
 
 /**

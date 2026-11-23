@@ -1,0 +1,263 @@
+:host {
+  display: contents;
+}
+
+.admin-sidebar {
+  width: 260px;
+  flex: 0 0 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--adm-sidebar-top) 0%, var(--adm-sidebar-bottom) 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  box-shadow: 4px 0 24px rgba(17, 24, 39, 0.10);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.brand-mark {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--adm-brand), color-mix(in srgb, var(--adm-brand) 75%, white));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--adm-brand) 30%, transparent);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.brand-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  position: relative;
+}
+
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--adm-brand), color-mix(in srgb, var(--adm-brand) 75%, white));
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+
+.sidebar-link:hover::before {
+  height: 60%;
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--adm-brand);
+  outline-offset: -2px;
+}
+
+.sidebar-link.active {
+  background: color-mix(in srgb, var(--adm-brand) 17%, transparent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--adm-brand) 14%, transparent);
+  border: 1px solid transparent;
+}
+
+.sidebar-link.active::before {
+  height: 70%;
+}
+
+.sidebar-link i {
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.15s ease;
+}
+
+.sidebar-link:hover i,
+.sidebar-link.active i {
+  color: currentColor;
+}
+
+.nav-group-label {
+  margin: 14px 12px 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.nav-group-label span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-footer {
+  padding: 12px 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.exit-link {
+  color: color-mix(in srgb, var(--adm-brand) 45%, white);
+}
+
+.exit-link:hover {
+  color: #fff;
+  background: color-mix(in srgb, var(--adm-brand) 14%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Escritorio: el cajón está fijo y el riel se puede contraer.
+   --------------------------------------------------------------------------- */
+@media (min-width: 901px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 45;
+    transition: width 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .admin-sidebar.is-collapsed {
+    width: 74px;
+  }
+
+  /* Contraído: permanece en 74 px incluso al pasar el cursor o usar teclado.
+     El nombre completo se muestra mediante el tooltip nativo del enlace. */
+  .admin-sidebar.is-collapsed .brand-text,
+  .admin-sidebar.is-collapsed .sidebar-link span,
+  .admin-sidebar.is-collapsed .logout-btn span {
+    display: none;
+  }
+
+  .admin-sidebar.is-collapsed .sidebar-brand,
+  .admin-sidebar.is-collapsed .sidebar-link,
+  .admin-sidebar.is-collapsed .logout-btn {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .admin-sidebar.is-collapsed .sidebar-link i,
+  .admin-sidebar.is-collapsed .logout-btn i {
+    font-size: 1.2rem;
+    width: auto;
+  }
+
+  .admin-sidebar.is-collapsed .nav-group-label {
+    margin: 10px 16px;
+    height: 1px;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar,
+  .sidebar-link {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Móvil: cajón deslizante controlado desde .admin-shell (componente padre).
+   --------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 0 0 40px rgba(43, 41, 61, 0.35);
+  }
+
+  :host-context(.admin-shell.nav-open) .admin-sidebar {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .admin-sidebar {
+    transition: none;
+  }
+}

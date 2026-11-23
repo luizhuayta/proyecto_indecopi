@@ -1,12 +1,14 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { adminGuard, seccionGuard } from './core/role.guard';
 import { dirtyGuard } from './core/dirty.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico),
+    loadComponent: () =>
+      import('./public/portal-publico').then((m) => m.PortalPublico),
   },
   {
     path: 'buscar',
@@ -14,48 +16,86 @@ export const routes: Routes = [
   },
   {
     path: 'admin/login',
-    loadComponent: () => import('./admin/admin-login').then((m) => m.AdminLogin),
+    loadComponent: () =>
+      import('./admin/admin-login').then((m) => m.AdminLogin),
   },
   {
     path: 'admin',
     canActivate: [authGuard],
-    loadComponent: () => import('./admin/admin-shell').then((m) => m.AdminShell),
+    loadComponent: () =>
+      import('./admin/admin-shell').then((m) => m.AdminShell),
     children: [
-      { path: '', redirectTo: 'paginas', pathMatch: 'full' },
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./admin/admin-dashboard').then((m) => m.AdminDashboard),
+      },
       {
         path: 'paginas',
-        loadComponent: () => import('./admin/admin-paginas').then((m) => m.AdminPaginas),
+        canActivate: [seccionGuard('paginas')],
+        loadComponent: () =>
+          import('./admin/admin-paginas').then((m) => m.AdminPaginas),
       },
       {
         path: 'editor/:slug',
+        canActivate: [seccionGuard('paginas')],
         canDeactivate: [dirtyGuard],
-        loadComponent: () => import('./admin/page-editor').then((m) => m.PageEditor),
+        loadComponent: () =>
+          import('./admin/page-editor').then((m) => m.PageEditor),
       },
       {
         path: 'identidad',
-        loadComponent: () => import('./admin/admin-identidad').then((m) => m.AdminIdentidad),
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./admin/admin-identidad').then((m) => m.AdminIdentidad),
       },
       {
         path: 'apariencia',
-        loadComponent: () => import('./admin/admin-apariencia').then((m) => m.AdminApariencia),
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./admin/admin-apariencia').then((m) => m.AdminApariencia),
       },
       {
         path: 'mensajes',
-        loadComponent: () => import('./admin/admin-mensajes').then((m) => m.AdminMensajes),
+        loadComponent: () =>
+          import('./admin/admin-mensajes').then((m) => m.AdminMensajes),
+      },
+      {
+        path: 'noticias',
+        loadComponent: () =>
+          import('./admin/admin-noticias').then((m) => m.AdminNoticias),
       },
       {
         path: 'medios',
-        loadComponent: () => import('./admin/admin-medios').then((m) => m.AdminMedios),
+        loadComponent: () =>
+          import('./admin/admin-medios').then((m) => m.AdminMedios),
       },
       {
         path: 'usuarios',
-        loadComponent: () => import('./admin/admin-usuarios').then((m) => m.AdminUsuarios),
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./admin/admin-usuarios').then((m) => m.AdminUsuarios),
       },
       {
         path: 'cuenta',
-        loadComponent: () => import('./admin/admin-cuenta').then((m) => m.AdminCuenta),
+        loadComponent: () =>
+          import('./admin/admin-cuenta').then((m) => m.AdminCuenta),
       },
     ],
   },
-  { path: '**', loadComponent: () => import('./public/portal-publico').then((m) => m.PortalPublico) },
+  {
+    path: 'noticias',
+    loadComponent: () => import('./public/noticias').then((m) => m.Noticias),
+  },
+  {
+    path: 'noticias/:slug',
+    loadComponent: () =>
+      import('./public/noticia-detalle').then((m) => m.NoticiaDetalle),
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./public/portal-publico').then((m) => m.PortalPublico),
+  },
 ];

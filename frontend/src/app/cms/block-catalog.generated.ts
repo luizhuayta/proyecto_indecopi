@@ -19,10 +19,19 @@ export const PAGE_TEMPLATES: PageTemplateDef[] = [
         "type": "hero"
       },
       {
-        "type": "about"
+        "type": "stats"
       },
       {
-        "type": "cta"
+        "type": "accesos"
+      },
+      {
+        "type": "serviceCards"
+      },
+      {
+        "type": "novedades"
+      },
+      {
+        "type": "entidades"
       }
     ]
   },
@@ -128,6 +137,16 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
         "path": "ctaLink",
         "type": "link",
         "label": "Enlace del botón"
+      },
+      {
+        "path": "cta2",
+        "type": "text",
+        "label": "Segundo botón"
+      },
+      {
+        "path": "cta2Link",
+        "type": "link",
+        "label": "Enlace del segundo botón"
       }
     ],
     "defaults": {
@@ -140,7 +159,9 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       ],
       "subtitle": "Texto de ejemplo para la portada.",
       "cta": "Ver más",
-      "ctaLink": "#"
+      "ctaLink": "#",
+      "cta2": "",
+      "cta2Link": ""
     }
   },
   "about": {
@@ -364,14 +385,202 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
     "description": "Números destacados: años, estudiantes, programas.",
     "schema": [
       {
+        "path": "tag",
+        "type": "text",
+        "label": "Etiqueta"
+      },
+      {
+        "path": "title",
+        "type": "text",
+        "label": "Título"
+      },
+      {
         "path": "items",
         "type": "list",
         "label": "Cifras",
         "item": [
           {
             "path": "icon",
-            "type": "text",
-            "label": "Icono"
+            "type": "select",
+            "label": "Icono",
+            "options": [
+              {
+                "value": "",
+                "label": "Sin icono"
+              },
+              {
+                "value": "graduacion",
+                "label": "Graduación"
+              },
+              {
+                "value": "libro",
+                "label": "Libro"
+              },
+              {
+                "value": "biblioteca",
+                "label": "Biblioteca"
+              },
+              {
+                "value": "plataforma",
+                "label": "Plataforma virtual"
+              },
+              {
+                "value": "usuarios",
+                "label": "Personas"
+              },
+              {
+                "value": "calendario",
+                "label": "Calendario"
+              },
+              {
+                "value": "premio",
+                "label": "Premio"
+              },
+              {
+                "value": "documento",
+                "label": "Documento"
+              },
+              {
+                "value": "balanza",
+                "label": "Normativa"
+              },
+              {
+                "value": "monedas",
+                "label": "Costos"
+              },
+              {
+                "value": "correo",
+                "label": "Correo"
+              },
+              {
+                "value": "telefono",
+                "label": "Teléfono"
+              },
+              {
+                "value": "ubicacion",
+                "label": "Ubicación"
+              },
+              {
+                "value": "reloj",
+                "label": "Horario"
+              },
+              {
+                "value": "grafico",
+                "label": "Estadística"
+              },
+              {
+                "value": "escuela",
+                "label": "Institución"
+              },
+              {
+                "value": "noticias",
+                "label": "Noticias"
+              },
+              {
+                "value": "megafono",
+                "label": "Comunicado"
+              },
+              {
+                "value": "escudo",
+                "label": "Privacidad"
+              },
+              {
+                "value": "busqueda",
+                "label": "Buscar"
+              },
+              {
+                "value": "enlace",
+                "label": "Enlace externo"
+              },
+              {
+                "value": "flecha",
+                "label": "Flecha"
+              },
+              {
+                "value": "menu",
+                "label": "Menú"
+              },
+              {
+                "value": "cerrar",
+                "label": "Cerrar"
+              },
+              {
+                "value": "pausa",
+                "label": "Pausa"
+              },
+              {
+                "value": "reproducir",
+                "label": "Reproducir"
+              },
+              {
+                "value": "mensaje",
+                "label": "Mensaje"
+              },
+              {
+                "value": "accesibilidad",
+                "label": "Accesibilidad"
+              },
+              {
+                "value": "inicio",
+                "label": "Inicio"
+              },
+              {
+                "value": "paginas",
+                "label": "Páginas"
+              },
+              {
+                "value": "medios",
+                "label": "Medios"
+              },
+              {
+                "value": "identidad",
+                "label": "Identidad"
+              },
+              {
+                "value": "apariencia",
+                "label": "Apariencia"
+              },
+              {
+                "value": "mensajes",
+                "label": "Bandeja"
+              },
+              {
+                "value": "cuenta",
+                "label": "Cuenta"
+              },
+              {
+                "value": "salir",
+                "label": "Salir"
+              },
+              {
+                "value": "sol",
+                "label": "Modo claro"
+              },
+              {
+                "value": "luna",
+                "label": "Modo oscuro"
+              },
+              {
+                "value": "guia",
+                "label": "Guía"
+              },
+              {
+                "value": "chevron",
+                "label": "Siguiente"
+              },
+              {
+                "value": "plegar",
+                "label": "Plegar"
+              },
+              {
+                "value": "desplegar",
+                "label": "Desplegar"
+              },
+              {
+                "value": "check",
+                "label": "Correcto"
+              }
+            ]
           },
           {
             "path": "number",
@@ -387,11 +596,280 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       }
     ],
     "defaults": {
+      "tag": "",
+      "title": "",
       "items": [
         {
-          "icon": "bi-calendar3",
+          "icon": "calendario",
           "number": "+10",
           "label": "Años"
+        }
+      ]
+    }
+  },
+  "accesos": {
+    "type": "accesos",
+    "label": "Accesos institucionales",
+    "icon": "bi-grid-3x3-gap",
+    "category": "Contenido",
+    "description": "Grupos de enlaces con icono: postulantes, servicios, transparencia.",
+    "schema": [
+      {
+        "path": "title",
+        "type": "text",
+        "label": "Título"
+      },
+      {
+        "path": "grupos",
+        "type": "list",
+        "label": "Grupos",
+        "min": 1,
+        "item": [
+          {
+            "path": "titulo",
+            "type": "text",
+            "label": "Título del grupo"
+          },
+          {
+            "path": "destacado",
+            "type": "bool",
+            "label": "Tarjetas grandes (con descripción)"
+          },
+          {
+            "path": "enlaces",
+            "type": "list",
+            "label": "Enlaces",
+            "min": 1,
+            "item": [
+              {
+                "path": "icono",
+                "type": "select",
+                "label": "Icono",
+                "options": [
+                  {
+                    "value": "",
+                    "label": "Sin icono"
+                  },
+                  {
+                    "value": "graduacion",
+                    "label": "Graduación"
+                  },
+                  {
+                    "value": "libro",
+                    "label": "Libro"
+                  },
+                  {
+                    "value": "biblioteca",
+                    "label": "Biblioteca"
+                  },
+                  {
+                    "value": "plataforma",
+                    "label": "Plataforma virtual"
+                  },
+                  {
+                    "value": "usuarios",
+                    "label": "Personas"
+                  },
+                  {
+                    "value": "calendario",
+                    "label": "Calendario"
+                  },
+                  {
+                    "value": "premio",
+                    "label": "Premio"
+                  },
+                  {
+                    "value": "documento",
+                    "label": "Documento"
+                  },
+                  {
+                    "value": "balanza",
+                    "label": "Normativa"
+                  },
+                  {
+                    "value": "monedas",
+                    "label": "Costos"
+                  },
+                  {
+                    "value": "correo",
+                    "label": "Correo"
+                  },
+                  {
+                    "value": "telefono",
+                    "label": "Teléfono"
+                  },
+                  {
+                    "value": "ubicacion",
+                    "label": "Ubicación"
+                  },
+                  {
+                    "value": "reloj",
+                    "label": "Horario"
+                  },
+                  {
+                    "value": "grafico",
+                    "label": "Estadística"
+                  },
+                  {
+                    "value": "escuela",
+                    "label": "Institución"
+                  },
+                  {
+                    "value": "noticias",
+                    "label": "Noticias"
+                  },
+                  {
+                    "value": "megafono",
+                    "label": "Comunicado"
+                  },
+                  {
+                    "value": "escudo",
+                    "label": "Privacidad"
+                  },
+                  {
+                    "value": "busqueda",
+                    "label": "Buscar"
+                  },
+                  {
+                    "value": "enlace",
+                    "label": "Enlace externo"
+                  },
+                  {
+                    "value": "flecha",
+                    "label": "Flecha"
+                  },
+                  {
+                    "value": "menu",
+                    "label": "Menú"
+                  },
+                  {
+                    "value": "cerrar",
+                    "label": "Cerrar"
+                  },
+                  {
+                    "value": "pausa",
+                    "label": "Pausa"
+                  },
+                  {
+                    "value": "reproducir",
+                    "label": "Reproducir"
+                  },
+                  {
+                    "value": "mensaje",
+                    "label": "Mensaje"
+                  },
+                  {
+                    "value": "accesibilidad",
+                    "label": "Accesibilidad"
+                  },
+                  {
+                    "value": "inicio",
+                    "label": "Inicio"
+                  },
+                  {
+                    "value": "paginas",
+                    "label": "Páginas"
+                  },
+                  {
+                    "value": "medios",
+                    "label": "Medios"
+                  },
+                  {
+                    "value": "identidad",
+                    "label": "Identidad"
+                  },
+                  {
+                    "value": "apariencia",
+                    "label": "Apariencia"
+                  },
+                  {
+                    "value": "mensajes",
+                    "label": "Bandeja"
+                  },
+                  {
+                    "value": "cuenta",
+                    "label": "Cuenta"
+                  },
+                  {
+                    "value": "salir",
+                    "label": "Salir"
+                  },
+                  {
+                    "value": "sol",
+                    "label": "Modo claro"
+                  },
+                  {
+                    "value": "luna",
+                    "label": "Modo oscuro"
+                  },
+                  {
+                    "value": "guia",
+                    "label": "Guía"
+                  },
+                  {
+                    "value": "chevron",
+                    "label": "Siguiente"
+                  },
+                  {
+                    "value": "plegar",
+                    "label": "Plegar"
+                  },
+                  {
+                    "value": "desplegar",
+                    "label": "Desplegar"
+                  },
+                  {
+                    "value": "check",
+                    "label": "Correcto"
+                  }
+                ]
+              },
+              {
+                "path": "texto",
+                "type": "text",
+                "label": "Texto"
+              },
+              {
+                "path": "descripcion",
+                "type": "text",
+                "label": "Descripción"
+              },
+              {
+                "path": "url",
+                "type": "link",
+                "label": "Enlace"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "defaults": {
+      "title": "Transparencia y gestión institucional",
+      "grupos": [
+        {
+          "titulo": "Información para postulantes",
+          "destacado": true,
+          "enlaces": [
+            {
+              "icono": "graduacion",
+              "texto": "Admisión",
+              "descripcion": "Proceso de admisión",
+              "url": "/admision"
+            }
+          ]
+        },
+        {
+          "titulo": "Gestión y normativa",
+          "destacado": false,
+          "enlaces": [
+            {
+              "icono": "documento",
+              "texto": "Transparencia",
+              "descripcion": "",
+              "url": "/transparencia"
+            }
+          ]
         }
       ]
     }
@@ -857,6 +1335,22 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
         "label": "Correo donde llegan los mensajes"
       },
       {
+        "path": "tipo",
+        "type": "select",
+        "label": "Tipo de mensaje",
+        "description": "«Trámite» etiqueta el mensaje como solicitud de mesa de partes en la bandeja del panel.",
+        "options": [
+          {
+            "value": "contacto",
+            "label": "Contacto"
+          },
+          {
+            "value": "tramite",
+            "label": "Trámite (mesa de partes)"
+          }
+        ]
+      },
+      {
         "path": "fields",
         "type": "group",
         "label": "Campos visibles",
@@ -865,6 +1359,11 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
             "path": "name",
             "type": "bool",
             "label": "Nombre"
+          },
+          {
+            "path": "documento",
+            "type": "bool",
+            "label": "Documento (DNI o RUC)"
           },
           {
             "path": "email",
@@ -885,6 +1384,11 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
             "path": "message",
             "type": "bool",
             "label": "Mensaje"
+          },
+          {
+            "path": "consentimiento",
+            "type": "bool",
+            "label": "Consentimiento de datos personales"
           }
         ]
       },
@@ -899,6 +1403,11 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
             "label": "Nombre"
           },
           {
+            "path": "documento",
+            "type": "text",
+            "label": "Documento"
+          },
+          {
             "path": "email",
             "type": "text",
             "label": "Correo"
@@ -919,25 +1428,36 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
             "label": "Mensaje"
           }
         ]
+      },
+      {
+        "path": "consentText",
+        "type": "area",
+        "label": "Texto del consentimiento",
+        "description": "Se muestra junto a la casilla de autorización de datos personales."
       }
     ],
     "defaults": {
+      "tipo": "contacto",
       "submitLabel": "Enviar mensaje",
       "destinationEmail": "correo@ejemplo.test",
       "fields": {
         "name": true,
+        "documento": false,
         "email": true,
         "phone": true,
         "subject": true,
-        "message": true
+        "message": true,
+        "consentimiento": false
       },
       "placeholders": {
         "name": "Su nombre",
+        "documento": "DNI o RUC",
         "email": "Su correo electrónico",
         "phone": "Teléfono",
         "subject": "Asunto",
         "message": "Mensaje"
-      }
+      },
+      "consentText": "Autorizo el tratamiento de mis datos personales para atender esta solicitud, conforme a la Ley N.° 29733 de Protección de Datos Personales."
     }
   },
   "claimsBook": {
@@ -1177,6 +1697,53 @@ export const BLOCK_CATALOG: Record<string, BlockTypeDef> = {
       "title": "Dónde estamos",
       "embed": "",
       "text": ""
+    }
+  },
+  "novedades": {
+    "type": "novedades",
+    "label": "Novedades (noticias y comunicados)",
+    "icon": "bi-newspaper",
+    "category": "Contenido",
+    "description": "Últimas noticias y comunicados publicados desde «Noticias» del panel.",
+    "schema": [
+      {
+        "path": "tag",
+        "type": "text",
+        "label": "Etiqueta"
+      },
+      {
+        "path": "title",
+        "type": "text",
+        "label": "Título"
+      },
+      {
+        "path": "text",
+        "type": "area",
+        "label": "Texto"
+      },
+      {
+        "path": "allLabel",
+        "type": "text",
+        "label": "Texto del enlace a todas las noticias"
+      },
+      {
+        "path": "cantidadNoticias",
+        "type": "number",
+        "label": "Noticias a mostrar (1 a 6)"
+      },
+      {
+        "path": "cantidadComunicados",
+        "type": "number",
+        "label": "Comunicados a mostrar (0 a 6)"
+      }
+    ],
+    "defaults": {
+      "tag": "Actualidad",
+      "title": "Noticias y comunicados",
+      "text": "Lo más reciente de la vida institucional.",
+      "allLabel": "Ver todas las noticias",
+      "cantidadNoticias": 4,
+      "cantidadComunicados": 3
     }
   }
 } as Record<string, BlockTypeDef>;

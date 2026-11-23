@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DOCUMENT, NgStyle } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,8 +7,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, catchError, combineLatest, map, of, switchMap, tap } from 'rxjs';
 import { API_BASE, LOCALE, CmsDocResponse } from '../cms/cms.models';
 import { CmsPageBlocks } from '../cms/blocks/cms-page-blocks';
+import { pageBlocks } from '../cms/block-registry';
 import { SitioPublicoService } from '../core/sitio-publico.service';
 import { MarcoPortal } from './marco-portal';
+
+/** Bloques que ya muestran el título de la página en grande. */
+const TIPOS_HEROE = new Set(['hero', 'pageHero', 'listingHero', 'serviceHero']);
 
 /**
  * Página pública del portal: resuelve la ruta, carga el documento publicado
@@ -34,6 +38,13 @@ export class PortalPublico {
 
   readonly pagina = signal<CmsDocResponse | null>(null);
   readonly estado = signal<'cargando' | 'lista' | 'no-encontrada' | 'error'>('cargando');
+
+  /** True si la página abre con un héroe: entonces el título visible lo da el héroe. */
+  readonly abreConHeroe = computed(() => {
+    const contenido = this.pagina()?.contenido;
+    const primero = contenido ? pageBlocks(contenido).find((b) => !b.hidden) : undefined;
+    return !!primero && TIPOS_HEROE.has(primero.type);
+  });
   /** Causa del estado 'error', para dar un mensaje útil al visitante. */
   readonly causaError = signal<'red' | 'servidor'>('servidor');
   readonly rutaActual = signal('/');

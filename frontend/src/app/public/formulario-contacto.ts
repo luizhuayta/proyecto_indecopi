@@ -36,11 +36,23 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
               [placeholder]="placeholder('name')" [(ngModel)]="nombre" />
           </div>
         }
+        @if (campos().documento) {
+          <div class="formulario__campo">
+            <label for="contacto-documento">Documento (DNI o RUC)</label>
+            <input id="contacto-documento" name="documento" type="text" inputmode="numeric"
+              [placeholder]="placeholder('documento')" [(ngModel)]="documento" />
+          </div>
+        }
         @if (campos().correo) {
           <div class="formulario__campo">
             <label for="contacto-correo">Correo electrónico</label>
             <input id="contacto-correo" name="correo" type="email" required autocomplete="email"
-              [placeholder]="placeholder('email')" [(ngModel)]="correo" />
+              [placeholder]="placeholder('email')" [(ngModel)]="correo"
+              [attr.aria-invalid]="errores()['correo'] ? 'true' : null"
+              (ngModelChange)="limpiarError('correo')" />
+            @if (errores()['correo']; as mensaje) {
+              <p class="formulario__error" role="alert">{{ mensaje }}</p>
+            }
           </div>
         }
         @if (campos().telefono) {
@@ -61,7 +73,27 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
           <div class="formulario__campo">
             <label for="contacto-mensaje">Mensaje</label>
             <textarea id="contacto-mensaje" name="mensaje" rows="6" required
-              [placeholder]="placeholder('message')" [(ngModel)]="mensaje"></textarea>
+              [placeholder]="placeholder('message')" [(ngModel)]="mensaje"
+              [attr.aria-invalid]="errores()['mensaje'] ? 'true' : null"
+              (ngModelChange)="limpiarError('mensaje')"></textarea>
+            @if (errores()['mensaje']; as mensaje) {
+              <p class="formulario__error" role="alert">{{ mensaje }}</p>
+            }
+          </div>
+        }
+
+        @if (campos().consentimiento) {
+          <div>
+            <label class="formulario__consentimiento">
+              <input type="checkbox" name="consentimiento" id="contacto-consentimiento"
+                [(ngModel)]="consentimiento"
+                [attr.aria-invalid]="errores()['consentimiento'] ? 'true' : null"
+                (ngModelChange)="limpiarError('consentimiento')" />
+              <span>{{ consentTexto() }}</span>
+            </label>
+            @if (errores()['consentimiento']; as mensaje) {
+              <p class="formulario__error" role="alert">{{ mensaje }}</p>
+            }
           </div>
         }
 
@@ -101,7 +133,12 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
         color: var(--color-texto);
         min-height: 44px;
       }
+      input[aria-invalid='true'], textarea[aria-invalid='true'] {
+        border-color: var(--color-acento);
+      }
       textarea { min-height: 8rem; resize: vertical; }
+      .formulario__consentimiento { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; }
+      .formulario__consentimiento input { margin-top: 0.3rem; min-height: auto; }
       .formulario__aviso {
         margin: 0;
         padding: 1rem;
@@ -127,32 +164,86 @@ export class FormularioContacto {
   telefono = '';
   asunto = '';
   mensaje = '';
+  documento = '';
+  consentimiento = false;
 
   readonly estado = signal<'iniciando' | 'enviando' | 'enviado'>('iniciando');
   readonly ticket = signal('');
   readonly error = signal('');
+  readonly errores = signal<Record<string, string>>({});
   readonly enviando = computed(() => this.estado() === 'enviando');
 
-  readonly titulo = computed(() => this.textoCampo('title', 'Escríbenos'));
-  readonly texto = computed(() => this.textoCampo('text', ''));
-  readonly boton = computed(() => this.textoCampo('submitLabel', 'Enviar mensaje'));
-  readonly campos = computed(() => {
+  /** El error de un campo se retira cuando la persona lo corrige. */
+  limpiarError(campo: string): void {
+    this.errores.update((actuales) => {
+      if (!actuales[campo]) {
+        return actuales;
+      }
+      const copia = { ...actuales };
+      delete copia[campo];
+      return copia;
+    });
+  }
+
+  titulo(): string {
+    return this.textoCampo('title', 'Escríbenos');
+  }
+
+  texto(): string {
+    return this.textoCampo('text', '');
+  }
+
+  boton(): string {
+    return this.textoCampo('submitLabel', 'Enviar mensaje');
+  }
+
+  campos(): Record<
+    'nombre' | 'correo' | 'telefono' | 'asunto' | 'mensaje' | 'documento' | 'consentimiento',
+    boolean
+  > {
     const campos = this.bloque['fields'];
-    const defecto = { nombre: true, correo: true, telefono: true, asunto: true, mensaje: true };
+    const defecto = {
+      nombre: true,
+      correo: true,
+      telefono: true,
+      asunto: true,
+      mensaje: true,
+      documento: false,
+      consentimiento: false,
+    };
     if (!campos || typeof campos !== 'object') {
       return defecto;
     }
+    // El catálogo guarda los campos con su nombre técnico (name, email, phone,
+    // subject, message); la plantilla usa los nombres en español. Documento y
+    // consentimiento son opcionales: sin bandera explícita no se muestran.
     const elegido = campos as Record<string, unknown>;
     const valor = (clave: string): boolean =>
-      typeof elegido[clave] === 'boolean' ? (elegido[clave] as boolean) : defecto[clave as keyof typeof defecto];
+      typeof elegido[clave] === 'boolean' ? (elegido[clave] as boolean) : true;
+    const opcional = (clave: string): boolean => elegido[clave] === true;
     return {
-      nombre: valor('nombre'),
-      correo: valor('correo'),
-      telefono: valor('telefono'),
-      asunto: valor('asunto'),
-      mensaje: valor('mensaje'),
+      nombre: valor('name'),
+      correo: valor('email'),
+      telefono: valor('phone'),
+      asunto: valor('subject'),
+      mensaje: valor('message'),
+      documento: opcional('documento'),
+      consentimiento: opcional('consentimiento'),
     };
-  });
+  }
+
+  /** Uso del formulario: «contacto» o «tramite» (mesa de partes). */
+  tipo(): string {
+    return this.bloque['tipo'] === 'tramite' ? 'tramite' : 'contacto';
+  }
+
+  /** Texto junto a la casilla de autorización de datos personales. */
+  consentTexto(): string {
+    return this.textoCampo(
+      'consentText',
+      'Autorizo el tratamiento de mis datos personales para atender esta solicitud, conforme a la Ley N.° 29733 de Protección de Datos Personales.'
+    );
+  }
 
   placeholder(clave: string): string {
     const textos = this.bloque['placeholders'];
@@ -172,8 +263,27 @@ export class FormularioContacto {
     if (this.enviando()) {
       return;
     }
-    if (!this.correo.trim() || !this.mensaje.trim()) {
-      this.error.set('Escribe tu correo y tu mensaje para poder enviarlo.');
+    const errores: Record<string, string> = {};
+    if (this.campos().correo) {
+      const correo = this.correo.trim();
+      if (!correo) {
+        errores['correo'] = 'Escribe tu correo para que podamos responderte.';
+      } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
+        errores['correo'] = 'Ese correo no parece completo. Revísalo antes de enviar.';
+      }
+    }
+    if (this.campos().mensaje && !this.mensaje.trim()) {
+      errores['mensaje'] = 'Escribe tu mensaje.';
+    }
+    // La casilla solo es obligatoria cuando está a la vista.
+    if (this.campos().consentimiento && !this.consentimiento) {
+      errores['consentimiento'] =
+        'Marca la autorización de tratamiento de datos para continuar.';
+    }
+    this.errores.set(errores);
+    const primero = ['correo', 'mensaje', 'consentimiento'].find((campo) => errores[campo]);
+    if (primero) {
+      document.getElementById(`contacto-${primero}`)?.focus();
       return;
     }
     this.estado.set('enviando');
@@ -187,8 +297,10 @@ export class FormularioContacto {
           telefono: this.telefono,
           asunto: this.asunto,
           mensaje: this.mensaje,
+          documento: this.documento,
+          consentimiento: this.consentimiento,
           ruta: this.ruta,
-          tipo: 'contacto',
+          tipo: this.tipo(),
         },
         { headers: { 'X-CSRF-Token': this.csrf }, params: { locale: LOCALE } }
       )
@@ -199,12 +311,18 @@ export class FormularioContacto {
         },
         error: (e: HttpErrorResponse) => {
           this.estado.set('iniciando');
-          const cuerpo = e.error as { message?: string; error?: string } | null;
-          this.error.set(
+          const cuerpo = e.error as { message?: string; error?: string; campo?: string } | null;
+          const mensaje =
             cuerpo?.message ??
-              cuerpo?.error ??
-              'No se pudo guardar tu mensaje. Revisa tu conexión e inténtalo de nuevo.'
-          );
+            cuerpo?.error ??
+            'No se pudo guardar tu mensaje. Revisa tu conexión e inténtalo de nuevo.';
+          // Si el API señala un campo concreto, el error va junto a él.
+          if (cuerpo?.campo && document.getElementById(`contacto-${cuerpo.campo}`)) {
+            this.errores.set({ [cuerpo.campo]: mensaje });
+            document.getElementById(`contacto-${cuerpo.campo}`)?.focus();
+            return;
+          }
+          this.error.set(mensaje);
         },
       });
   }

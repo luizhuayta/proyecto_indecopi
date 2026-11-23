@@ -1,0 +1,48 @@
+<app-page-hero [title]="copy().heroTitle" [subtitle]="copy().heroSubtitle" />
+
+<section class="svc-wrap">
+  <div class="svc-intro"><span class="svc-eyebrow">SERVICIOS PARA NUESTRA COMUNIDAD</span><h2>¿En qué podemos ayudarte?</h2><p>Encuentra los canales de atención y servicios disponibles en el instituto.</p></div>
+  <div class="svc-grid">
+    @for (item of copy().hub; track item.ruta) {
+      <a class="svc-card" [routerLink]="item.ruta">
+        <div class="svc-icon" aria-hidden="true"><i class="fa-solid {{ item.icon }}"></i></div>
+        <h3>{{ item.titulo }}</h3>
+        <p>{{ item.descripcion }}</p>
+        <span class="svc-card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+    }
+  </div>
+
+  <app-eva-hub />
+
+  <aside class="svc-panel">
+    <div class="svc-panel-heading"><div class="svc-panel-heading-icon" aria-hidden="true"><i class="fa-solid fa-headset"></i></div><div><span class="svc-panel-eyebrow">CANALES INSTITUCIONALES</span><h2>Atención</h2><p>Estamos para ayudarte. Encuentra aquí nuestros canales de contacto y trámites.</p></div></div>
+    <div class="svc-contact">
+      <div>
+        <i class="fa-solid fa-clock" aria-hidden="true"></i>
+        <div>
+          <strong>Horario administrativo</strong>
+          <p>{{ info().schedule.attention }}</p>
+        </div>
+      </div>
+      <div>
+        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+        <div>
+          <strong>Central</strong>
+          <p>{{ info().contact.phoneFormatted }} · {{ info().contact.whatsappFormatted }}</p>
+        </div>
+      </div>
+      <div>
+        <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+        <div>
+          <strong>Correo</strong>
+          <p>{{ info().contact.emailGeneral }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="svc-actions">
+      <a appButton routerLink="/mesa-de-partes"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Mesa de partes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <a appButton variant="outline" routerLink="/reclamaciones"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Libro de reclamaciones <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </aside>
+</section>

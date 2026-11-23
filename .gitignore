@@ -11,3 +11,6 @@ API/pruebas/temporal/
 .atl/
 # Auditoría de diseño: capturas y snapshots locales, no forman parte del código.
 .impeccable/
+.opencode/
+backup_bd.sql
+__pycache__/

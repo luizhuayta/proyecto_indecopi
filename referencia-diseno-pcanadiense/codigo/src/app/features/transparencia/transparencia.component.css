@@ -1,0 +1,68 @@
+:host { display:block; background:#f3f8ff; color:#123d6b; }
+
+/* Portal de transparencia: diseño institucional */
+.svc-wrap{width:min(1280px,calc(100% - 48px));max-width:1280px;margin:0 auto;padding:46px 0 76px}
+.svc-lead{max-width:940px;margin:0 0 28px;padding:19px 24px;border:1px solid #d9e7f7;border-left:4px solid #1469bd;border-radius:13px;background:#fff;color:#405d7d;font-size:15px;line-height:1.7;box-shadow:0 5px 22px rgba(13,56,103,.035)}
+.svc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:38px}
+.svc-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:228px;padding:25px 22px 22px;border:1px solid #dbe7f6;border-radius:17px;background:#fff;color:#113c70;text-decoration:none;box-shadow:0 8px 24px rgba(14,58,108,.045);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.svc-card:hover{transform:translateY(-4px);border-color:#83b6ed;box-shadow:0 15px 32px rgba(13,67,125,.12)}
+.svc-card:focus-visible{outline:3px solid #2386e0;outline-offset:3px}
+.svc-icon{display:grid;place-items:center;width:52px;height:52px;flex:none;margin-bottom:18px;border-radius:13px;background:#e9f3ff;color:#1269bd;font-size:20px}
+.svc-card h3{font-size:17px;line-height:1.35;font-weight:750;color:#0b3e74;margin:0 0 10px;letter-spacing:-.01em}
+.svc-card p{font-size:14px;line-height:1.6;color:#536b86;margin:0 0 18px;overflow-wrap:anywhere}
+.svc-meta{margin-top:auto;display:flex;align-items:center}
+.svc-badge{display:inline-flex;align-items:center;min-height:29px;padding:6px 11px;border-radius:8px;background:#e7f2ff;color:#075caa;font-size:12px;font-weight:750}
+.svc-badge.is-empty{background:#f0f3f8;color:#63738a}
+.svc-split{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.3fr);gap:22px;align-items:start}
+.svc-panel,.svc-form{min-width:0;padding:30px;border:1px solid #dbe7f6;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(14,58,108,.045)}
+.svc-panel h2,.svc-form h3{margin:0 0 18px;color:#0c3d72;font-size:clamp(21px,2vw,26px);font-weight:800;line-height:1.3}
+.svc-panel>p{margin:0 0 6px;color:#395775;font-size:14px;line-height:1.65}
+.svc-contact{display:grid;gap:11px;margin:25px 0}
+.svc-contact>div{display:flex;align-items:flex-start;gap:14px;padding:16px;border:1px solid #e2ebf7;border-radius:12px;background:#f7faff;min-width:0}
+.svc-contact>div>i{display:grid;place-items:center;width:37px;height:37px;flex:0 0 37px;border-radius:10px;background:#e2efff;color:#1168bd}
+.svc-contact strong{display:block;color:#0e3d70;font-size:14px;margin-bottom:4px}
+.svc-contact p{margin:0;color:#526b86;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.svc-form .svc-muted{margin:0 0 23px;color:#5b708b;font-size:14px;line-height:1.6}
+.svc-form form{display:grid;gap:17px}
+.svc-half{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.svc-form label{display:flex;flex-direction:column;gap:8px;min-width:0;color:#173f70;font-size:14px;font-weight:650}
+.svc-form input:not([type=checkbox]),.svc-form textarea{display:block;width:100%;min-width:0;box-sizing:border-box;padding:12px 14px;border:1px solid #cdddef;border-radius:10px;background:#fff;color:#143e6d;font:inherit;font-weight:400;outline:none}
+.svc-form input:focus,.svc-form textarea:focus{border-color:#1975c9;box-shadow:0 0 0 3px rgba(25,117,201,.12)}
+.svc-form textarea{resize:vertical;min-height:100px}
+.svc-form .svc-check{display:flex;flex-direction:row;align-items:flex-start;gap:10px;font-weight:450;line-height:1.5}
+.svc-check input{margin-top:4px;accent-color:#126abd}
+.svc-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.svc-actions [appButton]{max-width:100%;white-space:normal}
+.field-error{margin:-7px 0 0;color:#b42318;font-size:13px}
+.svc-success{display:grid;gap:12px}
+.svc-success>i{font-size:32px;color:#126abd}
+.svc-success h3,.svc-success p{margin:0}
+@media(max-width:1100px){.svc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:800px){.svc-wrap{width:min(100% - 32px,680px);padding:30px 0 50px}.svc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.svc-split{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.svc-wrap{width:calc(100% - 28px)}.svc-grid{grid-template-columns:minmax(0,1fr)}.svc-card{min-height:0;padding:22px}.svc-panel,.svc-form{padding:22px 18px}.svc-half{grid-template-columns:minmax(0,1fr)}.svc-actions{flex-direction:column}.svc-actions [appButton]{width:100%}}
+@media(prefers-reduced-motion:reduce){.svc-card{transition:none}}
+
+/* Opción 1: clásico moderno, diez rubros en dos filas y paneles equilibrados */
+@media(min-width:1200px){
+ .svc-wrap{width:min(1440px,calc(100% - 64px));max-width:1440px;padding-top:36px}
+ .svc-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:15px;margin-bottom:28px}
+ .svc-card{min-height:194px;padding:19px 17px 17px;border-radius:13px}
+ .svc-icon{width:43px;height:43px;margin-bottom:12px;border-radius:11px;font-size:17px}
+ .svc-card h3{font-size:15px;margin-bottom:7px}
+ .svc-card p{font-size:13px;line-height:1.5;margin-bottom:12px}
+ .svc-split{grid-template-columns:minmax(0,1fr) minmax(0,1.22fr);gap:18px}
+ .svc-contact{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+}
+.svc-wrap{font-size:15px}
+.svc-lead{max-width:none;margin-bottom:23px;padding:16px 20px;border-left-width:3px;border-radius:11px;background:#fff}
+.svc-card{border-color:#e0eaf6;box-shadow:0 4px 17px rgba(16,69,126,.045)}
+.svc-card:hover{border-color:#a2c9f1;box-shadow:0 10px 24px rgba(16,69,126,.10)}
+.svc-badge{background:#dcecff;color:#0754a2}
+.svc-panel,.svc-form{border-radius:14px;padding:25px;box-shadow:0 5px 20px rgba(16,69,126,.045)}
+.svc-panel h2,.svc-form h3{font-size:21px}
+.svc-contact>div{padding:13px;gap:10px}
+.svc-contact>div>i{width:35px;height:35px;flex-basis:35px}
+.svc-form form{gap:14px}
+.svc-form .svc-muted{margin-bottom:8px}
+.svc-form input:not([type=checkbox]),.svc-form textarea{padding:11px 12px}
+@media(min-width:801px) and (max-width:1199px){.svc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}

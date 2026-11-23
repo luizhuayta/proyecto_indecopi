@@ -101,6 +101,28 @@ CREATE TABLE IF NOT EXISTS mensajes (
     KEY idx_mensajes_tipo_estado (tipo, estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Noticias y comunicados: contenido editorial con fecha de publicación.
+-- El editor redacta borradores; solo el administrador publica y elimina.
+CREATE TABLE IF NOT EXISTS noticias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL DEFAULT 'noticia',
+    titulo VARCHAR(200) NOT NULL,
+    slug VARCHAR(120) NOT NULL,
+    categoria VARCHAR(60) NOT NULL DEFAULT '',
+    resumen VARCHAR(400) NOT NULL DEFAULT '',
+    cuerpo MEDIUMTEXT NULL,
+    imagen_url VARCHAR(500) NOT NULL DEFAULT '',
+    imagen_alt VARCHAR(200) NOT NULL DEFAULT '',
+    destacada TINYINT NOT NULL DEFAULT 0,
+    estado VARCHAR(20) NOT NULL DEFAULT 'borrador',
+    publicado_en DATETIME NULL,
+    autor VARCHAR(80) NOT NULL DEFAULT '',
+    creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unq_noticias_slug (slug),
+    KEY idx_noticias_publicas (estado, tipo, publicado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS revisiones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     slug VARCHAR(80) NOT NULL,

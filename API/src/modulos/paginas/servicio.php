@@ -143,6 +143,10 @@ function paginaPublicada(string $slug, string $locale): ?array
  */
 function listarPaginas(string $locale): array
 {
+    // El listado incluye borradores y metadatos de páginas no publicadas:
+    // solo lo ven quienes pueden editar páginas (admin o editor).
+    exigirRol('admin', 'editor');
+
     $filas = paginasTodas($locale);
     $paginas = [];
     $menu = [];
@@ -167,7 +171,7 @@ function listarPaginas(string $locale): array
  */
 function guardarBorrador(string $slug, string $locale, array $contenido, int $version): array
 {
-    exigirSesion();
+    exigirRol('admin', 'editor');
 
     $fila = paginaPorSlug($slug, $locale);
     if ($fila === null) {
@@ -262,7 +266,7 @@ function publicarPagina(string $slug, string $locale, int $version): array
  */
 function listarRevisiones(string $slug, string $locale): array
 {
-    exigirSesion();
+    exigirRol('admin', 'editor');
     $items = array_map(static function (array $fila): array {
         return [
             'id' => (int) $fila['id'],
@@ -280,7 +284,7 @@ function listarRevisiones(string $slug, string $locale): array
  */
 function restaurarRevision(string $slug, string $locale, int $id, int $version): array
 {
-    exigirSesion();
+    exigirRol('admin', 'editor');
 
     $revision = revisionPorId($slug, $locale, $id);
     if ($revision === null) {
@@ -402,6 +406,7 @@ function actualizarMetaPagina(string $slug, array $datos): array
     if ($fila === null) {
         noEncontrado('Página no encontrada.');
     }
+    $rutaAnterior = rutaEfectiva($slug, (string) ($fila['ruta'] ?? ''));
 
     $titulo = array_key_exists('titulo', $datos) ? trim((string) $datos['titulo']) : (string) $fila['titulo'];
     if ($titulo === '') {
@@ -462,6 +467,19 @@ function actualizarMetaPagina(string $slug, array $datos): array
     ]);
 
     $fresca = paginaPorSlug($nuevoSlug, $locale);
+    if ($fresca !== null) {
+        $publicado = decodificarJson($fresca['contenido'] ?? null);
+        $rutaNueva = rutaEfectiva($nuevoSlug, (string) ($fresca['ruta'] ?? ''));
+        if ($publicado !== null) {
+            // El índice guarda la ruta y el título: si cambian, la página
+            // desaparecería de la búsqueda o seguiría con el título viejo.
+            if ($rutaNueva !== $rutaAnterior) {
+                quitarDelIndice($rutaAnterior, $locale);
+            }
+            indexarPagina($rutaNueva, $locale, $titulo, $publicado);
+        }
+    }
+
     return ['pagina' => $fresca !== null ? resumenPaginaDesdeFila($fresca) : []];
 }
 
@@ -477,11 +495,16 @@ function eliminarPagina(string $slug): void
     if ($fila === null) {
         noEncontrado('Página no encontrada.');
     }
+    $ruta = rutaEfectiva($slug, (string) ($fila['ruta'] ?? ''));
 
     enTransaccion(static function () use ($slug, $locale): void {
         eliminarPaginaBd($slug, $locale);
         eliminarRevisionesPagina($slug, $locale);
     });
+
+    // La página ya no existe: su entrada en el índice solo ocupa espacio y
+    // podría reaparecer si se crea otra página con la misma ruta.
+    quitarDelIndice($ruta, $locale);
 
     registrarAuditoria('eliminar_pagina', 'paginas', $slug, [
         'titulo' => (string) $fila['titulo'],

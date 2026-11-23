@@ -1,0 +1,310 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  Type,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import { ContenidoStore } from '../../../core/store/contenido.store';
+import { InstitutionService } from '../../../core/services/institution.service';
+import { MenuStore } from '../../../core/store/menu.store';
+import { menuDeZona, type MenuItem } from '../../../core/constants/navigation.constant';
+import type { Program, ProgramLevel } from '../../../core/constants/programs.constant';
+
+import { ServiciosComponent } from '../../../features/servicios/servicios.component';
+import { TransparenciaComponent } from '../../../features/transparencia/transparencia.component';
+import { ReglamentosComponent } from '../../../features/reglamentos/reglamentos.component';
+import { Procedimientos } from '../../../features/procedimientos/procedimientos';
+import { PsicopedagogicoComponent } from '../../../features/psicopedagogico/psicopedagogico.component';
+import { ServicioSocialComponent } from '../../../features/servicio-social/servicio-social.component';
+import { SoporteMedicoComponent } from '../../../features/soporte-medico/soporte-medico.component';
+import { ReclamacionesComponent } from '../../../features/reclamaciones/reclamaciones.component';
+import { Privacidad } from '../../../features/privacidad/privacidad';
+import { RepositorioComponent } from '../../../features/repositorio/repositorio.component';
+import { Programas } from '../../../features/programas/programas';
+import { HeaderComponent } from '../../../shared/header/header.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
+
+export type ModuloVistaServicio =
+  | 'servicios'
+  | 'transparencia'
+  | 'reglamentos'
+  | 'procedimientos'
+  | 'psicopedagogico'
+  | 'servicio-social'
+  | 'soporte-medico'
+  | 'reclamaciones'
+  | 'privacidad'
+  | 'repositorio-copy'
+  | 'programas'
+  | 'menu';
+
+const PAGINAS: Record<ModuloVistaServicio, Type<unknown>> = {
+  servicios: ServiciosComponent,
+  transparencia: TransparenciaComponent,
+  reglamentos: ReglamentosComponent,
+  procedimientos: Procedimientos,
+  psicopedagogico: PsicopedagogicoComponent,
+  'servicio-social': ServicioSocialComponent,
+  'soporte-medico': SoporteMedicoComponent,
+  reclamaciones: ReclamacionesComponent,
+  privacidad: Privacidad,
+  'repositorio-copy': RepositorioComponent,
+  programas: Programas,
+  menu: HeaderComponent,
+};
+
+const PROPIEDAD_STORE: Partial<Record<ModuloVistaServicio, string>> = {
+  servicios: 'servicios',
+  transparencia: 'transparencia',
+  reglamentos: 'reglamentos',
+  procedimientos: 'procedimientos',
+  psicopedagogico: 'psicopedagogico',
+  'servicio-social': 'servicioSocial',
+  'soporte-medico': 'soporteMedico',
+  reclamaciones: 'reclamaciones',
+  privacidad: 'privacidad',
+  'repositorio-copy': 'repositorioCopy',
+};
+
+@Component({
+  selector: 'app-service-live-preview',
+  standalone: true,
+  imports: [NgComponentOutlet],
+  template: `
+    <section class="preview-shell">
+      <header class="preview-header">
+        <div>
+          <span class="preview-label">VISTA PREVIA EN TIEMPO REAL</span>
+          <h2>{{ titulo() }}</h2>
+          <p>
+            Vista de la pÃ¡gina pÃºblica sin modificar
+            los datos guardados.
+          </p>
+        </div>
+
+        <span class="preview-state" [class.pending]="cambios()">
+          {{ cambios() ? 'Sin guardar' : 'Vista actual' }}
+        </span>
+      </header>
+
+      <div class="preview-toolbar">
+        <span>Componente pÃºblico original</span>
+
+        <div class="preview-zoom">
+          <button type="button" (click)="alejar()" aria-label="Alejar">
+            âˆ’
+          </button>
+          <strong>{{ (zoom() * 100).toFixed(0) }}%</strong>
+          <button type="button" (click)="acercar()" aria-label="Acercar">
+            +
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-scroll">
+        <div
+          class="preview-scaled"
+          inert
+          [style.zoom]="zoom()"
+          [style.width.%]="100 / zoom()"
+        >
+          <ng-container
+            *ngComponentOutlet="pagina(); injector: inyectorVista"
+          />
+
+          @if (modulo() === 'menu') {
+            <ng-container
+              *ngComponentOutlet="piePagina; injector: inyectorVista"
+            />
+          }
+        </div>
+      </div>
+
+      <footer class="preview-footer">
+        <span>
+          Vista de consulta: los formularios y enlaces
+          de este panel estÃ¡n deshabilitados.
+        </span>
+        <a
+          [href]="rutaPublica()"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ver publicada
+        </a>
+      </footer>
+    </section>
+  `,
+  styleUrl: '../admin-live-preview/admin-live-preview.css',
+  styles: `
+    :host { display: block; min-width: 0; height: 100%; }
+    .preview-scaled { min-height: 140px; }
+    .preview-scaled[inert] { pointer-events: none; }
+    .preview-header { min-width: 0; }
+    .preview-header h2 { overflow-wrap: anywhere; }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ServiceLivePreview {
+  private readonly contenidoOriginal = inject(ContenidoStore);
+  private readonly institucionOriginal = inject(InstitutionService);
+  private readonly menuOriginal = inject(MenuStore);
+  private readonly inyectorPadre = inject(Injector);
+
+  readonly modulo = input<ModuloVistaServicio>('servicios');
+  readonly titulo = input.required<string>();
+  readonly borrador = input<unknown>(null);
+  readonly cambios = input(false);
+  readonly programas = input<Program[] | null>(null);
+  readonly menuItems = input<MenuItem[] | null>(null);
+
+  readonly zoom = signal(0.7);
+  readonly piePagina = FooterComponent;
+
+  readonly pagina = computed<Type<unknown>>(() => PAGINAS[this.modulo()]);
+
+  readonly rutaPublica = computed(() => {
+    const m = this.modulo();
+    if (m === 'menu') return '/inicio';
+    if (m === 'repositorio-copy') return '/repositorio';
+    return '/' + m;
+  });
+
+  private readonly contenidoBorrador = computed(() => {
+    const dato = this.borrador();
+
+    if (
+      dato !== null &&
+      typeof dato === 'object' &&
+      !Array.isArray(dato)
+    ) {
+      return dato;
+    }
+
+    const propiedad = PROPIEDAD_STORE[this.modulo()];
+    if (!propiedad) return null;
+
+    const store = Reflect.get(this.contenidoOriginal, propiedad) as {
+      value: () => unknown;
+    };
+
+    return store.value();
+  });
+
+  private readonly contenidoAislado = new Proxy(
+    this.contenidoOriginal,
+    {
+      get: (original, propiedad) => {
+        const objetivo = PROPIEDAD_STORE[this.modulo()];
+
+        if (objetivo && propiedad === objetivo) {
+          const base = Reflect.get(original, propiedad);
+
+          return new Proxy(base, {
+            get: (store, atributo) => {
+              if (atributo === 'value') {
+                return this.contenidoBorrador;
+              }
+
+              return Reflect.get(store, atributo, store);
+            },
+          });
+        }
+
+        return Reflect.get(original, propiedad, original);
+      },
+    }
+  );
+
+  private readonly programasVista = computed(
+    () => this.programas() ?? this.institucionOriginal.programs()
+  );
+
+  private readonly nivelesVista = computed<ProgramLevel[]>(() => {
+    const niveles = this.programasVista().map(p => p.level);
+    return [...new Set(niveles)];
+  });
+
+  private readonly institucionAislada = new Proxy(
+    this.institucionOriginal,
+    {
+      get: (original, propiedad) => {
+        if (this.modulo() === 'programas') {
+          if (propiedad === 'programs') return this.programasVista;
+          if (propiedad === 'nivelesConOferta') return this.nivelesVista;
+        }
+
+        return Reflect.get(original, propiedad, original);
+      },
+    }
+  );
+
+  private readonly menuPrincipal = computed(() =>
+    this.menuItems()
+      ? menuDeZona(this.menuItems()!, 'principal')
+      : this.menuOriginal.principal()
+  );
+
+  private readonly menuAcciones = computed(() =>
+    this.menuItems()
+      ? menuDeZona(this.menuItems()!, 'acciones')
+      : this.menuOriginal.acciones()
+  );
+
+  private readonly menuPieInstitucional = computed(() =>
+    this.menuItems()
+      ? menuDeZona(this.menuItems()!, 'pie-institucional')
+      : this.menuOriginal.pieInstitucional()
+  );
+
+  private readonly menuPieServicios = computed(() =>
+    this.menuItems()
+      ? menuDeZona(this.menuItems()!, 'pie-servicios')
+      : this.menuOriginal.pieServicios()
+  );
+
+  private readonly menuAislado = new Proxy(
+    this.menuOriginal,
+    {
+      get: (original, propiedad) => {
+        if (propiedad === 'principal') return this.menuPrincipal;
+        if (propiedad === 'acciones') return this.menuAcciones;
+        if (propiedad === 'pieInstitucional') {
+          return this.menuPieInstitucional;
+        }
+        if (propiedad === 'pieServicios') return this.menuPieServicios;
+
+        if (propiedad === 'aplicar') return () => undefined;
+        if (propiedad === 'hidratar') return async () => undefined;
+
+        return Reflect.get(original, propiedad, original);
+      },
+    }
+  );
+
+  readonly inyectorVista = Injector.create({
+    parent: this.inyectorPadre,
+    providers: [
+      { provide: ContenidoStore, useValue: this.contenidoAislado },
+      { provide: InstitutionService, useValue: this.institucionAislada },
+      { provide: MenuStore, useValue: this.menuAislado },
+    ],
+  });
+
+  acercar(): void {
+    this.zoom.update(v =>
+      Math.min(1, Number((v + 0.05).toFixed(2)))
+    );
+  }
+
+  alejar(): void {
+    this.zoom.update(v =>
+      Math.max(0.45, Number((v - 0.05).toFixed(2)))
+    );
+  }
+}

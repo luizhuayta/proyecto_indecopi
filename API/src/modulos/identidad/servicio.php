@@ -16,6 +16,7 @@ require_once __DIR__ . '/../../nucleo/sesion.php';
 require_once __DIR__ . '/../../nucleo/auditoria.php';
 require_once __DIR__ . '/../../nucleo/validacion.php';
 require_once __DIR__ . '/../../nucleo/fechas.php';
+require_once __DIR__ . '/../../nucleo/documento.php';
 require_once __DIR__ . '/../../http/errores.php';
 require_once __DIR__ . '/esquemas.php';
 require_once __DIR__ . '/repositorio.php';
@@ -214,6 +215,40 @@ function validarApariencia(array $contenido): array
         }
     }
 
+    // Listas de enlaces del marco: objetos con texto y url. Los límites son
+    // los del diseño: la franja no cabe con más de seis accesos y la
+    // cabecera pierde jerarquía con más de dos botones.
+    $listas = [
+        'accesos' => ['claves' => ['nombre', 'url'], 'maximo' => 6],
+        'botones_cabecera' => ['claves' => ['texto', 'url'], 'maximo' => 2],
+    ];
+    foreach ($listas as $campo => $regla) {
+        if (!array_key_exists($campo, $contenido)) {
+            continue;
+        }
+        $lista = $contenido[$campo];
+        if (!is_array($lista) || !array_is_list($lista) || count($lista) > $regla['maximo']) {
+            solicitudInvalida("«{$campo}» admite como máximo {$regla['maximo']} elementos.", ['campo' => $campo]);
+        }
+        foreach ($lista as $indice => $item) {
+            if (!is_array($item)) {
+                solicitudInvalida('Cada enlace debe ser un objeto.', ['campo' => "{$campo}.{$indice}"]);
+            }
+            foreach ($regla['claves'] as $clave) {
+                if (!is_string($item[$clave] ?? null)) {
+                    solicitudInvalida("Falta «{$clave}» en el enlace.", ['campo' => "{$campo}.{$indice}.{$clave}"]);
+                }
+            }
+            if ($campo === 'botones_cabecera' && !in_array($item['estilo'] ?? 'principal', ['principal', 'contorno'], true)) {
+                solicitudInvalida('El estilo del botón debe ser «principal» o «contorno».', ['campo' => "{$campo}.{$indice}.estilo"]);
+            }
+        }
+    }
+    $whatsapp = (string) ($contenido['whatsapp'] ?? '');
+    if ($whatsapp !== '' && preg_match('/^\d{8,15}$/', $whatsapp) !== 1) {
+        solicitudInvalida('El WhatsApp debe tener de 8 a 15 dígitos, sin espacios ni «+».', ['campo' => 'whatsapp']);
+    }
+
     $avisos = [];
     $texto = (string) ($contenido['color_texto'] ?? '');
     $fondo = (string) ($contenido['color_fondo'] ?? '');
@@ -273,4 +308,14 @@ function validarApariencia(array $contenido): array
 function prepararApariencia(array $contenido): array
 {
     return ['contenido' => $contenido, 'avisos' => validarApariencia($contenido)];
+}
+
+/**
+ * Guarda el borrador de la apariencia. Lo hace quien edita el sitio (admin o
+ * editor); leerla y publicarla sigue siendo exclusivo del administrador.
+ */
+function guardarApariencia(array $contenido, int $version, string $locale): array
+{
+    exigirRol('admin', 'editor');
+    return guardarDocumento(CLAVE_APARIENCIA, $locale, $contenido, $version, 'prepararApariencia');
 }

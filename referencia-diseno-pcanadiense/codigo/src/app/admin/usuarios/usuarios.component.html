@@ -1,0 +1,189 @@
+﻿<div class="gestion-live-grid">
+  <section class="gestion-live-editor">
+<div class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Usuarios del panel</h1>
+      <p class="page-sub">
+        Cuentas que pueden entrar a <code>/admin</code>. Un <strong>editor</strong> gestiona
+        contenido; un <strong>administrador</strong> además gestiona cuentas.
+      </p>
+    </div>
+    <div class="page-header-actions">
+      <button type="button" class="btn-add" (click)="abrirNuevo()">
+        <i class="fa fa-plus"></i> Nueva cuenta
+      </button>
+    </div>
+  </header>
+
+  <div class="admin-list-toolbar"><label for="buscar-usuarios">Buscar</label><input id="buscar-usuarios" type="search" [value]="busqueda()" (input)="buscar($any($event.target).value)" placeholder="Buscar cuentas" /><span>{{ filtrados().length }} resultados</span></div>
+  <div class="admin-card">
+    @if (cargando()) {
+      <p class="form-hint" role="status" aria-live="polite">Cargando cuentas…</p>
+    } @else if (error()) {
+      <div class="empty-state">
+        <p role="alert">{{ error() }}</p><button type="button" class="btn-ghost" (click)="cargar()">Reintentar</button>
+      </div>
+    } @else {
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Último acceso</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of paginados(); track usuario.id) {
+            <tr>
+              <td>
+                <strong>{{ usuario.nombre }}</strong>
+                @if (usuario.email) {
+                  <div class="form-hint">{{ usuario.email }}</div>
+                }
+              </td>
+              <td>{{ usuario.username }}</td>
+              <td>{{ usuario.rol === 'admin' ? 'Administrador' : 'Editor' }}</td>
+              <td>
+                @if (usuario.activo) {
+                  <span class="badge badge-publicado">Activa</span>
+                } @else {
+                  <span class="badge badge-borrador">Inactiva</span>
+                }
+              </td>
+              <td>{{ fecha(usuario.ultimoAcceso) }}</td>
+              <td class="td-actions">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  (click)="abrirEditar(usuario)"
+                  [attr.aria-label]="'Editar cuenta de ' + usuario.nombre"
+                >
+                  <i class="fa fa-pen"></i>
+                </button>
+                @if (usuario.id !== yo()?.id) {
+                  <button
+                    type="button"
+                    class="btn-icon btn-delete"
+                    (click)="confirmar.set(usuario)"
+                    [attr.aria-label]="'Eliminar cuenta de ' + usuario.nombre"
+                  >
+                    <i class="fa fa-trash"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">No hay cuentas registradas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+  <nav class="admin-pagination" aria-label="Páginas de usuarios"><span>Página {{ paginaActual() }} de {{ totalPaginas() }}</span><button type="button" class="btn-ghost" [disabled]="paginaActual() === 1" (click)="cambiarPagina(-1)">Anterior</button><button type="button" class="btn-ghost" [disabled]="paginaActual() === totalPaginas()" (click)="cambiarPagina(1)">Siguiente</button></nav>
+</div>
+
+<app-dialog
+  [open]="formAbierto()"
+  [title]="editandoId() ? 'Editar cuenta' : 'Nueva cuenta'"
+  (openChange)="alCambiarDialogo($event)"
+>
+  <div class="form-grid">
+    <div class="form-row">
+      <label for="usuario-nombre">Nombre completo *</label>
+      <input
+        id="usuario-nombre"
+        type="text"
+        required
+        [attr.aria-invalid]="!form().nombre.trim()"
+        [value]="form().nombre"
+        (input)="patch('nombre', $any($event.target).value)"
+      />
+    </div>
+    <div class="form-row">
+      <label for="usuario-username">Usuario *</label>
+      <input
+        id="usuario-username"
+        type="text"
+        required
+        [attr.aria-invalid]="!form().username.trim()"
+        [value]="form().username"
+        (input)="patch('username', $any($event.target).value)"
+      />
+      <p class="form-hint">Letras, números, punto, guion y guion bajo.</p>
+    </div>
+    <div class="form-row">
+      <label for="usuario-email">Correo institucional</label>
+      <input
+        id="usuario-email"
+        type="email"
+        [value]="form().email"
+        (input)="patch('email', $any($event.target).value)"
+      />
+    </div>
+    <div class="form-row">
+      <label>Rol</label>
+      <select [value]="form().rol" (change)="patch('rol', $any($event.target).value)">
+        <option value="editor">Editor</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="usuario-password">Contraseña {{ editandoId() ? '(opcional)' : '*' }}</label>
+      <input
+        id="usuario-password"
+        type="password"
+        [required]="!editandoId()"
+        minlength="8"
+        autocomplete="new-password"
+        [value]="form().password"
+        (input)="patch('password', $any($event.target).value)"
+      />
+      <p class="form-hint">
+        {{
+          editandoId()
+            ? 'Déjela vacía para no cambiarla. Cambiarla cierra sus sesiones abiertas.'
+            : 'Mínimo 8 caracteres.'
+        }}
+      </p>
+    </div>
+    <div class="form-row">
+      <label>Estado</label>
+      <select
+        [value]="form().activo ? 'si' : 'no'"
+        (change)="patch('activo', $any($event.target).value === 'si')"
+      >
+        <option value="si">Activa</option>
+        <option value="no">Inactiva</option>
+      </select>
+    </div>
+  </div>
+  <div dialog-footer>
+    <button type="button" class="btn-cancel" (click)="cerrarFormulario()">Cancelar</button>
+    <button type="button" class="btn-save" [disabled]="guardando()" (click)="guardar()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+</app-dialog>
+
+<app-dialog
+  [open]="!!confirmar()"
+  title="Eliminar cuenta"
+  (openChange)="confirmar.set($event ? confirmar() : null)"
+ variant="danger">
+  <p>La persona dejará de poder entrar al panel. Sus cambios anteriores se conservan.</p>
+  <div dialog-footer>
+    <button type="button" class="btn-cancel" (click)="confirmar.set(null)">Cancelar</button>
+    <button type="button" class="btn-danger" [disabled]="eliminando()" (click)="eliminar()">{{ eliminando() ? 'Eliminando…' : 'Eliminar' }}</button>
+  </div>
+</app-dialog>
+
+  </section>
+      <app-gestion-preview
+        modulo="usuarios"
+        titulo="Usuarios"
+      />
+</div>

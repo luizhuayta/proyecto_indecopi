@@ -1,4 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MediosService } from '../core/medios.service';
 import { CmsContentService } from '../cms/cms-content.service';
 import { MedioItem, MedioVersionItem } from '../cms/cms-api.service';
@@ -57,15 +59,17 @@ export function cajaRecorteEnPixeles(
   standalone: true,
   imports: [EstadoVacio],
   template: `
-    <header>
-      <h1 class="admin-titulo">Medios</h1>
-      <p class="admin-subtitulo">
-        Las imágenes del sitio. Sube, recorta y describe las que se usan en las páginas.
-      </p>
+    <header class="admin-encabezado">
+      <div>
+        <h2 class="admin-encabezado__titulo">Medios</h2>
+        <p class="admin-subtitulo admin-encabezado__texto">
+          Las imágenes del sitio. Sube, recorta y revisa las que se usan en las páginas.
+        </p>
+      </div>
     </header>
 
     <div class="medios">
-      <section class="medios__biblioteca" aria-label="Biblioteca de imágenes">
+      <section class="medios__biblioteca admin-tarjeta" aria-label="Biblioteca de imágenes">
         <div
           class="zona-subida"
           [class.zona-subida--activa]="arrastrando()"
@@ -77,6 +81,7 @@ export function cajaRecorteEnPixeles(
             #entradaArchivo
             type="file"
             accept="image/*"
+            aria-label="Elegir archivo de imagen"
             hidden
             (change)="elegirArchivo($any($event.target).files?.[0])"
           />
@@ -126,9 +131,6 @@ export function cajaRecorteEnPixeles(
                 >
                   <img [src]="item.url" alt="" />
                   <span class="miniatura__nombre">{{ item.nombre_original }}</span>
-                  @if (esPendiente(item)) {
-                    <span class="miniatura__pendiente">Alt pendiente</span>
-                  }
                 </button>
               </li>
             }
@@ -136,9 +138,9 @@ export function cajaRecorteEnPixeles(
         }
       </section>
 
-      <aside class="medios__ficha" aria-label="Ficha del medio">
+      <aside class="medios__ficha admin-tarjeta" aria-label="Ficha del medio">
         @if (seleccionado(); as item) {
-          <img class="ficha__imagen" [src]="item.url" [alt]="medios.altDe(item) || item.nombre_original" />
+          <img class="ficha__imagen" [src]="item.url" [alt]="item.nombre_original" />
 
           <dl class="ficha__datos">
             <div><dt>Nombre</dt><dd>{{ item.nombre_original }}</dd></div>
@@ -160,20 +162,6 @@ export function cajaRecorteEnPixeles(
                 {{ copiado() ? 'Copiado' : 'Copiar' }}
               </button>
             </div>
-          </div>
-
-          <div class="admin-campo">
-            <label [for]="'alt-' + item.id">Texto alternativo</label>
-            <input
-              [id]="'alt-' + item.id"
-              class="admin-control"
-              type="text"
-              [value]="medios.altDe(item)"
-              (input)="medios.setAlt(item.id, $any($event.target).value)"
-            />
-            @if (esPendiente(item)) {
-              <p class="admin-error">Sin texto alternativo. El servidor lo exige para imágenes con contenido.</p>
-            }
           </div>
 
           @if (cropMode()) {
@@ -415,19 +403,10 @@ export function cajaRecorteEnPixeles(
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .miniatura__pendiente {
-        font-size: var(--texto-xs, 0.75rem);
-        color: var(--color-acento);
-      }
       .medios__ficha {
         display: flex;
         flex-direction: column;
         gap: var(--space-12, 0.75rem);
-        border: 1px solid var(--color-borde);
-        border-radius: var(--radio-tarjeta, 6px);
-        padding: var(--space-16, 1rem);
-        background: var(--color-superficie);
-        box-shadow: var(--shadow-sm);
       }
       .ficha__imagen {
         border-radius: var(--radio-campo, 4px);
@@ -504,11 +483,6 @@ export function cajaRecorteEnPixeles(
         color: var(--color-texto);
         text-transform: capitalize;
       }
-      .admin-error {
-        margin: 0;
-        font-size: var(--texto-sm, 0.875rem);
-        color: var(--color-acento);
-      }
       .crop-escena {
         position: relative;
         border: 1px solid var(--color-borde);
@@ -577,6 +551,9 @@ export class AdminMedios implements OnInit, OnDestroy {
   medios = inject(MediosService);
   private cms = inject(CmsContentService);
   private dialogo = inject(DialogoService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private sub?: Subscription;
 
   readonly seleccionadoId = signal<number | null>(null);
   readonly cropMode = signal(false);
@@ -595,6 +572,8 @@ export class AdminMedios implements OnInit, OnDestroy {
   );
 
   @ViewChild('cropEscena') private escena?: ElementRef<HTMLElement>;
+  /** Selector oculto de archivos: «Subir imagen» de la cabecera lo acciona. */
+  @ViewChild('entradaArchivo') private entradaArchivo?: ElementRef<HTMLInputElement>;
 
   private drag: {
     modo: 'move' | 'resize';
@@ -610,9 +589,24 @@ export class AdminMedios implements OnInit, OnDestroy {
     if (!this.medios.loaded()) {
       void this.medios.listar();
     }
+    // «Subir imagen» de la cabecera llega como ?subir=1: abre el selector de
+    // archivos igual que el botón «Elegir imagen» y limpia la URL.
+    this.sub = this.route.queryParams.subscribe((params) => {
+      if (params['subir'] !== '1') {
+        return;
+      }
+      setTimeout(() => this.entradaArchivo?.nativeElement.click());
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { subir: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
   }
 
   ngOnDestroy(): void {
+    this.sub?.unsubscribe();
     if (this.urlObjeto && typeof URL.revokeObjectURL === 'function') {
       URL.revokeObjectURL(this.urlObjeto);
     }
@@ -708,10 +702,6 @@ export class AdminMedios implements OnInit, OnDestroy {
     this.status.set('Versión restaurada.');
     const items = await this.medios.versiones(item.id);
     this.versiones.set(items ?? []);
-  }
-
-  esPendiente(item: MedioItem): boolean {
-    return this.medios.altDe(item).length === 0;
   }
 
   async copiarUrl(): Promise<void> {

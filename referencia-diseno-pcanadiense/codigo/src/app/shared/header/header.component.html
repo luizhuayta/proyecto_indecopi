@@ -1,0 +1,74 @@
+<nav class="side-buttons" aria-label="Plataformas institucionales">
+  <a
+    class="side-item"
+    [href]="info().ecosystemEVA.office365"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <div class="side-btn">
+      <img appSrc="icons/icon_eva.png" alt="" />
+    </div>
+    <span class="side-text">Plataforma EVA</span>
+  </a>
+
+  <a
+    class="side-item"
+    [href]="info().ecosystemEVA.teams"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <div class="side-btn">
+      <img appSrc="icons/icon_aula.png" alt="" />
+    </div>
+    <span class="side-text">Aula virtual</span>
+  </a>
+
+  <a routerLink="/repositorio" class="side-item">
+    <div class="side-btn">
+      <img appSrc="icons/icon_biblioteca.png" alt="" />
+    </div>
+    <span class="side-text">Biblioteca virtual</span>
+  </a>
+</nav>
+
+<nav class="navbar">
+  <a routerLink="/inicio" class="logo" (click)="closeMenu()">
+    <img appSrc="assets/logopc2.png" [alt]="info().shortName" />
+  </a>
+
+  <button
+    class="menu-toggle"
+    type="button"
+    (click)="toggleMenu()"
+    [class.active]="isMenuOpen()"
+    [attr.aria-expanded]="isMenuOpen()"
+    aria-controls="site-nav"
+    aria-label="Abrir menú"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div id="site-nav" class="nav-content" [class.active]="isMenuOpen()">
+    <ul class="menu">
+      @for (enlace of enlaces(); track enlace.id) {
+        <li>
+          <a app-enlace-menu [item]="enlace" claseActiva="nav-active" (navegar)="closeMenu()"></a>
+        </li>
+      }
+    </ul>
+
+    <div class="nav-actions">
+      @for (accion of acciones(); track accion.id) {
+        <a
+          app-enlace-menu
+          [item]="accion"
+          [clase]="'btn-' + (accion.variante || 'admision')"
+          [claseActiva]="'btn-' + (accion.variante || 'admision') + '-active'"
+          (navegar)="closeMenu()"
+        ></a>
+      }
+    </div>
+  </div>
+</nav>

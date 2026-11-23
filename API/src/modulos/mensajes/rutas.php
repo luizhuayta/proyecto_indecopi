@@ -7,6 +7,7 @@ declare(strict_types=1);
  *   POST /mensajes                -> alta desde el formulario público
  *   GET  /mensajes                -> bandeja del panel
  *   POST /mensajes/{id}/responder -> respuesta a un mensaje
+ *   POST /mensajes/{id}/archivar  -> saca un mensaje del flujo de la bandeja
  */
 
 require_once __DIR__ . '/../../http/errores.php';
@@ -24,6 +25,10 @@ function manejarRutasMensajes(string $metodo, string $ruta): void
     }
     if ($metodo === 'POST' && preg_match('#^/mensajes/(\d+)/responder$#', $ruta, $coincidencia) === 1) {
         controladorResponderMensaje((int) $coincidencia[1]);
+        return;
+    }
+    if ($metodo === 'POST' && preg_match('#^/mensajes/(\d+)/archivar$#', $ruta, $coincidencia) === 1) {
+        controladorArchivarMensaje((int) $coincidencia[1]);
         return;
     }
 

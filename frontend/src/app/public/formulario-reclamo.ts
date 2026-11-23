@@ -89,7 +89,11 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
           <div class="reclamo__campo">
             <label for="reclamo-correo">Correo electrónico</label>
             <input id="reclamo-correo" name="correo" type="email" autocomplete="email" required
-              [(ngModel)]="correo" />
+              [(ngModel)]="correo" [attr.aria-invalid]="errores()['correo'] ? 'true' : null"
+              (ngModelChange)="limpiarError('correo')" />
+            @if (errores()['correo']; as mensaje) {
+              <p class="reclamo__error" role="alert">{{ mensaje }}</p>
+            }
           </div>
           <div class="reclamo__campo">
             <label for="reclamo-telefono">Teléfono</label>
@@ -99,16 +103,28 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
           <div class="reclamo__campo">
             <label for="reclamo-detalle">Detalle de la solicitud</label>
             <textarea id="reclamo-detalle" name="detalle" rows="6" required
-              [(ngModel)]="detalle"></textarea>
+              [(ngModel)]="detalle" [attr.aria-invalid]="errores()['detalle'] ? 'true' : null"
+              (ngModelChange)="limpiarError('detalle')"></textarea>
+            @if (errores()['detalle']; as mensaje) {
+              <p class="reclamo__error" role="alert">{{ mensaje }}</p>
+            }
           </div>
 
-          <label class="reclamo__consentimiento">
-            <input type="checkbox" name="consentimiento" [(ngModel)]="consentimiento" />
-            <span>
-              Autorizo el tratamiento de mis datos personales para atender esta solicitud, conforme
-              a la Ley N.º 29733 de Protección de Datos Personales.
-            </span>
-          </label>
+          <div>
+            <label class="reclamo__consentimiento">
+              <input type="checkbox" name="consentimiento" id="reclamo-consentimiento"
+                [(ngModel)]="consentimiento"
+                [attr.aria-invalid]="errores()['consentimiento'] ? 'true' : null"
+                (ngModelChange)="limpiarError('consentimiento')" />
+              <span>
+                Autorizo el tratamiento de mis datos personales para atender esta solicitud, conforme
+                a la Ley N.º 29733 de Protección de Datos Personales.
+              </span>
+            </label>
+            @if (errores()['consentimiento']; as mensaje) {
+              <p class="reclamo__error" role="alert">{{ mensaje }}</p>
+            }
+          </div>
 
           @if (error()) {
             <p class="reclamo__error" role="alert">{{ error() }}</p>
@@ -165,6 +181,9 @@ import { API_BASE, LOCALE, JsonMap } from '../cms/cms.models';
         color: var(--color-texto);
         min-height: 44px;
       }
+      input[aria-invalid='true'], textarea[aria-invalid='true'] {
+        border-color: var(--color-acento);
+      }
       textarea { min-height: 8rem; resize: vertical; }
       .reclamo__consentimiento { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; }
       .reclamo__consentimiento input { margin-top: 0.3rem; min-height: auto; }
@@ -199,16 +218,52 @@ export class FormularioReclamo {
   readonly estado = signal<'iniciando' | 'enviando' | 'enviado'>('iniciando');
   readonly ticket = signal('');
   readonly error = signal('');
+  readonly errores = signal<Record<string, string>>({});
   readonly enviando = computed(() => this.estado() === 'enviando');
 
-  readonly titulo = computed(() => this.texto('title', 'Libro de Reclamaciones'));
-  readonly institucion = computed(() => this.texto('company', ''));
-  readonly subtitulo = computed(() => this.texto('subtitle', ''));
-  readonly logo = computed(() => this.texto('logo', ''));
-  readonly ruc = computed(() => this.texto('ruc', ''));
-  readonly aviso1 = computed(() => this.texto('disclaimer1', ''));
-  readonly aviso2 = computed(() => this.texto('disclaimer2', ''));
-  readonly boton = computed(() => this.texto('submitLabel', 'Enviar reclamo'));
+  /** El error de un campo se retira cuando la persona lo corrige. */
+  limpiarError(campo: string): void {
+    this.errores.update((actuales) => {
+      if (!actuales[campo]) {
+        return actuales;
+      }
+      const copia = { ...actuales };
+      delete copia[campo];
+      return copia;
+    });
+  }
+
+  titulo(): string {
+    return this.texto('title', 'Libro de Reclamaciones');
+  }
+
+  institucion(): string {
+    return this.texto('company', '');
+  }
+
+  subtitulo(): string {
+    return this.texto('subtitle', '');
+  }
+
+  logo(): string {
+    return this.texto('logo', '');
+  }
+
+  ruc(): string {
+    return this.texto('ruc', '');
+  }
+
+  aviso1(): string {
+    return this.texto('disclaimer1', '');
+  }
+
+  aviso2(): string {
+    return this.texto('disclaimer2', '');
+  }
+
+  boton(): string {
+    return this.texto('submitLabel', 'Enviar reclamo');
+  }
 
   texto(clave: string, defecto: string): string {
     const valor = this.bloque[clave];
@@ -219,12 +274,23 @@ export class FormularioReclamo {
     if (this.enviando()) {
       return;
     }
-    if (!this.correo.trim() || !this.detalle.trim()) {
-      this.error.set('Escribe tu correo y el detalle de la solicitud para poder registrarla.');
-      return;
+    const errores: Record<string, string> = {};
+    const correo = this.correo.trim();
+    if (!correo) {
+      errores['correo'] = 'Escribe tu correo para que podamos responderte.';
+    } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
+      errores['correo'] = 'Ese correo no parece completo. Revísalo antes de enviar.';
+    }
+    if (!this.detalle.trim()) {
+      errores['detalle'] = 'Escribe el detalle de tu solicitud.';
     }
     if (!this.consentimiento) {
-      this.error.set('Marca la autorización de tratamiento de datos para continuar.');
+      errores['consentimiento'] = 'Marca la autorización de tratamiento de datos para continuar.';
+    }
+    this.errores.set(errores);
+    const primero = ['correo', 'detalle', 'consentimiento'].find((campo) => errores[campo]);
+    if (primero) {
+      document.getElementById(`reclamo-${primero}`)?.focus();
       return;
     }
     this.estado.set('enviando');
@@ -234,10 +300,12 @@ export class FormularioReclamo {
         `${API_BASE}/mensajes`,
         {
           nombre: this.nombre,
+          documento: this.documento,
           correo: this.correo,
           telefono: this.telefono,
           asunto: this.tipoSolicitud === 'queja' ? 'Queja' : 'Reclamo',
           mensaje: this.detalle,
+          consentimiento: this.consentimiento,
           ruta: this.ruta,
           tipo: 'reclamo',
         },
@@ -250,12 +318,20 @@ export class FormularioReclamo {
         },
         error: (e: HttpErrorResponse) => {
           this.estado.set('iniciando');
-          const cuerpo = e.error as { message?: string; error?: string } | null;
-          this.error.set(
+          const cuerpo = e.error as { message?: string; error?: string; campo?: string } | null;
+          const mensaje =
             cuerpo?.message ??
-              cuerpo?.error ??
-              'No se pudo registrar tu solicitud. Revisa tu conexión e inténtalo de nuevo.'
-          );
+            cuerpo?.error ??
+            'No se pudo registrar tu solicitud. Revisa tu conexión e inténtalo de nuevo.';
+          // Si el API señala un campo concreto, el error va junto a él.
+          // El API llama «mensaje» a lo que aquí es el detalle.
+          const campo = cuerpo?.campo === 'mensaje' ? 'detalle' : cuerpo?.campo;
+          if (campo && document.getElementById(`reclamo-${campo}`)) {
+            this.errores.set({ [campo]: mensaje });
+            document.getElementById(`reclamo-${campo}`)?.focus();
+            return;
+          }
+          this.error.set(mensaje);
         },
       });
   }

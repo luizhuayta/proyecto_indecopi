@@ -1,0 +1,93 @@
+/* Sistema visual compartido por todos los módulos del panel administrativo. */
+.admin-shell {
+  --adm-brand: var(--inst-primary, #b91c2b);
+  --adm-brand-soft: color-mix(in srgb, var(--inst-primary, #b91c2b) 7%, white);
+  --adm-brand-border: color-mix(in srgb, var(--inst-primary, #b91c2b) 14%, #e2e8f0);
+  --adm-brand-hover: var(--inst-hover, #991827);
+  --adm-brand-contrast: var(--inst-contrast, #ffffff);
+  --adm-sidebar-top: var(--inst-sidebar-top, #292d3b);
+  --adm-sidebar-bottom: var(--inst-sidebar-bottom, #191e2b);
+  --adm-ink: #292d3b;
+  --adm-ink-soft: #64748b;
+  --adm-surface: #ffffff;
+  --adm-bg: #f7f6f8;
+  --adm-line: #e2e8f0;
+  --adm-ok: #16834b;
+  --adm-ok-bg: #eafaf1;
+  --adm-warn: #976c19;
+  --adm-warn-bg: #fff7e7;
+  --adm-danger: #ad202e;
+  --adm-danger-bg: #fcecee;
+  --adm-muted: #526174;
+  --adm-muted-bg: #edf2f7;
+  --adm-radius: 14px;
+  --adm-shadow: 0 3px 18px rgba(28, 44, 68, 0.055);
+}
+
+/* Temas elegidos desde Mi cuenta. Sólo afectan al panel administrativo. */
+.admin-shell[data-paleta="rojo"] {
+  --inst-primary: #b91c2b;
+  --inst-hover: #991827;
+  --inst-soft: #fce9ec;
+  --inst-border: #f0d7da;
+  --inst-contrast: #ffffff;
+  --inst-sidebar-top: #292d3b;
+  --inst-sidebar-bottom: #191e2b;
+}
+.admin-shell[data-paleta="azul"] {
+  --inst-primary: #24476b;
+  --inst-hover: #183550;
+  --inst-soft: #eaf1f8;
+  --inst-border: #cadce9;
+  --inst-contrast: #ffffff;
+  --inst-sidebar-top: #292d3b;
+  --inst-sidebar-bottom: #191e2b;
+}
+.admin-shell[data-paleta="celeste"] {
+  --inst-primary: #238ac7;
+  --inst-hover: #16699d;
+  --inst-soft: #e9f5fc;
+  --inst-border: #c8e3f3;
+  --inst-contrast: #ffffff;
+  --inst-sidebar-top: #292d3b;
+  --inst-sidebar-bottom: #191e2b;
+}
+.admin-shell[data-paleta="naranja"] {
+  --inst-primary: #f26922;
+  --inst-hover: #c84b10;
+  --inst-soft: #fff0e6;
+  --inst-border: #f8d3bb;
+  --inst-contrast: #ffffff;
+  --inst-sidebar-top: #292d3b;
+  --inst-sidebar-bottom: #191e2b;
+}
+.admin-shell[data-paleta="amarillo"] {
+  --inst-primary: #a67900;
+  --inst-hover: #795700;
+  --inst-soft: #fff7cc;
+  --inst-border: #eadb8e;
+  --inst-contrast: #ffffff;
+  --inst-sidebar-top: #292d3b;
+  --inst-sidebar-bottom: #191e2b;
+}
+
+/* Modo oscuro independiente de las cinco paletas institucionales. */
+.admin-shell[data-modo="oscuro"] {
+  color-scheme: dark;
+  --adm-ink: #edf2fa;
+  --adm-ink-soft: #a8b7cb;
+  --adm-surface: #202b3b;
+  --adm-bg: #141d2a;
+  --adm-line: #364456;
+  --adm-muted: #bac6d5;
+  --adm-muted-bg: #303e51;
+  --adm-brand-soft: color-mix(in srgb, var(--adm-brand) 17%, #202b3b);
+  --adm-brand-border: color-mix(in srgb, var(--adm-brand) 28%, #364456);
+  --adm-ok: #66d49c;
+  --adm-ok-bg: #193d31;
+  --adm-warn: #f3c46d;
+  --adm-warn-bg: #493b24;
+  --adm-danger: #ff8992;
+  --adm-danger-bg: #4b2935;
+  --adm-shadow: 0 3px 18px rgba(0,0,0,.14);
+}

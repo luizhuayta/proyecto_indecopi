@@ -50,6 +50,14 @@ describe('CmsApiService', () => {
     expect(res.version).toBe(6);
   });
 
+  it('convierte un documento vacío del API en un objeto editable', async () => {
+    const promesa = service.getApariencia();
+    const req = http.expectOne(`${API_BASE}/configuracion/apariencia`);
+    req.flush({ contenido: [], version: 2, actualizado_en: null });
+    const res = await promesa;
+    expect(res.contenido).toEqual({});
+  });
+
   it('el conflicto 409 se propaga', async () => {
     const promesa = service.guardarPagina('inicio', { blocks: [] }, 1);
     const req = http.expectOne(

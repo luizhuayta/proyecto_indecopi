@@ -26,7 +26,7 @@
           </section>
         }
         @case ('lista') {
-          <div class="marco-ancho titulo-pagina">
+          <div class="marco-ancho titulo-pagina" [class.sr-only]="abreConHeroe()">
             <h1 class="titulo-h1">{{ pagina()?.titulo }}</h1>
           </div>
           <app-cms-page-blocks

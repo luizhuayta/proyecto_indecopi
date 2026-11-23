@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   BLOCK_CATALOG,
   BLOCK_TYPES,
+  PAGE_TEMPLATES,
   makeBlock,
   pageBlocks,
   visibleBlocks,
@@ -43,6 +44,21 @@ describe('block-registry', () => {
   it('el catalogo tiene el bloque de entidades', () => {
     expect(BLOCK_CATALOG['entidades']).toBeDefined();
     expect(BLOCK_CATALOG['entidades'].label).toBe('Entidades colaboradoras');
+  });
+
+  it('la plantilla Portada sigue el orden del diseño institucional', () => {
+    const home = PAGE_TEMPLATES.find((t) => t.id === 'home')!;
+    expect(home.blocks.map((b) => b.type)).toEqual([
+      'hero',
+      'stats',
+      'accesos',
+      'serviceCards',
+      'novedades',
+      'entidades',
+    ]);
+    for (const b of home.blocks) {
+      expect(BLOCK_CATALOG[b.type]).toBeDefined();
+    }
   });
 
   it('la plantilla de entidades usa el bloque entidades', () => {

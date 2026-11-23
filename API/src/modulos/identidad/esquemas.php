@@ -38,6 +38,9 @@ function esquemasIdentidad(): array
             'correo_contacto' => ['correo'],
             'telefono_contacto' => ['texto'],
             'redes' => ['json'],
+            'accesos' => ['json'],
+            'botones_cabecera' => ['json'],
+            'whatsapp' => ['texto', 'longitud_max', 15],
         ],
     ];
 }

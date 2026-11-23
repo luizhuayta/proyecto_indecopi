@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/servicio.php';
 require_once __DIR__ . '/../seo/servicio.php';
 require_once __DIR__ . '/../busqueda/servicio.php';
+require_once __DIR__ . '/../noticias/servicio.php';
 require_once __DIR__ . '/../../http/respuesta.php';
 
 function controladorSitioPublico(): void
@@ -53,4 +54,26 @@ function controladorBuscar(): void
     }
     $limite = (int) ($_GET['limite'] ?? 20);
     json_out(['resultados' => buscar($consulta, localeDePeticion(), $limite)]);
+}
+
+/**
+ * GET /publico/noticias — noticias y comunicados publicados, con filtros
+ * `tipo`, `q`, `limite` y `pagina`.
+ */
+function controladorNoticiasPublicas(): void
+{
+    json_out(noticiasPublicas([
+        'tipo' => $_GET['tipo'] ?? null,
+        'limite' => $_GET['limite'] ?? 12,
+        'pagina' => $_GET['pagina'] ?? 1,
+        'q' => $_GET['q'] ?? '',
+    ]));
+}
+
+/**
+ * GET /publico/noticias/{slug} — una noticia publicada con su cuerpo.
+ */
+function controladorNoticiaPublica(string $slug): void
+{
+    json_out(noticiaPublica($slug));
 }

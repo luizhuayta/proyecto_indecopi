@@ -57,6 +57,9 @@ function autenticarUsuario(string $usuario, string $contrasena): array
  */
 function cerrarSesion(): void
 {
+    // destruirSesion() es no-op si la sesión PHP no está activa; el logout no
+    // pasa por revalidarSesion(), así que hay que abrirla para poder borrarla.
+    arrancarSesionPhp();
     destruirSesion();
 }
 
@@ -147,8 +150,8 @@ function actualizarUsuario(int $id, array $datos): array
     }
 
     $rol = array_key_exists('rol', $datos) ? (string) $datos['rol'] : (string) $registro['rol'];
-    if (!in_array($rol, ['admin', 'editor'], true)) {
-        solicitudInvalida('El rol debe ser admin o editor.', ['campo' => 'rol']);
+    if (!in_array($rol, ['admin', 'editor', 'secretaria'], true)) {
+        solicitudInvalida('El rol debe ser admin, editor o secretaria.', ['campo' => 'rol']);
     }
     $activo = array_key_exists('activo', $datos)
         ? (!empty($datos['activo']) ? 1 : 0)

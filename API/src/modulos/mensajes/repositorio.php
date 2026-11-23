@@ -72,3 +72,21 @@ function actualizarMensajeBd(int $id, string $estado, string $respuesta, bool $n
     );
     $stmt->execute([$estado, $respuesta, $notificado ? 1 : 0, $id]);
 }
+
+/**
+ * Marca que el aviso por correo del mensaje llegó a entregarse.
+ */
+function marcarNotificadoBd(int $id): void
+{
+    $stmt = conexion()->prepare('UPDATE mensajes SET notificado = 1 WHERE id = ?');
+    $stmt->execute([$id]);
+}
+
+/**
+ * Cambia solo el estado de un mensaje, sin tocar respuesta ni notificación.
+ */
+function cambiarEstadoMensajeBd(int $id, string $estado): void
+{
+    $stmt = conexion()->prepare('UPDATE mensajes SET estado = ? WHERE id = ?');
+    $stmt->execute([$estado, $id]);
+}

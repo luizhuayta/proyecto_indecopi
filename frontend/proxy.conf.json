@@ -3,5 +3,17 @@
     "target": "http://127.0.0.1:8000",
     "secure": false,
     "changeOrigin": true
+  },
+  "/sitemap.xml": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/sitemap.xml": "/api/publico/sitemap.xml" }
+  },
+  "/robots.txt": {
+    "target": "http://127.0.0.1:8000",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/robots.txt": "/api/publico/robots.txt" }
   }
 }
