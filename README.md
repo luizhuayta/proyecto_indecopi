@@ -1,5 +1,7 @@
 # Portal institucional educativo
 
+> **Software propietario — Todos los derechos reservados.** Este repositorio es privado y NO es código abierto (no es MIT). Ver [LICENSE](LICENSE) y la sección «Licencia y propiedad intelectual» al final.
+
 Plantilla maestra de portal institucional para universidades e institutos, con panel de administración y editor visual de páginas. Construida sobre **Angular 21 + PHP 8.1 + MariaDB**, pensada para hosting compartido cPanel.
 
 ## Qué incluye
@@ -29,35 +31,94 @@ El portal sigue el lenguaje visual del diseño de referencia (`referencia-diseno
 | PHP | 8.1 o superior, con `pdo_mysql`, `gd`, `mbstring`, `openssl`, `curl`, `fileinfo`, `iconv` |
 | Node.js | 20 o superior (solo para compilar el frontend) |
 | MariaDB / MySQL | 10.6 o superior |
-| Docker | Para el entorno de desarrollo |
+| Docker o Podman | Opcional, para el entorno con contenedores (hay alternativa nativa abajo) |
 
 ## Puesta en marcha
+
+Los comandos `docker` funcionan igual con **Docker o Podman** (en Linux con
+Podman rootless, `docker` suele ser un alias de `podman`). Sin contenedores,
+usa la «Alternativa sin Docker/Podman» de abajo.
 
 ```bash
 # 1. Dependencias del frontend
 cd frontend && npm install && cd ..
 
-# 2. Base de datos (MariaDB en el puerto 3307)
+# 2. Imagen de PHP 8.1 con las extensiones del API (una sola vez por equipo)
+docker build -t plantilla-php81 -f tools/Dockerfile.php81 .
+
+# 3. Base de datos (MariaDB en el puerto 3307)
 docker compose up -d
 
-# 3. API (http://127.0.0.1:8000)
+# 4. API (http://127.0.0.1:8000)
 mkdir -p "$HOME/.local/share/plantilla-almacen"
-docker run -d --name plantilla_portal_api -p 8000:8000 \
-  --add-host=host.docker.internal:host-gateway \
-  -e DB_HOST=host.docker.internal -e DB_PORT=3307 \
+docker run -d --name plantilla_portal_api --network host \
+  -e DB_HOST=127.0.0.1 -e DB_PORT=3307 \
   -e ALMACEN_DIR=/almacen \
   -v "$PWD":/app -v "$HOME/.local/share/plantilla-almacen:/almacen" \
   -w /app plantilla-php81 php -S 0.0.0.0:8000 -t API API/entrada.php
 
-# 4. Frontend (http://127.0.0.1:4200)
+# 5. Frontend (http://127.0.0.1:4200)
 cd frontend && npm start
 ```
 
-La configuración del API se lee de `API/.env` (copiar desde `API/.env.example`). La carpeta de archivos subidos debe quedar fuera del directorio público. Si el puerto de MariaDB del compose no es 3307 en tu equipo, ajusta `DB_PORT` en el comando del API.
+- `--network host` es el modo que funciona igual en Docker y Podman rootless
+  (con pasta, `host.docker.internal` no resuelve). En Docker Desktop
+  (macOS/Windows), usa en su lugar `-p 8000:8000
+  --add-host=host.docker.internal:host-gateway -e DB_HOST=host.docker.internal`.
+- Si el puerto 3307 ya está ocupado por otro proyecto, cambia el mapeo en
+  `docker-compose.yml` (p. ej. `3308:3306`) y ajusta `DB_PORT` en el comando
+  del API y en `API/.env`. Lo mismo aplica a los puertos 8000 y 4200.
+- Si el contenedor `plantilla_mariadb` ya existe de una instalación anterior,
+  basta `docker start plantilla_mariadb`; `docker compose up -d` intentaría
+  recrearlo.
+
+La configuración del API se lee de `API/.env` (copiar desde `API/.env.example`). La carpeta de archivos subidos debe quedar fuera del directorio público.
+
+### Alternativa sin Docker/Podman
+
+Todo el código es PHP plano y Angular: no hay nada atado a contenedores.
+Requisitos: PHP 8.1+ CLI con `pdo_mysql`, `gd`, `mbstring`, `openssl`, `curl`,
+`fileinfo`, `iconv`; MariaDB/MySQL 10.6+; Node 20+.
+
+```bash
+# 1. Base de datos: crea la base y el usuario en tu MariaDB (o usa los tuyos)
+mysql -uroot -e "CREATE DATABASE plantilla_cms; CREATE USER 'plantilla'@'localhost' IDENTIFIED BY 'plantilla_local'; GRANT ALL ON plantilla_cms.* TO 'plantilla'@'localhost';"
+mysql -uplantilla -pplantilla_local plantilla_cms < API/esquema.sql
+
+# 2. Configuración
+cp API/.env.example API/.env   # ajusta DB_* y ALMACEN_DIR si hace falta
+
+# 3. API (http://127.0.0.1:8000), desde la raíz del proyecto
+php -S 0.0.0.0:8000 -t API API/entrada.php
+
+# 4. Frontend (http://127.0.0.1:4200)
+cd frontend && npm install && npm start
+```
+
+`API/esquema.sql` es idempotente: sirve tanto para instalar de cero como para
+actualizar una base existente sin tocar los datos. Para partir con contenido
+y usuarios de prueba, importa `backup_bd.sql` en lugar del esquema.
 
 ### Correo de avisos (SMTP)
 
 Sin las variables `SMTP_*` en `API/.env`, el correo no se envía: los mensajes del formulario de contacto y del libro de reclamaciones quedan guardados en la bandeja del panel, sin notificación. Al rellenar `SMTP_HOST`, `SMTP_REMITENTE` (y usuario/clave si el servidor los pide), cada mensaje nuevo de contacto o reclamo avisa al correo de la institución (o a `SMTP_REMITENTE` si la institución no tiene correo), y el panel puede responder avisando al visitante con la casilla «Avisar por correo». Un fallo del servidor de correo nunca pierde el mensaje: queda en la bandeja y el fallo se registra en el log.
+
+## Ejecución autónoma con agentes de código
+
+El repositorio incluye `AGENTS.md` en la raíz: es la guía para que un agente
+(OpenCode, Claude Code, Codex u otro) levante el entorno, ejecute las pruebas
+y trabaje por fases de forma autónoma. En cualquier equipo basta pedirle:
+**«lee AGENTS.md, verifica el entorno y ejecuta las pruebas»**.
+
+- En un equipo nuevo, el agente debe seguir «Puesta en marcha»: construir la
+  imagen `plantilla-php81` con `tools/Dockerfile.php81` y usar el puerto que
+  publique el compose (3307 por defecto).
+- Las cuentas locales del panel (`/admin`) y sus claves de prueba están en
+  `AGENTS.md`. El login tiene rate-limit (8 intentos / 5 min por IP): si un
+  script falla al entrar, se borra `API/tmp/ratelimit/login_*.json` o se
+  esperan 5 minutos.
+- Las fases de trabajo se documentan en `docs/superpowers/` y `PLAN_CIERRE.md`;
+  el agente no debe rehacer lo que ya está cerrado.
 
 ## Compilar
 
@@ -111,3 +172,26 @@ tools/      Utilidades de generación y verificación
 6. Crea el administrador en la tabla `usuarios`: `usuario`, `hash_contrasena` (generado con `password_hash()`), `rol` = `admin` y `activo` = 1.
 7. Deja la carpeta de archivos subidos fuera de `public_html`, con permisos 700, y apunta `ALMACEN_DIR` a ella.
 8. Comprueba `https://tu-dominio/sitemap.xml` y `https://tu-dominio/robots.txt` después de publicar al menos la portada.
+
+## Licencia y propiedad intelectual
+
+**Software propietario. Copyright (c) 2026 luizhuayta — Todos los derechos
+reservados.** Este proyecto no es MIT ni código abierto: el texto completo
+está en [LICENSE](LICENSE) (sustituye el titular por tu nombre legal antes de
+distribuir).
+
+- El código, el diseño y la documentación están protegidos por el **Decreto
+  Legislativo 822** (Ley sobre el Derecho de Autor, Perú) y convenios
+  internacionales. La protección nace con la creación, sin necesidad de
+  registro; el registro de obra de software ante la Dirección Nacional de
+  Derecho de Autor de **Indecopi** es declarativo y da fecha cierta de autoría.
+- El nombre y el logotipo se protegen como **marca** ante Indecopi (registro
+  de 10 años, renovable indefinidamente). Las actualizaciones del software no
+  obligan a registrar la marca de nuevo mientras el signo no cambie.
+- Copiar, plagiar, redistribuir o explotar este software sin autorización
+  escrita puede constituir **delito contra los derechos de autor** (arts. 216
+  a 221 del Código Penal peruano), además de acciones civiles y
+  administrativas ante Indecopi.
+- Cada institución que adquiera una instancia recibe una licencia de uso
+  limitada a esa instancia; la plantilla maestra y sus derechos siguen siendo
+  del titular.

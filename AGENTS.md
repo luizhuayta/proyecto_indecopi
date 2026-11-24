@@ -1,6 +1,7 @@
 # AGENTS.md — proyecto_indecopi-master
 
 ## Entorno local (Linux con podman rootless; `docker` = podman)
+- En un equipo nuevo: seguir el README «Puesta en marcha» (construir `docker build -t plantilla-php81 -f tools/Dockerfile.php81 .`; el compose publica 3307). Los puertos de abajo son los de ESTE equipo.
 - MariaDB: `docker start plantilla_mariadb` (no usar `docker compose up -d`: intenta recrear el contenedor). Puerto real **127.0.0.1:3308**.
 - API (desde la raíz; `host.docker.internal` no funciona con pasta, usar red del host):
   `docker run -d --name plantilla_portal_api --network host -e DB_HOST=127.0.0.1 -e DB_PORT=3308 -e ALMACEN_DIR=/almacen -v "$PWD":/app -v "$HOME/.local/share/plantilla-almacen:/almacen" -w /app plantilla-php81 php -S 0.0.0.0:8000 -t API API/entrada.php`
